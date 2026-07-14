@@ -1,0 +1,73 @@
+#characterContainer{
+    position:fixed;
+    left:18px;
+    bottom:10px;
+    width:clamp(105px, 13vw, 160px);
+    opacity:0;
+    pointer-events:none;
+    transition:
+        left 1.25s cubic-bezier(.22,1,.36,1),
+        bottom 1.25s cubic-bezier(.22,1,.36,1),
+        width 1.25s cubic-bezier(.22,1,.36,1),
+        opacity .6s ease;
+    z-index:1500;
+}
+
+#characterContainer.is-visible{
+    opacity:1;
+}
+
+#characterContainer.is-intro-scene{
+    left:56vw;
+    bottom:-3vh;
+    width:min(43vw, 560px);
+    z-index:4500;
+}
+
+.dog-character{
+    display:block;
+    width:100%;
+    height:auto;
+    filter:drop-shadow(0 14px 20px rgba(39,12,26,.22));
+    transform-origin:center bottom;
+    will-change:transform;
+}
+
+.dog-character.is-intro{
+    animation:
+        dogArrival .7s cubic-bezier(.22,1,.36,1) both,
+        dogGreeting 4.8s ease-in-out .7s infinite;
+}
+
+.dog-character.is-resting{
+    animation:dogBreathe 4.6s ease-in-out infinite;
+}
+
+@keyframes dogArrival{
+    from{ opacity:0; transform:translateY(24px) scale(.94); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+@keyframes dogBreathe{
+    0%, 100%{ transform:translateY(0) rotate(-.35deg); }
+    50%{ transform:translateY(-5px) rotate(.35deg); }
+}
+
+@keyframes dogGreeting{
+    0%, 100%{ transform:translateY(0) rotate(-.2deg); }
+    50%{ transform:translateY(-6px) rotate(.25deg); }
+}
+
+@media (max-width: 640px){
+    #characterContainer{
+        left:8px;
+        bottom:6px;
+        width:clamp(95px, 26vw, 135px);
+    }
+
+    #characterContainer.is-intro-scene{
+        left:52vw;
+        bottom:0;
+        width:50vw;
+    }
+}

@@ -1,0 +1,90 @@
+#dialogueContainer{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:4000;
+}
+
+#dialogueContainer.is-active{
+    pointer-events:auto;
+}
+
+.intro-dialogue{
+    position:absolute;
+    inset:0;
+}
+
+.intro-dialogue::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:rgba(33,12,29,.46);
+}
+
+.intro-dialogue__bubble{
+    position:absolute;
+    left:clamp(330px, 39vw, 760px);
+    bottom:clamp(270px, 50vh, 480px);
+    width:min(370px, 42vw);
+    min-height:180px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:28px 38px;
+    border:4px solid #171014;
+    border-radius:50%;
+    background:#fffdfb;
+    box-shadow:0 14px 32px rgba(19,5,13,.2);
+    color:#171014;
+    animation:dialogueBubbleIn .38s cubic-bezier(.22,1,.36,1);
+    z-index:1;
+}
+
+.intro-dialogue__bubble::after{
+    content:"";
+    position:absolute;
+    right:54px;
+    bottom:-28px;
+    width:42px;
+    height:42px;
+    background:#fffdfb;
+    border-right:4px solid #171014;
+    border-bottom:4px solid #171014;
+    transform:rotate(30deg) skew(-12deg);
+}
+
+.intro-dialogue__bubble p{
+    position:relative;
+    z-index:1;
+    font-size:20px;
+    font-weight:700;
+    line-height:1.4;
+}
+
+.intro-dialogue__bubble span{
+    display:block;
+    position:relative;
+    z-index:1;
+    margin-top:10px;
+    opacity:.55;
+    font-size:11px;
+}
+
+@keyframes dialogueBubbleIn{
+    from{ opacity:0; transform:translateY(10px) scale(.96); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+@media (max-width: 640px){
+    .intro-dialogue__bubble{
+        left:10vw;
+        bottom:45vh;
+        width:min(300px, 72vw);
+        min-height:150px;
+        padding:23px 28px;
+    }
+
+    .intro-dialogue__bubble p{
+        font-size:17px;
+    }
+}

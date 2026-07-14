@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Puzzle</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/puzzle.css">
+    <link rel="stylesheet" href="css/inventory.css">
+    <link rel="stylesheet" href="css/dialogue.css">
+    <link rel="stylesheet" href="css/dog.css">
+    <link rel="stylesheet" href="css/character.css">
+</head>
+<body>
+    <div id="characterContainer"></div>
+    <div id="dialogueContainer"></div>
+
+    <div class="container" id="mainContainer">
+        <button id="toggleContainer" class="toggle-btn">✕</button>
+        <div class="background"></div>
+
+        <div class="grid">
+            <div class="piece locked" data-piece aria-label="Открыть часть 1">
+                <div class="lock-wrap">
+                    <div class="lock">&#128274;</div>
+                    <div class="hint">Нажми, чтобы открыть</div>
+                </div>
+            </div>
+            <div class="piece locked" data-piece aria-label="Открыть часть 2">
+                <div class="lock-wrap">
+                    <div class="lock">&#128274;</div>
+                    <div class="hint">Нажми, чтобы открыть</div>
+                </div>
+            </div>
+            <div class="piece locked" data-piece aria-label="Открыть часть 3">
+                <div class="lock-wrap">
+                    <div class="lock">&#128274;</div>
+                    <div class="hint">Нажми, чтобы открыть</div>
+                </div>
+            </div>
+            <div class="piece locked" data-piece aria-label="Открыть часть 4">
+                <div class="lock-wrap">
+                    <div class="lock">&#128274;</div>
+                    <div class="hint">Нажми, чтобы открыть</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="progressIndicator" class="progress-indicator">0/4</div>
+    <div class="footer">Собери все части ✨</div>
+
+    <button class="key-counter" id="keyCounter" type="button" aria-live="polite">🔑 0/1</button>
+
+    <div class="key-test-panel">
+        <button id="getTestKey" class="get-key-btn" type="button">Получить ключ</button>
+
+        <aside id="keyInventory" class="key-inventory" aria-label="Инвентарь">
+            <button id="inventoryKeyButton" class="inventory-key" type="button" disabled aria-pressed="false">
+                <span class="inventory-key-fallback" aria-hidden="true">🔑</span>
+                <img id="inventoryKeyImage" class="inventory-key-image" src="images/items/key.png" alt="">
+                <span class="inventory-key-count">x1</span>
+            </button>
+            <span class="inventory-label">Ключ</span>
+        </aside>
+    </div>
+
+    <div id="keyConfirmModal" class="key-confirm-modal" hidden>
+        <div class="key-confirm-card" role="dialog" aria-modal="true" aria-labelledby="keyConfirmTitle">
+            <p id="keyConfirmTitle">Использовать ключ для открытия этой части?</p>
+            <div class="key-confirm-actions">
+                <button id="confirmKeyUse" class="key-confirm-btn key-confirm-btn--yes" type="button">Да</button>
+                <button id="cancelKeyUse" class="key-confirm-btn" type="button">Нет</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="heldKeyCursor" class="held-key-cursor" aria-hidden="true">
+        <span class="held-key-fallback">🔑</span>
+        <img src="images/items/key.png" alt="">
+    </div>
+
+    <button id="resetPuzzle" class="reset-puzzle-btn" type="button" hidden>Сбросить тест</button>
+    <div id="puzzleToast" class="puzzle-toast" role="status" aria-live="polite"></div>
+
+    <script src="data/dialogues.js"></script>
+    <script src="data/monthlyEvents.js"></script>
+    <script src="data/gifts.js"></script>
+    <script src="data/settings.js"></script>
+
+    <script src="js/main.js"></script>
+    <script src="js/puzzle/progress.js"></script>
+    <script src="js/puzzle/keys.js"></script>
+    <script src="js/puzzle/puzzle.js"></script>
+    <script src="js/ui/window.js"></script>
+    <script src="js/storage/storage.js"></script>
+    <script src="js/character/dog.js"></script>
+    <script src="js/dialogue/dialogue.js"></script>
+</body>
+</html>
