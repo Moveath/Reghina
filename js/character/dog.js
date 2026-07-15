@@ -3,10 +3,11 @@ const characterContainer = document.getElementById("characterContainer");
 characterContainer.classList.add("is-intro-scene");
 
 characterContainer.innerHTML = `
+    <div class="character-nameplate">Кане-корсо</div>
     <img
         id="dogCharacter"
-        class="dog-character is-intro"
-        src="images/dog/ChatGPT Image 14 июл. 2026 г., 19_48_24.png"
+        class="dog-character is-intro is-sleeping"
+        src="images/dog/sleeping.png"
         alt="Собака-проводник"
     >
 `;

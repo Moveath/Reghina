@@ -1,3 +1,6 @@
+/* ============================================================
+   ДИАЛОГОВЫЙ КОНТЕЙНЕР (оверлей на весь экран)
+   ============================================================ */
 #dialogueContainer{
     position:fixed;
     inset:0;
@@ -9,56 +12,127 @@
     pointer-events:auto;
 }
 
+
+/* ============================================================
+   ИНТРО-ДИАЛОГ
+   
+   Flex-контейнер для позиционирования пузыря
+   относительно собаки.
+   
+   Собака в интро: left:4vw, bottom:-3vh, width:min(43vw, 560px).
+   ============================================================ */
 .intro-dialogue{
     position:absolute;
     inset:0;
+
+    display:flex;
+    flex-direction:row;
+    align-items:flex-start;
+    justify-content:flex-start;
+
+    /*
+     * padding-left = 4vw (left собаки)
+     *               + min(43vw, 560px) (ширина собаки)
+     *               - 40px (пузырь заходит ближе к собаке / чуть перекрывает)
+     * padding-top уменьшен → пузырь выше, ближе к голове.
+     */
+    padding:clamp(13vh, 19vh, 24vh) 0 0 calc(4vw + min(43vw, 560px) - 70px);
+
+    box-sizing:border-box;
 }
 
+/* Туманный затемняющий фон за диалогом.
+   Пока собака говорит — фон в дымке (blur + затемнение),
+   как будто ещё "не проявился". После диалога рассеивается. */
 .intro-dialogue::before{
     content:"";
     position:absolute;
     inset:0;
-    background:rgba(33,12,29,.46);
+    background:rgba(33,12,29,.40);
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+    z-index:0;
+
+    /* плавное появление тумана */
+    opacity:1;
+    transition:opacity .8s ease;
 }
 
+/* Когда диалог завершается — туман плавно рассеивается */
+#dialogueContainer.is-fading .intro-dialogue::before{
+    opacity:0;
+}
+
+
+/* ============================================================
+   ОВАЛЬНЫЙ ПУЗЫРЬ ДИАЛОГА (как в комиксах)
+   
+   ▸ Овальная форма через большие скругления.
+   ▸ Размер под текст: width: fit-content, max-width: 480px.
+   ▸ Высота автоматическая.
+   ▸ Почти вплотную к голове собаки (отступ 12px).
+   ============================================================ */
 .intro-dialogue__bubble{
-    position:absolute;
-    left:clamp(330px, 39vw, 760px);
-    bottom:clamp(270px, 50vh, 480px);
-    width:min(370px, 42vw);
-    min-height:180px;
+    position:relative;
+
+    /* Размер под содержимое */
+    width:fit-content;
+    max-width:480px;
+    min-width:180px;
+
     display:flex;
     flex-direction:column;
     justify-content:center;
-    padding:28px 38px;
+
+    padding:22px 32px 22px 36px;
+    box-sizing:border-box;
+
+    /* Овальная комикс-форма */
     border:4px solid #171014;
-    border-radius:50%;
+    border-radius:100px 100px 100px 8px;
     background:#fffdfb;
-    box-shadow:0 14px 32px rgba(19,5,13,.2);
+    box-shadow:0 12px 28px rgba(19,5,13,.18);
     color:#171014;
     animation:dialogueBubbleIn .38s cubic-bezier(.22,1,.36,1);
+
     z-index:1;
 }
 
+/* ============================================================
+   ХВОСТИК ПУЗЫРЯ — указывает на голову собаки
+   
+   Квадрат 24px, повёрнутый на 45°.
+   Левая + нижняя грани → остриё влево-вниз на морду.
+   Расположен в нижней левой части пузыря.
+   ============================================================ */
 .intro-dialogue__bubble::after{
     content:"";
     position:absolute;
-    right:54px;
-    bottom:-28px;
-    width:42px;
-    height:42px;
+
+    left:-15px;
+    bottom:24px;
+    width:24px;
+    height:24px;
+
     background:#fffdfb;
-    border-right:4px solid #171014;
+
+    border-left:4px solid #171014;
     border-bottom:4px solid #171014;
-    transform:rotate(30deg) skew(-12deg);
+    transform:rotate(45deg);
 }
 
+
+/* ============================================================
+   ТЕКСТ ВНУТРИ ПУЗЫРЯ
+   ============================================================ */
 .intro-dialogue__bubble p{
     position:relative;
     z-index:1;
-    font-size:20px;
+    font-size:22px;
     font-weight:700;
-    line-height:1.4;
+    line-height:1.5;
+    margin:0;
+    word-wrap:break-word;
 }
 
 .intro-dialogue__bubble span{
@@ -66,25 +140,317 @@
     position:relative;
     z-index:1;
     margin-top:10px;
-    opacity:.55;
+    opacity:.50;
     font-size:11px;
 }
 
+
+/* ============================================================
+   ОБЛАКО МЫСЛЕЙ (вместо пузыря)
+   
+   Сначала появляется маленький кружок, потом побольше,
+   затем основное облако с текстом.
+   ============================================================ */
+
+/* Контейнер для всего блока мыслей.
+   Позиционируется абсолютно внутри .intro-dialogue,
+   на том же месте, что и пузырь речи, но выше — из головы. */
+.intro-dialogue__thought{
+    position:absolute;
+    display:flex;
+    flex-direction:row;
+    align-items:flex-end;
+    gap:8px;
+    z-index:1;
+
+    /* Те же отступы, что у пузыря речи, но выше (top меньше) */
+    left:calc(4vw + min(43vw, 560px) - 70px);
+    top:clamp(8vh, 11vh, 15vh);
+    box-sizing:border-box;
+}
+
+/* Маленький кружок */
+.thought-dot--1{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    background:#fffdfb;
+    border:3px solid #171014;
+    flex-shrink:0;
+    animation:thoughtDot 1.2s cubic-bezier(.22,1,.36,1) .1s both;
+}
+
+/* Средний кружок */
+.thought-dot--2{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    background:#fffdfb;
+    border:3px solid #171014;
+    flex-shrink:0;
+    animation:thoughtDot 1s cubic-bezier(.22,1,.36,1) .36s both;
+}
+
+/* Основное облако */
+.thought-cloud{
+    position:relative;
+    max-width:420px;
+    padding:20px 28px 20px 32px;
+    background:#fffdfb;
+    border:4px solid #171014;
+    border-radius:120px 120px 120px 120px;
+    box-shadow:0 12px 28px rgba(19,5,13,.18);
+
+    color:#171014;
+    font-size:clamp(16px, 1.5vw, 22px);
+    font-weight:600;
+    line-height:1.5;
+
+    animation:thoughtCloudAppear .6s cubic-bezier(.22,1,.36,1) .7s both;
+}
+
+.thought-cloud p{
+    margin:0;
+    word-wrap:break-word;
+}
+
+.thought-cloud span{
+    display:block;
+    margin-top:10px;
+    opacity:.40;
+    font-size:11px;
+    font-weight:500;
+}
+
+/* Анимация появления кружков */
+@keyframes thoughtDot{
+    from{ opacity:0; transform:scale(0.2) translateY(12px); }
+    to{ opacity:1; transform:scale(1) translateY(0); }
+}
+
+/* Анимация появления облака */
+@keyframes thoughtCloudAppear{
+    from{ opacity:0; transform:translateY(18px) scale(.92); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+
+/* ============================================================
+   ИНТЕРАКТИВНЫЙ ПУЗЫРЬ (выбор, ввод имени)
+   ============================================================ */
+.intro-dialogue__bubble--interactive{
+    cursor:default;
+}
+
+/* Кнопки выбора */
+.choice-buttons{
+    display:flex;
+    flex-direction:row;
+    gap:12px;
+    margin-top:16px;
+}
+
+.choice-btn{
+    padding:10px 20px;
+    border:4px solid #171014;
+    border-radius:50px;
+    background:#fffdfb;
+    color:#171014;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    transition:background .2s ease, transform .15s ease;
+    flex:1;
+}
+
+.choice-btn:hover{
+    background:#171014;
+    color:#fffdfb;
+    transform:scale(1.04);
+}
+
+.choice-btn:active{
+    transform:scale(.96);
+}
+
+/* Поле ввода имени */
+.name-input-wrap{
+    display:flex;
+    flex-direction:row;
+    gap:10px;
+    margin-top:16px;
+    align-items:stretch;
+}
+
+.dog-name-input{
+    flex:1;
+    padding:10px 16px;
+    border:4px solid #171014;
+    border-radius:50px;
+    background:#fffdfb;
+    color:#171014;
+    font-size:18px;
+    font-weight:600;
+    outline:none;
+    min-width:100px;
+}
+
+.dog-name-input::placeholder{
+    color:rgba(23,16,20,.35);
+    font-weight:500;
+}
+
+.dog-name-input:focus{
+    border-color:#6b4c5a;
+    box-shadow:0 0 0 3px rgba(107,76,90,.2);
+}
+
+/* Кнопка "Готово" для имени */
+.name-input-wrap .choice-btn--0{
+    flex:0 0 auto;
+    padding:10px 24px;
+}
+
+
+/* ============================================================
+   АНИМАЦИЯ ПОЯВЛЕНИЯ (пузырь речи)
+   ============================================================ */
 @keyframes dialogueBubbleIn{
     from{ opacity:0; transform:translateY(10px) scale(.96); }
     to{ opacity:1; transform:translateY(0) scale(1); }
 }
 
-@media (max-width: 640px){
+
+/* ============================================================
+   ПЛАНШЕТЫ (641px – 1024px)
+   ============================================================ */
+@media (max-width: 1024px){
+    .intro-dialogue{
+        padding:clamp(16vh, 22vh, 28vh) 0 0 calc(4vw + 43vw + 10px);
+    }
+
     .intro-dialogue__bubble{
-        left:10vw;
-        bottom:45vh;
-        width:min(300px, 72vw);
-        min-height:150px;
-        padding:23px 28px;
+        max-width:360px;
+        min-width:140px;
+        padding:18px 26px 18px 30px;
+    }
+}
+
+
+/* ============================================================
+   ТЕЛЕФОНЫ (≤ 640px)
+   
+   Собака сверху, пузырь/облако ПОД ней.
+   ============================================================ */
+@media (max-width: 640px){
+    .intro-dialogue{
+        flex-direction:column;
+        align-items:flex-start;
+        padding:52vw 0 0 4vw;
+    }
+
+    .intro-dialogue__bubble{
+        max-width:min(340px, 82vw);
+        min-width:120px;
+        padding:16px 22px;
+        border-radius:100px 100px 100px 8px;
     }
 
     .intro-dialogue__bubble p{
         font-size:17px;
+    }
+
+    /* Хвостик сверху пузыря, указывает вверх-влево */
+    .intro-dialogue__bubble::after{
+        left:28px;
+        top:-15px;
+        bottom:auto;
+        width:22px;
+        height:22px;
+
+        border-left:4px solid #171014;
+        border-top:4px solid #171014;
+        border-bottom:none;
+        transform:rotate(-135deg);
+    }
+
+    /* === Облако мыслей на телефонах === */
+    .intro-dialogue__thought{
+        position:absolute;
+        flex-direction:column;
+        align-items:flex-start;
+        left:4vw;
+        top:48vw;
+        gap:6px;
+    }
+
+    .thought-dot--1{
+        width:10px;
+        height:10px;
+        margin-left:18px;
+    }
+
+    .thought-dot--2{
+        width:16px;
+        height:16px;
+        margin-left:6px;
+    }
+
+    .thought-cloud{
+        max-width:min(340px, 82vw);
+        padding:16px 22px;
+        font-size:17px;
+    }
+}
+
+
+/* ============================================================
+   ОЧЕНЬ УЗКИЕ ТЕЛЕФОНЫ (≤ 400px)
+   ============================================================ */
+@media (max-width: 400px){
+    .intro-dialogue{
+        padding:48vw 0 0 3vw;
+    }
+
+    .intro-dialogue__bubble{
+        max-width:78vw;
+        min-width:100px;
+        padding:14px 16px;
+    }
+
+    .intro-dialogue__bubble p{
+        font-size:15px;
+    }
+
+    .intro-dialogue__bubble::after{
+        left:22px;
+        top:-13px;
+        width:18px;
+        height:18px;
+    }
+
+    /* === Облако мыслей на узких телефонах === */
+    .intro-dialogue__thought{
+        position:absolute;
+        left:3vw;
+        top:45vw;
+    }
+
+    .thought-dot--1{
+        width:8px;
+        height:8px;
+        margin-left:14px;
+    }
+
+    .thought-dot--2{
+        width:13px;
+        height:13px;
+        margin-left:4px;
+    }
+
+    .thought-cloud{
+        max-width:78vw;
+        padding:14px 16px;
+        font-size:15px;
     }
 }

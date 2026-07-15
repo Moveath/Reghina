@@ -1,8 +1,8 @@
 #characterContainer{
     position:fixed;
-    left:18px;
-    bottom:10px;
-    width:clamp(105px, 13vw, 160px);
+    left:12px;
+    bottom:8px;
+    width:clamp(120px, 15vw, 190px);
     opacity:0;
     pointer-events:none;
     transition:
@@ -11,6 +11,11 @@
         width 1.25s cubic-bezier(.22,1,.36,1),
         opacity .6s ease;
     z-index:1500;
+
+    /* Чтобы nameplate был над собакой */
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
 }
 
 #characterContainer.is-visible{
@@ -18,10 +23,67 @@
 }
 
 #characterContainer.is-intro-scene{
-    left:56vw;
-    bottom:-3vh;
+    left:1.8vw;
+    bottom:-1.2vh;
     width:min(43vw, 560px);
     z-index:4500;
+}
+
+/* Когда интро закончилось — имя исчезает */
+#characterContainer:not(.is-intro-scene) .character-nameplate{
+    display:none;
+}
+
+/* По умолчанию (маленькая собака) имя не показываем */
+.character-nameplate{
+    display:none;
+}
+
+/* Имя персонажа — только в интро (большой размер).
+   Позиционируется абсолютно внутри контейнера,
+   помещается низко, прямо у головы собаки. */
+#characterContainer.is-intro-scene{
+    position:fixed;   /* остаётся fixed, но relative для absolute-потомка */
+}
+
+#characterContainer.is-intro-scene .character-nameplate{
+    display:inline-block;
+    position:absolute;
+    left:50%;
+    top:4%;                 /* чуть выше, чтобы имя было ближе к голове */
+    transform:translateX(-50%);
+    margin:0;
+    padding:0;
+    font-size:clamp(18px, 2.4vw, 28px);
+    font-weight:800;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:#fffdfb;
+    /* без рамки и фона — просто текст с лёгкой тенью для читаемости */
+    text-shadow:0 2px 6px rgba(19,5,13,.6);
+    width:fit-content;
+    line-height:1;
+    white-space:nowrap;
+    user-select:none;
+    pointer-events:none;
+}
+
+/* Анимация появления имени.
+   Важно: сохраняем translateX(-50%) для центрирования. */
+#characterContainer.is-intro-scene .character-nameplate{
+    animation:
+        nameplateAppear .5s cubic-bezier(.22,1,.36,1) .3s both;
+}
+
+@keyframes nameplateAppear{
+    from{
+        opacity:0;
+        transform:translateX(-50%) translateY(-8px) scale(.92);
+    }
+    to{
+        opacity:1;
+        transform:translateX(-50%) translateY(0) scale(1);
+    }
 }
 
 .dog-character{
@@ -30,13 +92,22 @@
     height:auto;
     filter:drop-shadow(0 14px 20px rgba(39,12,26,.22));
     transform-origin:center bottom;
-    will-change:transform;
+    will-change:transform, opacity;
+
+    /* Плавный переход для смены эмоций */
+    transition:opacity .35s ease;
 }
 
 .dog-character.is-intro{
     animation:
         dogArrival .7s cubic-bezier(.22,1,.36,1) both,
         dogGreeting 4.8s ease-in-out .7s infinite;
+}
+
+.dog-character.is-sleeping{
+    animation:
+        dogArrival .7s cubic-bezier(.22,1,.36,1) both,
+        dogSleep 5s ease-in-out .7s infinite;
 }
 
 .dog-character.is-resting{
@@ -48,14 +119,28 @@
     to{ opacity:1; transform:translateY(0) scale(1); }
 }
 
+/*
+ * Анимация сна: очень медленное, едва заметное покачивание,
+ * как будто собака дышит во сне.
+ */
+@keyframes dogSleep{
+    0%, 100%{ transform:scale(1) translateY(0); }
+    50%{ transform:scale(1.015) translateY(-2px); }
+}
+
+/*
+ * Эффект дыхания: плавное лёгкое увеличение и уменьшение масштаба.
+ * Без поворотов — только мягкое "дыхание" (scale) и небольшое
+ * вертикальное движение. Дёшево для GPU (только transform).
+ */
 @keyframes dogBreathe{
-    0%, 100%{ transform:translateY(0) rotate(-.35deg); }
-    50%{ transform:translateY(-5px) rotate(.35deg); }
+    0%, 100%{ transform:scale(1) translateY(0); }
+    50%{ transform:scale(1.025) translateY(-3px); }
 }
 
 @keyframes dogGreeting{
-    0%, 100%{ transform:translateY(0) rotate(-.2deg); }
-    50%{ transform:translateY(-6px) rotate(.25deg); }
+    0%, 100%{ transform:scale(1) translateY(0); }
+    50%{ transform:scale(1.03) translateY(-4px); }
 }
 
 @media (max-width: 640px){
@@ -66,7 +151,7 @@
     }
 
     #characterContainer.is-intro-scene{
-        left:52vw;
+        left:2vw;
         bottom:0;
         width:50vw;
     }

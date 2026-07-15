@@ -28,23 +28,19 @@
     }
 }
 
-/* Лёгкое покачивание всей большой карточки пазла. */
+/*
+ * Плавное «плавающее» движение центральной карточки вверх-вниз.
+ * Без поворотов и покачиваний в стороны — только мягкое всплытие.
+ * Использует только translateY, что дёшево для GPU.
+ */
 @keyframes swayPuzzle{
 
     0%, 100%{
-        transform:translate(-50%,-50%) rotate(-1.1deg);
-    }
-
-    25%{
-        transform:translate(-50%,-51%) rotate(-0.45deg);
+        transform:translate(-50%, -50%);
     }
 
     50%{
-        transform:translate(-50%,-50%) rotate(1.1deg);
-    }
-
-    75%{
-        transform:translate(-50%,-49%) rotate(0.45deg);
+        transform:translate(-50%, calc(-50% - 10px));
     }
 }
 

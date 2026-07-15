@@ -12,12 +12,22 @@
     <link rel="stylesheet" href="css/dialogue.css">
     <link rel="stylesheet" href="css/dog.css">
     <link rel="stylesheet" href="css/character.css">
+    <link rel="stylesheet" href="css/settings.css">
 </head>
 <body>
+    <div class="top-actions">
+        <button id="historyButton" class="top-action-btn" type="button" aria-label="История обновлений" data-label="История">📜</button>
+        <button id="aboutButton" class="top-action-btn" type="button" aria-label="О проекте" data-label="О проекте">ℹ️</button>
+        <button id="progressButton" class="top-action-btn" type="button" aria-label="Управление прогрессом" data-label="Прогресс">📈</button>
+        <button class="side-widget side-widget--music top-action-btn" type="button" aria-label="Музыкальная шкатулка" data-label="Музыкальная шкатулка">🎵</button>
+        <button id="settingsButton" class="settings-button" type="button" aria-label="Открыть настройки" data-label="Настройки">⚙️</button>
+    </div>
+    <div id="settingsPanel" class="settings-panel" aria-label="Меню настроек"></div>
+    <div id="progressPanel" class="settings-panel progress-panel" aria-label="Управление прогрессом"></div>
     <div id="characterContainer"></div>
     <div id="dialogueContainer"></div>
 
-    <div class="container" id="mainContainer">
+    <div class="container minimized" id="mainContainer">
         <button id="toggleContainer" class="toggle-btn">✕</button>
         <div class="background"></div>
 
@@ -52,35 +62,24 @@
     <div id="progressIndicator" class="progress-indicator">0/4</div>
     <div class="footer">Собери все части ✨</div>
 
-    <button class="key-counter" id="keyCounter" type="button" aria-live="polite">🔑 0/1</button>
-
-    <div class="key-test-panel">
-        <button id="getTestKey" class="get-key-btn" type="button">Получить ключ</button>
-
-        <aside id="keyInventory" class="key-inventory" aria-label="Инвентарь">
-            <button id="inventoryKeyButton" class="inventory-key" type="button" disabled aria-pressed="false">
-                <span class="inventory-key-fallback" aria-hidden="true">🔑</span>
-                <img id="inventoryKeyImage" class="inventory-key-image" src="images/items/key.png" alt="">
-                <span class="inventory-key-count">x1</span>
-            </button>
-            <span class="inventory-label">Ключ</span>
-        </aside>
+    <div class="side-widgets" aria-label="Боковые виджеты"></div>
+    <div class="left-edge-icons" aria-label="Иконки по левому краю">
+        <button class="side-widget left-edge-icon" type="button" aria-label="Чат" data-label="Чат">💬</button>
+        <button class="side-widget left-edge-icon" type="button" aria-label="Уведомления" data-label="Уведомления">🔔</button>
+    </div>
+    <div class="dog-side-icons" aria-label="Иконки рядом с собакой">
+        <button id="characterInfoButton" class="side-widget character-icon" type="button" aria-label="О персонаже" data-label="О персонаже">
+            <span class="character-icon__emoji">🐾</span>
+            <span class="character-icon__label">персонаж</span>
+        </button>
+        <button id="dogNameButton" class="side-widget character-icon" type="button" aria-label="Имя персонажа" data-label="Имя персонажа">
+            <span class="character-icon__emoji">🐶</span>
+            <span class="character-icon__label">персонаж</span>
+        </button>
+        <button class="side-widget" type="button" aria-label="Дневник проводника" data-label="Дневник">📓</button>
     </div>
 
-    <div id="keyConfirmModal" class="key-confirm-modal" hidden>
-        <div class="key-confirm-card" role="dialog" aria-modal="true" aria-labelledby="keyConfirmTitle">
-            <p id="keyConfirmTitle">Использовать ключ для открытия этой части?</p>
-            <div class="key-confirm-actions">
-                <button id="confirmKeyUse" class="key-confirm-btn key-confirm-btn--yes" type="button">Да</button>
-                <button id="cancelKeyUse" class="key-confirm-btn" type="button">Нет</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="heldKeyCursor" class="held-key-cursor" aria-hidden="true">
-        <span class="held-key-fallback">🔑</span>
-        <img src="images/items/key.png" alt="">
-    </div>
+    <div class="key-counter" id="keyCounter" type="button" aria-live="polite">🔑 0/1</div>
 
     <button id="resetPuzzle" class="reset-puzzle-btn" type="button" hidden>Сбросить тест</button>
     <div id="puzzleToast" class="puzzle-toast" role="status" aria-live="polite"></div>
@@ -95,6 +94,7 @@
     <script src="js/puzzle/keys.js"></script>
     <script src="js/puzzle/puzzle.js"></script>
     <script src="js/ui/window.js"></script>
+    <script src="js/ui/settings.js"></script>
     <script src="js/storage/storage.js"></script>
     <script src="js/character/dog.js"></script>
     <script src="js/dialogue/dialogue.js"></script>
