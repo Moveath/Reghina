@@ -114,6 +114,29 @@
     animation:dogBreathe 4.6s ease-in-out infinite;
 }
 
+/* Подсветка собаки, когда по ней нужно кликнуть (например, чтобы взять ключ).
+   #characterContainer сам по себе pointer-events:none (чтобы не перехватывать
+   клики в остальное время) — без явного auto здесь клик по собаке никогда
+   бы не долетал до неё, даже подсвеченной. */
+.dog-character.is-highlighted{
+    pointer-events:auto;
+    cursor:pointer;
+    animation:dogGlowPulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes dogGlowPulse{
+    from{
+        filter:
+            drop-shadow(0 14px 20px rgba(39,12,26,.22))
+            drop-shadow(0 0 10px rgba(255,255,255,.35));
+    }
+    to{
+        filter:
+            drop-shadow(0 14px 20px rgba(39,12,26,.22))
+            drop-shadow(0 0 26px rgba(255,255,255,.8));
+    }
+}
+
 @keyframes dogArrival{
     from{ opacity:0; transform:translateY(24px) scale(.94); }
     to{ opacity:1; transform:translateY(0) scale(1); }

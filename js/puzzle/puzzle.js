@@ -57,6 +57,11 @@ function unlockPiece(piece){
         updatePuzzleProgress();
         showPuzzleToast("Часть открыта");
 
+        // Сообщаем интро (если оно как раз ждёт этого момента) — см. dialogue.js.
+        if(typeof window.notifyPuzzlePieceUnlocked === "function"){
+            window.notifyPuzzlePieceUnlocked();
+        }
+
         if(pieces.every(item => item.classList.contains("unlocked"))){
             setTimeout(() => showPuzzleToast("Все части открыты!"), 1200);
         }

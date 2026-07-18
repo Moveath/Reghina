@@ -77,7 +77,7 @@ const puzzleKeySystem = (() => {
         keyCount = 1;
         isKeySelected = false;
         updateKeyInterface();
-        showMessage("Ключ получен. Нажмите на счётчик сверху, чтобы взять его в руку.");
+        showMessage("Ключ получен.");
         return true;
     }
 
@@ -166,15 +166,10 @@ const puzzleKeySystem = (() => {
 
     cancelButton.addEventListener("click", closeConfirmation);
 
-    document.addEventListener("click", event => {
-        if(!isKeySelected) return;
-
-        const keepsKeyInHand = event.target.closest(
-            "[data-piece], #keyInventory, #keyCounter, #getTestKey, #keyConfirmModal"
-        );
-
-        if(!keepsKeyInHand) putKeyBack();
-    });
+    // Раньше клик мимо разрешённых элементов возвращал ключ обратно —
+    // это было завязано на видимый слот инвентаря, которого больше нет.
+    // Теперь единственный способ получить ключ — нажать на собаку, и он
+    // остаётся в руке, пока не будет использован на кусочке пазла.
 
     document.addEventListener("pointermove", moveHeldKey);
 

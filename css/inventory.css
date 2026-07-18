@@ -40,6 +40,12 @@
     z-index:2000;
 }
 
+/* display:flex выше имеет тот же вес, что и атрибут [hidden] у браузера —
+   без этого правила скрытая тестовая панель всё равно оставалась видна. */
+.key-test-panel[hidden]{
+    display:none;
+}
+
 .get-key-btn,
 .inventory-key,
 .key-confirm-btn{

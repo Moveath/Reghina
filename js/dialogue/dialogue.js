@@ -14,7 +14,9 @@ const emotionMap = {
     thinking: "images/dog/thinking.png",
     confused: "images/dog/confused.png",
     neutral:  "images/dog/neutral.png",
-    sad:      "images/dog/sad.png"
+    sad:      "images/dog/sad.png",
+    excited:  "images/dog/excited.png",
+    withKey:  "images/dog/withkey.png"
 };
 
 const emotionClasses = {
@@ -30,6 +32,8 @@ const emotionClasses = {
 let emotionTimeout = null;
 let introOverlayElement = null;
 let settingsHintElement = null;
+let introFrozen = false;
+let awaitingPuzzleUnlock = false;
 
 function ensureIntroOverlay(){
     if(introOverlayElement) return introOverlayElement;
@@ -92,15 +96,19 @@ function setDogEmotion(emotion){
         // Сбрасываем анимацию, чтобы она перезапустилась с новой картинкой
         img.style.animation = "none";
         img.offsetHeight; // форсируем reflow
+
+        // img.className затирает весь список классов — сохраняем "is-highlighted",
+        // если собака в этот момент как раз подсвечена (например, ждём клика по ней).
+        const keepHighlighted = lastHighlightTarget === "dogCharacter" ? " is-highlighted" : "";
         if(normalizedEmotion === "sleeping"){
             img.style.animation = "";
-            img.className = "dog-character is-intro is-sleeping";
+            img.className = "dog-character is-intro is-sleeping" + keepHighlighted;
         } else if(normalizedEmotion === "neutral"){
             img.style.animation = "";
-            img.className = "dog-character is-resting";
+            img.className = "dog-character is-resting" + keepHighlighted;
         } else {
             img.style.animation = "";
-            img.className = "dog-character is-intro";
+            img.className = "dog-character is-intro" + keepHighlighted;
         }
 
         // 3. Появление (fade-in) — сразу после смены
@@ -160,14 +168,81 @@ function ensureSettingsHint(){
     return settingsHintElement;
 }
 
-function showSettingsPrompt(){
-    const settingsButtonEl = document.getElementById("settingsButton");
-    if(settingsButtonEl){
-        settingsButtonEl.classList.add("is-highlighted");
+let lastHighlightTarget = null;
+
+function setHighlight(elementId){
+    if(lastHighlightTarget === elementId) return;
+    if(lastHighlightTarget){
+        const prev = document.getElementById(lastHighlightTarget);
+        // "is-highlighted" (пульсация) снимаем — она только у текущего виджета.
+        // "was-revealed" НЕ снимаем: однажды показанный виджет остаётся
+        // видимым навсегда, даже когда разговор перешёл к другому.
+        if(prev) prev.classList.remove("is-highlighted");
+    }
+    lastHighlightTarget = elementId || null;
+    if(elementId){
+        const el = document.getElementById(elementId);
+        if(el){
+            el.classList.add("is-highlighted");
+            el.classList.add("was-revealed");
+        }
+    }
+}
+
+function showClickHint(hintText, targetId){
+    const hint = ensureSettingsHint();
+    hint.innerHTML = `<span>${hintText || "Нажми, чтобы продолжить"}</span>`;
+    hint.classList.add("is-visible");
+
+    // В сцене с развёрнутым пазлом кладём подсказку понизу по центру —
+    // сверху справа слишком много других кнопок (настройки, шкатулка и т.д.),
+    // подсказка там теряется. Считать её "от собаки" тоже нельзя: собака
+    // широкая, и подсказка попадала бы прямо на пазл.
+    if(dialogueContainer.classList.contains("is-puzzle-reveal")){
+        const hintWidth = hint.offsetWidth || 260;
+        hint.style.left = `${Math.max(12, (window.innerWidth - hintWidth) / 2)}px`;
+        hint.style.right = "auto";
+        hint.style.top = "auto";
+        hint.style.bottom = "72px";
+        return;
     }
 
-    const hint = ensureSettingsHint();
-    hint.classList.add("is-visible");
+    const targetEl = targetId ? document.getElementById(targetId) : null;
+    if(targetEl){
+        // Ставим подсказку рядом с самим виджетом, а не всегда в углу экрана —
+        // иначе для виджетов слева (чат/уведомления) она оказывается слишком далеко.
+        const rect = targetEl.getBoundingClientRect();
+        const hintWidth = hint.offsetWidth || 220;
+        const hintHeight = hint.offsetHeight || 36;
+
+        let left = rect.right + 14;
+        if(left + hintWidth > window.innerWidth - 12){
+            left = rect.left - hintWidth - 14;
+        }
+        if(left < 12) left = 12;
+
+        let top = rect.top + rect.height / 2 - hintHeight / 2;
+        top = Math.max(12, Math.min(top, window.innerHeight - hintHeight - 12));
+
+        hint.style.left = `${left}px`;
+        hint.style.right = "auto";
+        hint.style.top = `${top}px`;
+    } else {
+        hint.style.left = "";
+        hint.style.right = "";
+        hint.style.top = "";
+    }
+}
+
+function hideClickHint(){
+    if(settingsHintElement){
+        settingsHintElement.classList.remove("is-visible");
+    }
+}
+
+function clearAllPrompts(){
+    setHighlight(null);
+    hideClickHint();
 }
 
 function hideSettingsPrompt(){
@@ -184,11 +259,17 @@ function hideSettingsPrompt(){
 function renderIntroDialogue(){
     const line = getCurrentLine();
 
+    // Заменяем плейсхолдер «имя» на реальное имя (и в тексте, и в подсказке)
+    let displayHintText = line.hintText;
+    if(dogName && displayHintText && displayHintText.includes("«имя»")){
+        displayHintText = displayHintText.replace("«имя»", dogName);
+    }
+
     // Определяем подпись снизу (нажми / кнопки / ввод)
     let footerHtml = '<span>нажми в любом месте, чтобы продолжить</span>';
 
-    if(line.waitForSettings){
-        footerHtml = '<span>нажми на иконку настроек, чтобы продолжить</span>';
+    if(line.waitForClick){
+        footerHtml = `<span>${displayHintText || "нажми, чтобы продолжить"}</span>`;
     }
 
     if(line.type === "choice"){
@@ -221,18 +302,50 @@ function renderIntroDialogue(){
         setDogEmotion(line.emotion);
     }
 
-    if(line.waitForSettings){
-        showSettingsPrompt();
+    const highlightId = line.highlightTarget || line.waitForClick || null;
+    setHighlight(highlightId);
+
+    // Пока пазл развёрнут по центру — уводим пузырь реплики (и подсказку)
+    // к правому краю, чтобы не перекрывать сам пазл (см. .is-puzzle-reveal
+    // в dialogue.css). Важно выставить ДО showClickHint — она читает этот класс.
+    dialogueContainer.classList.toggle("is-puzzle-reveal", Boolean(line.bubbleAtTop));
+
+    if(line.waitForClick){
+        showClickHint(displayHintText, line.waitForClick);
     } else {
-        hideSettingsPrompt();
+        hideClickHint();
     }
 
-    if(dialogueIndex < 14){
-        showIntroOverlay();
-    } else {
-        hideIntroOverlay();
+    if(line.closeSettingsPanel){
+        if(typeof closePanels === "function") closePanels();
+        if(typeof closeThemeMenu === "function") closeThemeMenu();
     }
 
+    if(line.showNotificationBadge){
+        const notifBtn = document.getElementById("notificationButton");
+        if(notifBtn) notifBtn.classList.add("has-unread");
+    }
+
+    // Центральный пазл переезжает из угла в центр экрана — используем уже
+    // готовый механизм разворачивания из js/ui/window.js.
+    if(line.expandPuzzle){
+        if(typeof applyContainerState === "function") applyContainerState({ minimized: false });
+        if(typeof saveContainerState === "function") saveContainerState({ minimized: false });
+    }
+
+    // Собака выдаёт ключ — тот самый интеграционный пункт, который был
+    // предусмотрен в js/puzzle/keys.js.
+    if(line.grantKey){
+        if(typeof puzzleKeySystem !== "undefined" && puzzleKeySystem.grantKey) puzzleKeySystem.grantKey();
+    }
+
+   if(dialogueIndex < 15 || line.keepOverlay){
+    showIntroOverlay();
+    dialogueContainer.classList.remove("is-clear");
+} else {
+    hideIntroOverlay();
+    dialogueContainer.classList.add("is-clear");
+}
     // Рендерим в зависимости от типа
     if(line.type === "thought"){
         dialogueContainer.innerHTML = `
@@ -306,10 +419,64 @@ function goToDialogue(newIndex){
     renderIntroDialogue();
 }
 
-function finishIntroDialogue(){
-    hideSettingsPrompt();
-    hideIntroOverlay();
+// Вызывается из settings.js после реального выбора темы в новом меню.
+function handleThemeSelected(){
+    const line = getCurrentLine();
+    if(line && line.opensThemeMenu){
+        goToDialogue(dialogueIndex + 1);
+    }
+}
 
+// Ветка «Пока нет»: после прощального диалога всё полностью замирает —
+// собака остаётся в текущем положении (не уходит в угол), фон остаётся затемнён.
+function freezeIntroWaiting(){
+    if(introFrozen) return;
+    introFrozen = true;
+
+    clearAllPrompts();
+    // Специально НЕ убираем "is-active" — dialogueContainer должен и дальше
+    // перехватывать все клики на весь экран (сам обработчик клика теперь
+    // ничего не делает из-за introFrozen), иначе после снятия is-active
+    // клики начнут проходить сквозь него к пазлу/виджетам под ним.
+    dialogueContainer.classList.add("is-fading");
+
+    resetDogToNeutral();
+
+    setTimeout(() => {
+        dialogueContainer.innerHTML = "";
+        dialogueContainer.classList.remove("is-fading");
+    }, 850);
+}
+
+// Собака отдала ключ — реплика остаётся на экране как есть (тот же текст,
+// уже с поменявшейся эмоцией), просто перестаёт перехватывать клики, чтобы
+// можно было взаимодействовать с пазлом под ней. Интро формально не
+// заканчиваем: ждём, пока она сама откроет кусочок (см.
+// window.notifyPuzzlePieceUnlocked, вызывается из puzzle.js).
+function pauseIntroForPuzzleUnlock(){
+    awaitingPuzzleUnlock = true;
+    clearAllPrompts();
+    dialogueContainer.classList.remove("is-active");
+}
+
+function resumeIntroAfterPuzzleUnlock(){
+    if(!awaitingPuzzleUnlock) return;
+    awaitingPuzzleUnlock = false;
+    dialogueContainer.classList.add("is-active");
+    dialogueIndex += 1;
+    renderIntroDialogue();
+}
+
+// Точка входа для puzzle.js — вызывается при любом успешном открытии
+// кусочка, но реально что-то делает только пока мы ждём именно этого.
+window.notifyPuzzlePieceUnlocked = resumeIntroAfterPuzzleUnlock;
+
+function finishIntroDialogue(){
+    document.body.classList.remove("intro-active");
+    if(typeof closePanels === "function") closePanels();
+    if(typeof closeThemeMenu === "function") closeThemeMenu();
+    clearAllPrompts();
+    hideIntroOverlay();
     // Запускаем плавное рассеивание тумана
     dialogueContainer.classList.add("is-fading");
     dialogueContainer.classList.remove("is-active");
@@ -336,6 +503,15 @@ function finishIntroDialogue(){
 
 // Обработчик клика для "нажми чтобы продолжить" (обычные диалоги)
 dialogueContainer.addEventListener("click", (e) => {
+    // Гасим клик здесь же. Иначе renderIntroDialogue() ниже заменит innerHTML
+    // и «оторвёт» e.target от DOM ещё до того, как событие дойдёт до
+    // глобального обработчика в settings.js — там closest("#dialogueContainer")
+    // на оторванном узле вернёт null, и он ошибочно закроет открытую панель
+    // (settingsPanel/musicPanel), хотя клик был внутри диалога.
+    e.stopPropagation();
+
+    if(introFrozen) return;
+
     // Не обрабатываем клик, если нажали на кнопку, инпут или внутри выбора
     if(e.target.closest(".choice-btn") || e.target.closest(".name-input-wrap")) return;
 
@@ -343,21 +519,23 @@ dialogueContainer.addEventListener("click", (e) => {
     // Для choice и name_input клик по фону не переключает
     if(line.type === "choice" || line.type === "name_input") return;
 
-    if(line.waitForSettings){
-        if(e.target.closest("#settingsButton")){
-            if(dialogueIndex >= introDialogueLines.length - 1){
-                finishIntroDialogue();
-            } else {
-                dialogueIndex += 1;
-                renderIntroDialogue();
-            }
-        }
+    if(line.waitForClick) return;
+
+    // Прощальный диалог ветки «Пока нет» — полностью замираем
+    if(line.freezeAfter){
+        freezeIntroWaiting();
         return;
     }
 
     // Если диалог помечен isEnding — завершаем интро
     if(line.isEnding){
         finishIntroDialogue();
+        return;
+    }
+
+    // Явный переход к другому диалогу (например, ветка «Пока нет»)
+    if(typeof line.next === "number"){
+        goToDialogue(line.next);
         return;
     }
 
@@ -401,8 +579,52 @@ function updateNameplate(name){
 // Старт интро
 if (dialogueContainer) {
     dialogueContainer.classList.add("is-active");
+    document.body.classList.add("intro-active");
     renderIntroDialogue();
 
-    // При старте сразу останавливаем анимации пазла (пока идёт диалог со спящей собакой)
     pausePuzzleAnimations();
 }
+document.addEventListener("click", (event) => {
+    if(introFrozen) return;
+
+    const line = getCurrentLine();
+    if(!line || !line.waitForClick) return;
+
+    const target = event.target.closest(`#${line.waitForClick}`);
+    if(!target) return;
+
+    // Клик по виджету тем открывает отдельную менюшку выбора темы,
+    // но диалог продолжается только после реального выбора темы
+    // (см. handleThemeSelected, вызывается из settings.js).
+    if(line.opensThemeMenu){
+        showClickHint("Выбери одну из тем", line.waitForClick);
+        return;
+    }
+
+    // Клик по собаке — именно сейчас (не раньше) ключ реально появляется
+    // в инвентаре, и собака на месте меняет эмоцию на счастливую (текст
+    // диалога не трогаем, просто перерисовываем картинку).
+    if(line.grantKeyOnClick){
+        if(typeof puzzleKeySystem !== "undefined" && puzzleKeySystem.grantKey) puzzleKeySystem.grantKey();
+        setDogEmotion("happy");
+    }
+
+    // Берём ключ в руку и приостанавливаем сценарий, пока пользователь сама
+    // не откроет кусочек пазла (см. puzzle.js).
+    if(line.selectsKey){
+        if(typeof puzzleKeySystem !== "undefined" && puzzleKeySystem.selectKey) puzzleKeySystem.selectKey(event);
+    }
+    if(line.pauseForPuzzleUnlock){
+        pauseIntroForPuzzleUnlock();
+        return;
+    }
+
+    // isEnding проверяем явно — диалог-ответвление «Пока нет» дописан в
+    // конец массива, так что last-index сам по себе больше не значит «конец».
+    if(line.isEnding || dialogueIndex >= introDialogueLines.length - 1){
+        finishIntroDialogue();
+    } else {
+        dialogueIndex += 1;
+        renderIntroDialogue();
+    }
+}, true);

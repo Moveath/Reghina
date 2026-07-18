@@ -5,7 +5,52 @@
     display:flex;
     gap:8px;
     align-items:center;
-    z-index:4000;
+    z-index:4400;
+}
+body.intro-active .top-actions{
+    visibility:hidden;
+    pointer-events:none;
+}
+
+body.intro-active #settingsButton.is-highlighted,
+body.intro-active #settingsButton.was-revealed{
+    visibility:visible;
+    pointer-events:auto;
+}
+
+/* Общее правило для всех круглых кнопок верхней панели (шкатулка, прогресс,
+   о проекте) — пока диалог указывает именно на них, они остаются видимыми
+   и кликабельными, несмотря на то что .top-actions скрыт целиком.
+   ".was-revealed" не снимается никогда — однажды показанный виджет
+   остаётся видимым до конца интро, даже когда разговор ушёл дальше. */
+body.intro-active .top-action-btn.is-highlighted,
+body.intro-active .top-action-btn.was-revealed{
+    visibility:visible;
+    pointer-events:auto;
+}
+
+/* Иконки слева (чат/уведомления) и у собаки (о персонаже/имя/дневник)
+   по умолчанию скрыты, пока до них не дойдёт диалог — по той же логике,
+   что и .top-actions. */
+body.intro-active .left-edge-icons,
+body.intro-active .dog-side-icons{
+    visibility:hidden;
+    pointer-events:none;
+}
+
+body.intro-active .side-widget.is-highlighted,
+body.intro-active .side-widget.was-revealed{
+    visibility:visible;
+    pointer-events:auto;
+}
+
+/* Во время разговора о музыкальной шкатулке все остальные виджеты (кроме неё) скрыты. */
+body.intro-active:has(#musicBoxButton.is-highlighted) .side-widgets,
+body.intro-active:has(#musicBoxButton.is-highlighted) .left-edge-icons,
+body.intro-active:has(#musicBoxButton.is-highlighted) .dog-side-icons,
+body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
+    visibility:hidden;
+    pointer-events:none;
 }
 
 .top-action-btn,
@@ -60,7 +105,10 @@
     height:44px;
     border-radius:50%;
 }
-
+#settingsButton{
+    position:relative;
+    z-index:4900;
+}
 .settings-button,
 .top-action-btn{
     width:44px;
@@ -85,9 +133,21 @@
 
 .settings-button.is-highlighted{
     transform:scale(1.16);
-    background:rgba(255,255,255,.42);
-    box-shadow:0 0 0 2px rgba(255,255,255,.22), 0 16px 40px rgba(0,0,0,.24);
-    animation:settingsPulse 1.2s ease-in-out infinite alternate;
+    background:rgba(255,255,255,.5);
+    box-shadow:0 0 0 6px rgba(255,255,255,.28), 0 0 30px rgba(255,255,255,.55), 0 16px 40px rgba(0,0,0,.3);
+    animation:settingsPulse 1s ease-in-out infinite alternate;
+}
+
+.top-action-btn.is-highlighted{
+    transform:scale(1.16);
+    background:rgba(255,255,255,.5);
+    box-shadow:0 0 0 6px rgba(255,255,255,.28), 0 0 30px rgba(255,255,255,.55), 0 16px 40px rgba(0,0,0,.3);
+    animation:settingsPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes settingsPulse{
+    from{ transform:scale(1.1); box-shadow:0 0 0 4px rgba(255,255,255,.22), 0 0 20px rgba(255,255,255,.4); }
+    to{ transform:scale(1.22); box-shadow:0 0 0 10px rgba(255,255,255,.14), 0 0 40px rgba(255,255,255,.6); }
 }
 
 @keyframes settingsPulse{
@@ -113,9 +173,11 @@
 
 .intro-settings-hint{
     position:fixed;
-    left:50%;
-    bottom:24px;
-    transform:translateX(-50%) translateY(10px);
+    top:74px;
+    right:18px;
+    left:auto;
+    bottom:auto;
+    transform:translateY(-10px);
     padding:10px 16px;
     border-radius:999px;
     background:rgba(255,255,255,.16);
@@ -128,12 +190,12 @@
     opacity:0;
     pointer-events:none;
     transition:opacity .25s ease, transform .25s ease;
-    z-index:3400;
+    z-index:4950;
 }
 
 .intro-settings-hint.is-visible{
     opacity:1;
-    transform:translateX(-50%) translateY(0);
+    transform:translateY(0);
 }
 
 .settings-panel,
@@ -150,7 +212,7 @@
     border:1px solid rgba(255,255,255,.16);
     box-shadow:0 16px 44px rgba(0,0,0,.25);
     color:white;
-    z-index:3900;
+    z-index:4950;
     opacity:0;
     pointer-events:none;
     transform:translateY(-8px);
@@ -170,6 +232,13 @@
     font-weight:700;
     letter-spacing:.04em;
     text-transform:uppercase;
+}
+
+.notification-letter-placeholder{
+    margin:0;
+    font-size:14px;
+    line-height:1.5;
+    opacity:.85;
 }
 
 .settings-section-list,
@@ -208,13 +277,28 @@
     display:flex;
     flex-direction:column;
     gap:8px;
-    z-index:3800;
+    /* Выше #dialogueContainer (z-index:4300) — иначе его полноэкранный
+       кликовый перехватчик во время интро глушит клики по этим иконкам. */
+    z-index:4400;
 }
 
-.intro-scene-overlay,
+.intro-scene-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(5,4,8,.45);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .35s ease;
+    z-index:4200;
+}
 .intro-settings-hint,
 .settings-panel,
 .progress-panel,
+.music-panel,
+.theme-selection-menu,
 .top-action-btn,
 .settings-button,
 .side-widget,
@@ -224,9 +308,6 @@
 .intro-dialogue__bubble,
 .intro-dialogue__thought .thought-cloud,
 #dialogueContainer,
-.container,
-.piece,
-.lock-wrap,
 .progress-indicator,
 .footer,
 .key-counter,
@@ -243,7 +324,9 @@
     display:flex;
     gap:6px;
     align-items:center;
-    z-index:3800;
+    /* Выше #dialogueContainer (z-index:4300) по той же причине, что и
+       .left-edge-icons — иначе диалог глушит клики по этим кнопкам. */
+    z-index:4400;
 }
 
 .side-widget{
@@ -260,6 +343,35 @@
     cursor:pointer;
     box-shadow:0 8px 24px rgba(0,0,0,.16);
     transition:transform .25s ease, background .25s ease;
+}
+
+.side-widget.is-highlighted{
+    transform:scale(1.16);
+    background:rgba(255,255,255,.5);
+    box-shadow:0 0 0 6px rgba(255,255,255,.28), 0 0 30px rgba(255,255,255,.55), 0 16px 40px rgba(0,0,0,.3);
+    animation:settingsPulse 1s ease-in-out infinite alternate;
+}
+
+/* Красная «единичка» непрочитанного — на ::before, чтобы не конфликтовать
+   с подсказкой-тултипом на ::after. */
+.side-widget.has-unread::before{
+    content:"1";
+    position:absolute;
+    top:-4px;
+    right:-4px;
+    min-width:16px;
+    height:16px;
+    padding:0 3px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:999px;
+    background:#ff3b3b;
+    color:white;
+    font-size:10px;
+    font-weight:700;
+    box-shadow:0 2px 6px rgba(0,0,0,.3);
+    z-index:1;
 }
 
 .character-icon{
@@ -357,4 +469,117 @@
         right:12px;
         width:min(92vw, 300px);
     }
+}
+/* Пульсация виджета внутри списка настроек — только свечение (box-shadow/фон),
+   без transform:scale, чтобы не выходить за границы виджета и не задевать соседей. */
+.settings-section-item.is-highlighted,
+.progress-action-item.is-highlighted {
+    background: rgba(255, 255, 255, .22);
+    animation: sectionGlowPulse 1.3s ease-in-out infinite alternate;
+}
+
+@keyframes sectionGlowPulse {
+    from { box-shadow: 0 0 0 2px rgba(255,255,255,.28), 0 0 10px rgba(255,255,255,.25); }
+    to   { box-shadow: 0 0 0 3px rgba(255,255,255,.5), 0 0 20px rgba(255,255,255,.55); }
+}
+
+/* ============================================================
+   ОТДЕЛЬНАЯ МЕНЮШКА ВЫБОРА ТЕМЫ
+   Не горизонтальный список внутри настроек, а самостоятельная
+   панель по центру экрана — чтобы будущие виджеты не выходили
+   за границы.
+   ============================================================ */
+.theme-selection-menu{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:min(90vw, 280px);
+    padding:18px;
+    border-radius:18px;
+    background:rgba(20,16,28,.92);
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+    color:white;
+    z-index:5100;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+}
+
+.theme-selection-menu.is-open{
+    opacity:1;
+    pointer-events:auto;
+    transform:translate(-50%,-50%) scale(1);
+}
+
+.theme-selection-menu__title{
+    margin:0 0 12px;
+    font-size:15px;
+    font-weight:700;
+    text-align:center;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+}
+
+.theme-selection-menu__list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    gap:8px;
+}
+
+.theme-option-btn.is-selected{
+    background:rgba(255,255,255,.42);
+    box-shadow:0 0 0 2px rgba(255,255,255,.55);
+}
+
+@media (max-width: 640px){
+    .theme-selection-menu{
+        width:min(88vw, 260px);
+        padding:16px;
+    }
+}
+
+.theme-options-list {
+    /* Удаляем старые стили для горизонтального отображения */
+    /* display: flex; */
+    /* gap: 8px; */
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 20px; /* Отступ для вложенного списка */
+    display: grid;
+    gap: 8px;
+    margin-top: 8px; /* Добавляем отступ сверху, чтобы отделить от родителя */
+}
+
+.theme-options-list .settings-section-item {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, .05);
+    border-radius: 10px;
+}
+
+.theme-option-btn {
+    width: 100%; /* Занимает всю ширину элемента списка */
+    padding: 8px 0;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .14);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s ease, transform .15s ease;
+}
+
+.theme-option-btn:hover {
+    background: rgba(255, 255, 255, .26);
+    transform: translateY(-1px);
+}
+
+body:has(.settings-panel.is-open) .intro-settings-hint,
+body:has(.progress-panel.is-open) .intro-settings-hint {
+    opacity: 0 !important;
+    pointer-events: none !important;
 }

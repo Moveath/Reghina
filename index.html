@@ -16,14 +16,16 @@
 </head>
 <body>
     <div class="top-actions">
-        <button id="historyButton" class="top-action-btn" type="button" aria-label="История обновлений" data-label="История">📜</button>
         <button id="aboutButton" class="top-action-btn" type="button" aria-label="О проекте" data-label="О проекте">ℹ️</button>
         <button id="progressButton" class="top-action-btn" type="button" aria-label="Управление прогрессом" data-label="Прогресс">📈</button>
-        <button class="side-widget side-widget--music top-action-btn" type="button" aria-label="Музыкальная шкатулка" data-label="Музыкальная шкатулка">🎵</button>
+        <button id="musicBoxButton" class="side-widget side-widget--music top-action-btn" type="button" aria-label="Музыкальная шкатулка" data-label="Музыкальная шкатулка">🎵</button>
         <button id="settingsButton" class="settings-button" type="button" aria-label="Открыть настройки" data-label="Настройки">⚙️</button>
     </div>
     <div id="settingsPanel" class="settings-panel" aria-label="Меню настроек"></div>
     <div id="progressPanel" class="settings-panel progress-panel" aria-label="Управление прогрессом"></div>
+    <div id="musicPanel" class="settings-panel music-panel" aria-label="Музыкальная шкатулка"></div>
+    <div id="aboutPanel" class="settings-panel about-panel" aria-label="О проекте"></div>
+    <div id="notificationPanel" class="settings-panel notification-panel" aria-label="Письмо от Егора"></div>
     <div id="characterContainer"></div>
     <div id="dialogueContainer"></div>
 
@@ -64,8 +66,8 @@
 
     <div class="side-widgets" aria-label="Боковые виджеты"></div>
     <div class="left-edge-icons" aria-label="Иконки по левому краю">
-        <button class="side-widget left-edge-icon" type="button" aria-label="Чат" data-label="Чат">💬</button>
-        <button class="side-widget left-edge-icon" type="button" aria-label="Уведомления" data-label="Уведомления">🔔</button>
+        <button id="chatButton" class="side-widget left-edge-icon" type="button" aria-label="Чат" data-label="Чат">💬</button>
+        <button id="notificationButton" class="side-widget left-edge-icon" type="button" aria-label="Уведомления" data-label="Уведомления">🔔</button>
     </div>
     <div class="dog-side-icons" aria-label="Иконки рядом с собакой">
         <button id="characterInfoButton" class="side-widget character-icon" type="button" aria-label="О персонаже" data-label="О персонаже">
@@ -76,13 +78,41 @@
             <span class="character-icon__emoji">🐶</span>
             <span class="character-icon__label">персонаж</span>
         </button>
-        <button class="side-widget" type="button" aria-label="Дневник проводника" data-label="Дневник">📓</button>
+        <button id="diaryButton" class="side-widget" type="button" aria-label="Дневник проводника" data-label="Дневник">📓</button>
     </div>
 
     <div class="key-counter" id="keyCounter" type="button" aria-live="polite">🔑 0/1</div>
 
     <button id="resetPuzzle" class="reset-puzzle-btn" type="button" hidden>Сбросить тест</button>
     <div id="puzzleToast" class="puzzle-toast" role="status" aria-live="polite"></div>
+
+    <!-- Служебная тестовая панель ключей — скрыта, реальный способ получить
+         ключ теперь через puzzleKeySystem.grantKey() из диалога собаки. -->
+    <div class="key-test-panel" hidden>
+        <button id="getTestKey" class="get-key-btn" type="button">Получить тестовый ключ</button>
+        <div class="key-inventory" id="keyInventory">
+            <button id="inventoryKeyButton" class="inventory-key" type="button" aria-label="Ключ" aria-pressed="false" disabled>
+                <span class="inventory-key-fallback">🔑</span>
+                <img id="inventoryKeyImage" class="inventory-key-image" src="images/items/key.png" alt="">
+            </button>
+            <span class="inventory-label">Ключ</span>
+        </div>
+    </div>
+
+    <div id="keyConfirmModal" class="key-confirm-modal" hidden>
+        <div class="key-confirm-card">
+            <p>Использовать ключ и открыть эту часть?</p>
+            <div class="key-confirm-actions">
+                <button id="cancelKeyUse" class="key-confirm-btn" type="button">Отмена</button>
+                <button id="confirmKeyUse" class="key-confirm-btn key-confirm-btn--yes" type="button">Открыть</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="heldKeyCursor" class="held-key-cursor">
+        <span class="held-key-fallback">🔑</span>
+        <img src="images/items/key.png" alt="">
+    </div>
 
     <script src="data/dialogues.js"></script>
     <script src="data/monthlyEvents.js"></script>

@@ -5,7 +5,7 @@
     position:fixed;
     inset:0;
     pointer-events:none;
-    z-index:4000;
+    z-index:4300;
 }
 
 #dialogueContainer.is-active{
@@ -41,6 +41,38 @@
     box-sizing:border-box;
 }
 
+/* ============================================================
+   РЕЖИМ «ПАЗЛ В ЦЕНТРЕ» — реплика уезжает вправо (не наверх — при
+   длинном тексте баннер сверху всё равно упирался в развёрнутый пазл),
+   чтобы не перекрывать его.
+   ============================================================ */
+#dialogueContainer.is-puzzle-reveal .intro-dialogue{
+    align-items:flex-start;
+    justify-content:flex-end;
+    padding:120px 3vw 0 0;
+}
+
+#dialogueContainer.is-puzzle-reveal .intro-dialogue__bubble{
+    max-width:min(380px, 34vw, 90vw);
+    min-width:0;
+}
+
+#dialogueContainer.is-puzzle-reveal .intro-dialogue__bubble::after{
+    display:none;
+}
+
+@media (max-width: 900px){
+    #dialogueContainer.is-puzzle-reveal .intro-dialogue{
+        align-items:flex-start;
+        justify-content:center;
+        padding:16px 16px 0;
+    }
+
+    #dialogueContainer.is-puzzle-reveal .intro-dialogue__bubble{
+        max-width:min(480px, 90vw);
+    }
+}
+
 /* Туманный затемняющий фон за диалогом.
    Пока собака говорит — фон в дымке (blur + затемнение),
    как будто ещё "не проявился". После диалога рассеивается. */
@@ -57,9 +89,7 @@
     opacity:1;
     transition:opacity .8s ease;
 }
-
-/* Когда диалог завершается — туман плавно рассеивается */
-#dialogueContainer.is-fading .intro-dialogue::before{
+#dialogueContainer.is-clear .intro-dialogue::before{
     opacity:0;
 }
 

@@ -29,6 +29,9 @@
     left:50%;
     top:50%;
     transform:translate(-50%,-50%);
+    /* Выше #dialogueContainer (z-index:4300) — иначе во время интро его
+       полноэкранный кликовый перехватчик глушит клики по кусочкам пазла. */
+    z-index:4400;
 }
 
 /* QR */
@@ -100,16 +103,11 @@
 
 .locked{
 
-    /*
-     * "Туманное" матовое стекло без тяжёлого blur.
-     * Вместо дорогого backdrop-filter:blur(22px) используем
-     * полупрозрачный светлый фон + лёгкий blur (8px),
-     * который скрывает QR, но почти не грузит GPU.
-     */
+
     background:rgba(228,224,232,.72);
 
-    backdrop-filter:none;
-    -webkit-backdrop-filter:none;
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
 
     border:1px solid rgba(255,255,255,.28);
 
