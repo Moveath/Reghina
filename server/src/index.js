@@ -9,7 +9,15 @@ require("./telegram/bot");
 
 const app = express();
 
-app.use(cors({ origin: config.clientOrigin }));
+// CLIENT_ORIGIN может содержать несколько адресов через запятую (например,
+// локальная разработка через Live Server + опубликованный сайт) — cors
+// принимает массив и сверяет Origin запроса с каждым из них.
+const allowedOrigins = config.clientOrigin
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : "*" }));
 app.use(express.json());
 
 app.get("/health", (req, res) => {
