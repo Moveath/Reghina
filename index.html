@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secret Puzzle</title>
 
+    <!-- Рукописный шрифт с поддержкой кириллицы — для текста писем (карточка "на бумаге"). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Marck+Script&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/puzzle.css">
@@ -25,7 +30,7 @@
     <div id="progressPanel" class="settings-panel progress-panel" aria-label="Управление прогрессом"></div>
     <div id="musicPanel" class="settings-panel music-panel" aria-label="Музыкальная шкатулка"></div>
     <div id="aboutPanel" class="settings-panel about-panel" aria-label="О проекте"></div>
-    <div id="notificationPanel" class="settings-panel notification-panel" aria-label="Письмо от Егора"></div>
+    <div id="lettersPanel" class="settings-panel letters-panel" aria-label="Письма"></div>
     <div id="characterContainer"></div>
     <div id="dialogueContainer"></div>
 
@@ -66,8 +71,7 @@
 
     <div class="side-widgets" aria-label="Боковые виджеты"></div>
     <div class="left-edge-icons" aria-label="Иконки по левому краю">
-        <button id="chatButton" class="side-widget left-edge-icon" type="button" aria-label="Чат" data-label="Чат">💬</button>
-        <button id="notificationButton" class="side-widget left-edge-icon" type="button" aria-label="Уведомления" data-label="Уведомления">🔔</button>
+        <button id="lettersButton" class="side-widget left-edge-icon" type="button" aria-label="Письма" data-label="Письма">📬</button>
     </div>
     <div class="dog-side-icons" aria-label="Иконки рядом с собакой">
         <button id="characterInfoButton" class="side-widget character-icon" type="button" aria-label="О персонаже" data-label="О персонаже">
@@ -128,5 +132,6 @@
     <script src="js/storage/storage.js"></script>
     <script src="js/character/dog.js"></script>
     <script src="js/dialogue/dialogue.js"></script>
+    <script src="js/ui/letters.js"></script>
 </body>
 </html>

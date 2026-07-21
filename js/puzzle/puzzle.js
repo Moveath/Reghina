@@ -15,6 +15,35 @@ const lockedMessages = [
     "Терпение..."
 ];
 
+const unlockedPiecesStorageKey = "reginaPuzzleUnlockedPieces";
+
+function saveUnlockedPieces(){
+    try {
+        const unlockedIndexes = pieces
+            .map((piece, index) => piece.classList.contains("unlocked") ? index : null)
+            .filter(index => index !== null);
+        localStorage.setItem(unlockedPiecesStorageKey, JSON.stringify(unlockedIndexes));
+    } catch(e) {}
+}
+
+function restoreUnlockedPieces(){
+    try {
+        const stored = localStorage.getItem(unlockedPiecesStorageKey);
+        if(!stored) return;
+
+        const unlockedIndexes = JSON.parse(stored);
+        if(!Array.isArray(unlockedIndexes)) return;
+
+        unlockedIndexes.forEach(index => {
+            const piece = pieces[index];
+            if(!piece) return;
+            piece.classList.remove("locked", "unlocking");
+            piece.classList.add("open", "unlocked");
+            piece.replaceChildren();
+        });
+    } catch(e) {}
+}
+
 let toastTimeout;
 
 function showPuzzleToast(message){
@@ -55,6 +84,7 @@ function unlockPiece(piece){
         piece.classList.add("open", "unlocked");
         piece.replaceChildren();
         updatePuzzleProgress();
+        saveUnlockedPieces();
         showPuzzleToast("Часть открыта");
 
         // Сообщаем интро (если оно как раз ждёт этого момента) — см. dialogue.js.
@@ -112,7 +142,9 @@ resetPuzzleButton.addEventListener("click", () => {
 
     puzzleKeySystem.reset();
     updatePuzzleProgress();
+    try { localStorage.removeItem(unlockedPiecesStorageKey); } catch(e) {}
     showPuzzleToast("Пазл сброшен для нового теста");
 });
 
+restoreUnlockedPieces();
 updatePuzzleProgress();
