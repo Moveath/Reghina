@@ -5,7 +5,7 @@
   "description": "Backend API for the \"Письма\" (Letters) postal system on the Регина gift site",
   "main": "src/index.js",
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "start": "node src/index.js",
