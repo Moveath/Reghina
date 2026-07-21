@@ -34,6 +34,9 @@ let introOverlayElement = null;
 let settingsHintElement = null;
 let introFrozen = false;
 let awaitingPuzzleUnlock = false;
+let awaitingLetterRead = false;
+let resetConfirmActive = false;
+let dogRemarkActive = false;
 
 function ensureIntroOverlay(){
     if(introOverlayElement) return introOverlayElement;
@@ -259,6 +262,10 @@ function hideSettingsPrompt(){
 function renderIntroDialogue(){
     const line = getCurrentLine();
 
+    // Сохраняем текущий шаг — если она освежит страницу посреди интро
+    // (даже Ctrl+F5), продолжим ровно с этого места, а не с начала.
+    saveDialogueIndex(dialogueIndex);
+
     // Заменяем плейсхолдер «имя» на реальное имя (и в тексте, и в подсказке)
     let displayHintText = line.hintText;
     if(dogName && displayHintText && displayHintText.includes("«имя»")){
@@ -322,8 +329,11 @@ function renderIntroDialogue(){
     }
 
     if(line.showNotificationBadge){
-        const notifBtn = document.getElementById("notificationButton");
-        if(notifBtn) notifBtn.classList.add("has-unread");
+        const lettersBtn = document.getElementById("lettersButton");
+        if(lettersBtn){
+            lettersBtn.classList.add("has-unread");
+            lettersBtn.dataset.count = "1";
+        }
     }
 
     // Центральный пазл переезжает из угла в центр экрана — используем уже
@@ -471,7 +481,29 @@ function resumeIntroAfterPuzzleUnlock(){
 // кусочка, но реально что-то делает только пока мы ждём именно этого.
 window.notifyPuzzlePieceUnlocked = resumeIntroAfterPuzzleUnlock;
 
+// Та же идея, что и с ключом/пазлом выше, но для писем: клик по иконке
+// «Письма» открывает настоящий виджет (см. js/ui/letters.js), а сама
+// реплика "Смотри!.. Давай прочитаем" остаётся на экране и НЕ отпускает
+// сценарий дальше, пока Регина реально не откроет папку "Входящие" и не
+// прочитает письмо (см. window.notifyLetterRead, вызывается из letters.js).
+function pauseIntroForLetterRead(){
+    awaitingLetterRead = true;
+    clearAllPrompts();
+    dialogueContainer.classList.remove("is-active");
+}
+
+function resumeIntroAfterLetterRead(){
+    if(!awaitingLetterRead) return;
+    awaitingLetterRead = false;
+    dialogueContainer.classList.add("is-active");
+    dialogueIndex += 1;
+    renderIntroDialogue();
+}
+
+window.notifyLetterRead = resumeIntroAfterLetterRead;
+
 function finishIntroDialogue(){
+    markIntroCompleted();
     document.body.classList.remove("intro-active");
     if(typeof closePanels === "function") closePanels();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
@@ -494,6 +526,11 @@ function finishIntroDialogue(){
     // Возобновляем анимации пазла
     resumePuzzleAnimations();
 
+    // Пазл, который разворачивали в центр для сцены с ключом, возвращается
+    // обратно в угол — интро закончилось, дальше обычный режим сайта.
+    if(typeof applyContainerState === "function") applyContainerState({ minimized: true });
+    if(typeof saveContainerState === "function") saveContainerState({ minimized: true });
+
     // Убираем содержимое после завершения анимации рассеивания (.8s)
     setTimeout(() => {
         dialogueContainer.innerHTML = "";
@@ -511,6 +548,8 @@ dialogueContainer.addEventListener("click", (e) => {
     e.stopPropagation();
 
     if(introFrozen) return;
+    if(resetConfirmActive) return;
+    if(dogRemarkActive) return;
 
     // Не обрабатываем клик, если нажали на кнопку, инпут или внутри выбора
     if(e.target.closest(".choice-btn") || e.target.closest(".name-input-wrap")) return;
@@ -576,16 +615,281 @@ function updateNameplate(name){
     }
 }
 
+// Прошла ли уже интро целиком — чтобы не показывать его заново при
+// каждом визите (в том числе после жёсткой перезагрузки страницы).
+const introCompletedStorageKey = "regina_intro_completed";
+// На каком шаге она остановилась — чтобы обновление страницы ПОСРЕДИ
+// интро не отбрасывало в начало, а продолжало с того же места.
+const dialogueIndexStorageKey = "regina_dialogue_index";
+
+function markIntroCompleted(){
+    try {
+        localStorage.setItem(introCompletedStorageKey, "true");
+        localStorage.removeItem(dialogueIndexStorageKey);
+    } catch(e) {}
+}
+
+function isIntroAlreadyCompleted(){
+    try { return localStorage.getItem(introCompletedStorageKey) === "true"; } catch(e) { return false; }
+}
+
+function saveDialogueIndex(index){
+    try { localStorage.setItem(dialogueIndexStorageKey, String(index)); } catch(e) {}
+}
+
+function loadDialogueIndex(){
+    try {
+        const stored = Number(localStorage.getItem(dialogueIndexStorageKey));
+        return Number.isInteger(stored) && stored >= 0 && stored < introDialogueLines.length ? stored : 0;
+    } catch(e) { return 0; }
+}
+
+// Полный сброс прогресса: имя, тема, открытые кусочки, состояние пазла,
+// сам факт прохождения интро и вся история писем в Supabase — используется
+// и dev-меню, и кнопкой "Сбросить прогресс" в виджете прогресса (см.
+// settings.js). Письма хранятся не в localStorage, а на сервере — поэтому
+// их сброс идёт отдельным запросом (см. resetLettersOnServer в
+// js/ui/letters.js) и мы ждём его перед перезагрузкой страницы, иначе
+// после сброса всё ещё будет видна старая переписка.
+async function resetAllProgress(){
+    try {
+        localStorage.removeItem("dog_name");
+        localStorage.removeItem(introCompletedStorageKey);
+        localStorage.removeItem(dialogueIndexStorageKey);
+        localStorage.removeItem("reginaSelectedTheme");
+        localStorage.removeItem("reginaPuzzleUnlockedPieces");
+        localStorage.removeItem("reginaPuzzleContainerState");
+    } catch(e) {}
+
+    if(typeof window.resetLettersOnServer === "function"){
+        await window.resetLettersOnServer();
+    }
+
+    location.reload();
+}
+window.resetAllProgress = resetAllProgress;
+
+// Подтверждение сброса прогресса "от лица" собаки — вызывается из
+// виджета "Прогресс" (см. settings.js). Собака встаёт в интро-позу и
+// спрашивает через тот же пузырь с кнопками Да/Нет, что и в самом интро,
+// вместо отдельного модального окна.
+// Пока настоящий вступительный тур ещё идёт (например, собака как раз
+// рассказывает про виджет прогресса, где лежит эта самая кнопка) —
+// сброс вообще не предлагаем: тур сначала должен закончиться сам собой,
+// без вмешательства этого выбора.
+function showResetConfirmDialogue(){
+    if(resetConfirmActive) return;
+    if(document.body.classList.contains("intro-active")) return;
+    resetConfirmActive = true;
+
+    if(typeof closePanels === "function") closePanels();
+    if(typeof closeThemeMenu === "function") closeThemeMenu();
+
+    characterContainer.classList.add("is-intro-scene");
+    setDogEmotion("confused");
+
+    dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
+    dialogueContainer.classList.add("is-active");
+    showIntroOverlay();
+
+    dialogueContainer.innerHTML = `
+        <div class="intro-dialogue" role="dialog" aria-live="polite">
+            <div class="intro-dialogue__bubble intro-dialogue__bubble--interactive">
+                <p>Точно хочешь сбросить прогресс? Имя, тема и открытые части пазла пропадут — вернуть их будет нельзя.</p>
+                <div class="choice-buttons">
+                    <button id="resetConfirmYes" class="choice-btn choice-btn--0" type="button">Да</button>
+                    <button id="resetConfirmNo" class="choice-btn choice-btn--1" type="button">Нет</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("resetConfirmYes").addEventListener("click", (e) => {
+        e.stopPropagation();
+        if(typeof window.resetAllProgress === "function") window.resetAllProgress();
+    });
+    document.getElementById("resetConfirmNo").addEventListener("click", (e) => {
+        e.stopPropagation();
+        hideResetConfirmDialogue();
+    });
+}
+
+function hideResetConfirmDialogue(){
+    if(!resetConfirmActive) return;
+    resetConfirmActive = false;
+
+    hideIntroOverlay();
+    dialogueContainer.classList.add("is-fading");
+    dialogueContainer.classList.remove("is-active");
+
+    // Собака возвращается в обычный маленький вид в углу — сброс отменён.
+    characterContainer.classList.remove("is-intro-scene");
+    resetDogToNeutral();
+
+    setTimeout(() => {
+        dialogueContainer.innerHTML = "";
+        dialogueContainer.classList.remove("is-fading");
+    }, 850);
+}
+
+window.showResetConfirmDialogue = showResetConfirmDialogue;
+
+// Разовая реплика собаки вне сценария интро — используется письмами
+// (js/ui/letters.js): подтверждение "отнесла письмо" и оповещение о новом
+// письме от Егора. Тот же визуальный приём, что и в интро (собака
+// увеличивается, говорит из пузыря), но без веток выбора — просто
+// закрывается сама через паузу или по клику. Пока идёт настоящее интро —
+// вообще не показывается, чтобы не мешать сценарию.
+function showDogRemark(text){
+    if(document.body.classList.contains("intro-active")) return;
+    if(resetConfirmActive || dogRemarkActive) return;
+    dogRemarkActive = true;
+
+    // Реплика — полноэкранная сцена, под ней не должно оставаться открытых
+    // панелей (например, виджета "Письма" после отправки) — иначе они
+    // просвечивают/перекрываются с пузырём реплики.
+    if(typeof closePanels === "function") closePanels();
+
+    characterContainer.classList.add("is-intro-scene");
+    setDogEmotion("happy");
+
+    dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
+    dialogueContainer.classList.add("is-active");
+    showIntroOverlay();
+
+    dialogueContainer.innerHTML = `
+        <div class="intro-dialogue" role="dialog" aria-live="polite">
+            <div class="intro-dialogue__bubble">
+                <p>${text}</p>
+                <span>нажми, чтобы закрыть</span>
+            </div>
+        </div>
+    `;
+
+    let autoCloseTimer = null;
+
+    function closeRemark(ev){
+        if(ev) ev.stopPropagation();
+        if(!dogRemarkActive) return;
+        dogRemarkActive = false;
+
+        dialogueContainer.removeEventListener("click", closeRemark);
+        clearTimeout(autoCloseTimer);
+
+        hideIntroOverlay();
+        dialogueContainer.classList.add("is-fading");
+        dialogueContainer.classList.remove("is-active");
+        characterContainer.classList.remove("is-intro-scene");
+        resetDogToNeutral();
+
+        setTimeout(() => {
+            dialogueContainer.innerHTML = "";
+            dialogueContainer.classList.remove("is-fading");
+        }, 850);
+    }
+
+    dialogueContainer.addEventListener("click", closeRemark);
+    autoCloseTimer = setTimeout(closeRemark, 4500);
+}
+window.showDogRemark = showDogRemark;
+
 // Старт интро
-if (dialogueContainer) {
+if(isIntroAlreadyCompleted()){
+    // Уже проходила интро раньше — сразу обычный вид сайта, без сцены.
+    dogName = loadDogName();
+    characterContainer.classList.remove("is-intro-scene");
+    resetDogToNeutral();
+    const nameplate = document.querySelector(".character-nameplate");
+    if(nameplate) nameplate.remove();
+} else if (dialogueContainer) {
+    // Интро ещё не пройдено целиком — продолжаем с сохранённого шага,
+    // если он есть (например, после обновления страницы посреди диалога).
+    dogName = loadDogName();
+    dialogueIndex = loadDialogueIndex();
+
     dialogueContainer.classList.add("is-active");
     document.body.classList.add("intro-active");
     renderIntroDialogue();
 
     pausePuzzleAnimations();
 }
+
+// ===== Временный режим разработчика: 5 кликов по собаке подряд открывают
+// меню с кнопкой полного сброса прогресса. Убрать, когда тестирование
+// закончится. =====
+let devClickCount = 0;
+let devClickResetTimer = null;
+let devMenuElement = null;
+
+function ensureDevMenu(){
+    if(devMenuElement) return devMenuElement;
+
+    const menu = document.createElement("div");
+    menu.id = "devMenu";
+    menu.className = "dev-menu";
+    menu.innerHTML = `
+        <h3 class="dev-menu__title">Режим разработчика</h3>
+        <button id="devResetProgress" class="dev-menu__btn dev-menu__btn--danger" type="button">Сбросить прогресс</button>
+        <button id="devMenuClose" class="dev-menu__btn" type="button">Закрыть</button>
+    `;
+    document.body.appendChild(menu);
+
+    menu.addEventListener("click", (event) => event.stopPropagation());
+
+    menu.querySelector("#devResetProgress").addEventListener("click", resetAllProgress);
+
+    menu.querySelector("#devMenuClose").addEventListener("click", closeDevMenu);
+
+    devMenuElement = menu;
+    return menu;
+}
+
+function openDevMenu(){
+    ensureDevMenu().classList.add("is-open");
+}
+
+function closeDevMenu(){
+    if(devMenuElement) devMenuElement.classList.remove("is-open");
+}
+
+// Считаем клики по ОБЛАСТИ собаки через координаты, а не через слушатель
+// на самой картинке: у неё намеренно pointer-events:none большую часть
+// времени (см. dog.css), иначе она перехватывала бы клики по иконкам
+// чата/уведомлений, которые визуально оказываются под ней во время интро.
+// Слушаем именно в capture-фазе: иначе клик по этой же области "проваливается"
+// на #dialogueContainer, а тот гасит propagation ещё до bubble-фазы на document.
+document.addEventListener("click", (event) => {
+    if(!dogCharacter) return;
+
+    const rect = dogCharacter.getBoundingClientRect();
+    const withinDog = event.clientX >= rect.left && event.clientX <= rect.right &&
+                       event.clientY >= rect.top && event.clientY <= rect.bottom;
+    if(!withinDog) return;
+
+    devClickCount += 1;
+    if(devClickResetTimer) clearTimeout(devClickResetTimer);
+    devClickResetTimer = setTimeout(() => { devClickCount = 0; }, 1500);
+
+    if(devClickCount >= 5){
+        devClickCount = 0;
+        // Без этого тот же самый клик долетает и до слушателя "клик мимо
+        // меню — закрыть" ниже (он висит на document в bubble-фазе) и
+        // закрывает меню в тот же миг, что и открыл — она никогда не
+        // становится видна.
+        event.stopPropagation();
+        openDevMenu();
+    }
+}, true);
+
+document.addEventListener("click", (event) => {
+    if(!devMenuElement || !devMenuElement.classList.contains("is-open")) return;
+    if(event.target.closest("#devMenu")) return;
+    closeDevMenu();
+});
 document.addEventListener("click", (event) => {
     if(introFrozen) return;
+    if(resetConfirmActive) return;
+    if(dogRemarkActive) return;
 
     const line = getCurrentLine();
     if(!line || !line.waitForClick) return;
@@ -616,6 +920,10 @@ document.addEventListener("click", (event) => {
     }
     if(line.pauseForPuzzleUnlock){
         pauseIntroForPuzzleUnlock();
+        return;
+    }
+    if(line.pauseForLetterRead){
+        pauseIntroForLetterRead();
         return;
     }
 
