@@ -173,6 +173,20 @@ function ensureSettingsHint(){
 
 let lastHighlightTarget = null;
 
+// Пока диалог только указывает на "Письма" (highlightTarget, без waitForClick —
+// реплика 31, "Здесь у нас с тобой почта..."), виджет уже виден и пульсирует,
+// но открывать его рано: непрочитанное письмо ещё не "пришло", и последующая
+// реплика 32 (pauseForLetterRead) ждёт РЕАЛЬНОГО клика/чтения именно на этом
+// шаге, а не раньше. Открытие в обход сценария оставляло reply-логику решившей,
+// что письмо уже прочитано, и диалог переставал понимать, что делать дальше.
+// Разблокируется, как только диалог сам просит кликнуть по lettersButton
+// (waitForClick), и остаётся разблокированным до конца интро.
+let lettersButtonIntroLocked = false;
+
+function isLettersButtonIntroLocked(){
+    return lettersButtonIntroLocked;
+}
+
 function setHighlight(elementId){
     if(lastHighlightTarget === elementId) return;
     if(lastHighlightTarget){
@@ -311,6 +325,12 @@ function renderIntroDialogue(){
 
     const highlightId = line.highlightTarget || line.waitForClick || null;
     setHighlight(highlightId);
+
+    // Смотри комментарий у объявления lettersButtonIntroLocked: "просто
+    // указываем" (highlightTarget) на письма ещё не значит "уже можно
+    // открывать" — открывать можно только когда диалог явно ждёт клика
+    // (waitForClick) по этой же кнопке.
+    lettersButtonIntroLocked = highlightId === "lettersButton" && !line.waitForClick;
 
     // Пока пазл развёрнут по центру — уводим пузырь реплики (и подсказку)
     // к правому краю, чтобы не перекрывать сам пазл (см. .is-puzzle-reveal

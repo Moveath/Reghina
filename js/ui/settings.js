@@ -304,6 +304,7 @@ function toggleAboutPanel(){
 // во время интро).
 function toggleLettersPanel(){
     if(!lettersPanel) return;
+    if(typeof isLettersButtonIntroLocked === "function" && isLettersButtonIntroLocked()) return;
     const isOpen = lettersPanel.classList.contains("is-open");
     if(isOpen && isIntroCloseLocked()) return;
     closePanels();
