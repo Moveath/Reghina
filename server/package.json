@@ -4,6 +4,9 @@
   "private": true,
   "description": "Backend API for the \"Письма\" (Letters) postal system on the Регина gift site",
   "main": "src/index.js",
+  "engines": {
+    "node": ">=18.18.0"
+  },
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js"
