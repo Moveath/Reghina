@@ -162,17 +162,22 @@ function ensureLetterReadModal(){
     modal.className = "letter-read-modal";
     modal.innerHTML = `
         <div class="letter-read-wrap">
-            <div class="letter-read-card">
-                <p class="letter-read-card__meta"></p>
-                <p class="letter-read-card__text"></p>
+            <div class="letter-read-paper">
+                <div class="letter-read-paper__cap letter-read-paper__cap--top"></div>
+                <div class="letter-read-paper__body">
+                    <p class="letter-read-card__meta"></p>
+                    <p class="letter-read-card__text"></p>
+                </div>
+                <div class="letter-read-paper__cap letter-read-paper__cap--bottom"></div>
             </div>
             <button class="letter-read-card__close" type="button" aria-label="Закрыть">✕</button>
         </div>
     `;
     document.body.appendChild(modal);
 
-    // Кнопка закрытия — сосед карточки, а не потомок: у карточки рваные
-    // края через clip-path, который обрезал бы и кнопку, окажись она внутри.
+    // Кнопка закрытия — сосед бумаги, а не потомок: .letter-read-paper
+    // может скроллиться при длинном письме, а крестик должен оставаться
+    // на месте, у угла .letter-read-wrap.
     modal.addEventListener("click", () => closeLetterReadModal());
     modal.querySelector(".letter-read-wrap").addEventListener("click", (event) => event.stopPropagation());
     modal.querySelector(".letter-read-card__close").addEventListener("click", (event) => {
