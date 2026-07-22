@@ -506,6 +506,102 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
 }
 
 /* ============================================================
+   КОД ПОЛЬЗОВАТЕЛЯ — раскрывающиеся блоки под списком в виджете
+   "Прогресс" (см. renderProgressPanel в js/ui/settings.js). Скрыты по
+   умолчанию, открывается только один из двух за раз (клик по второму
+   закрывает первый). "Показать код" открывает CODE_REVEAL — тот, что
+   всегда виден на устройстве, где создан; "Ввести код" открывает CODE_ENTER
+   — поле для чужого/своего кода с другого устройства.
+   ============================================================ */
+.progress-code-reveal,
+.progress-code-enter{
+    display:none;
+    align-items:center;
+    gap:8px;
+    margin-top:8px;
+    padding:10px 12px;
+    border-radius:12px;
+    background:rgba(255,255,255,.08);
+}
+
+.progress-code-reveal.is-open,
+.progress-code-enter.is-open{
+    display:flex;
+}
+
+.progress-code-reveal__value{
+    flex:1;
+    font-family:'Courier New', monospace;
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:.12em;
+    color:white;
+    word-break:break-all;
+}
+
+.progress-code-reveal__copy{
+    flex-shrink:0;
+    width:32px;
+    height:32px;
+    border:none;
+    border-radius:10px;
+    background:rgba(255,255,255,.14);
+    color:white;
+    font-size:15px;
+    cursor:pointer;
+    transition:background .2s ease, transform .15s ease;
+}
+
+.progress-code-reveal__copy:hover{
+    background:rgba(255,255,255,.26);
+    transform:translateY(-1px);
+}
+
+.progress-code-enter{
+    flex-wrap:wrap;
+}
+
+.progress-code-enter__input{
+    flex:1 1 140px;
+    min-width:0;
+    padding:9px 10px;
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:10px;
+    background:rgba(0,0,0,.18);
+    color:white;
+    font-size:13px;
+    letter-spacing:.06em;
+}
+
+.progress-code-enter__input::placeholder{
+    color:rgba(255,255,255,.5);
+    letter-spacing:normal;
+}
+
+.progress-code-enter__input:focus{
+    outline:none;
+    border-color:rgba(255,255,255,.5);
+}
+
+.progress-code-enter__submit{
+    flex-shrink:0;
+    padding:9px 14px;
+    border:none;
+    border-radius:10px;
+    background:rgba(255,255,255,.2);
+    color:white;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .2s ease, transform .15s ease;
+}
+
+.progress-code-enter__submit:hover{
+    background:rgba(255,255,255,.32);
+    transform:translateY(-1px);
+}
+
+/* ============================================================
    ОТДЕЛЬНАЯ МЕНЮШКА ВЫБОРА ТЕМЫ
    Не горизонтальный список внутри настроек, а самостоятельная
    панель по центру экрана — чтобы будущие виджеты не выходили

@@ -54,6 +54,7 @@ const defaultThemeId = "pink";
 
 function saveSelectedTheme(themeId){
     try { localStorage.setItem(selectedThemeStorageKey, themeId); } catch(e) {}
+    if(typeof scheduleProfileSync === "function") scheduleProfileSync();
 }
 
 function loadSelectedTheme(){
@@ -215,6 +216,14 @@ function renderProgressPanel(){
                 </li>
             `).join("")}
         </ul>
+        <div class="progress-code-reveal" id="progressCodeReveal">
+            <span class="progress-code-reveal__value" id="progressCodeValue">••••••••</span>
+            <button type="button" class="progress-code-reveal__copy" id="progressCodeCopy" aria-label="Скопировать код">📋</button>
+        </div>
+        <div class="progress-code-enter" id="progressCodeEnter">
+            <input type="text" id="progressCodeInput" class="progress-code-enter__input" placeholder="Введи код для восстановления прогресса" maxlength="16" autocomplete="off" autocapitalize="characters" spellcheck="false">
+            <button type="button" class="progress-code-enter__submit" id="progressCodeSubmit">Восстановить</button>
+        </div>
     `;
 
     const resetOption = document.getElementById("resetProgressOption");
@@ -226,6 +235,68 @@ function renderProgressPanel(){
             // в интро (пузырь с Да/Нет), см. showResetConfirmDialogue в
             // dialogue.js.
             if(typeof window.showResetConfirmDialogue === "function") window.showResetConfirmDialogue();
+        });
+    }
+
+    const codeReveal = document.getElementById("progressCodeReveal");
+    const codeValue = document.getElementById("progressCodeValue");
+    const codeCopyBtn = document.getElementById("progressCodeCopy");
+    const codeEnter = document.getElementById("progressCodeEnter");
+    const codeInput = document.getElementById("progressCodeInput");
+    const codeSubmit = document.getElementById("progressCodeSubmit");
+
+    const showCodeOption = document.getElementById("showCodeOption");
+    if(showCodeOption){
+        showCodeOption.classList.add("is-clickable");
+        showCodeOption.addEventListener("click", async (event) => {
+            event.stopPropagation();
+            if(codeEnter) codeEnter.classList.remove("is-open");
+            const isOpen = codeReveal.classList.toggle("is-open");
+            if(isOpen){
+                const code = typeof window.ensureOwnerCode === "function" ? await window.ensureOwnerCode() : null;
+                codeValue.textContent = code || "не удалось получить код";
+            }
+        });
+    }
+
+    if(codeCopyBtn){
+        codeCopyBtn.addEventListener("click", async (event) => {
+            event.stopPropagation();
+            const code = typeof window.getOwnerCode === "function" ? window.getOwnerCode() : null;
+            if(!code) return;
+            try {
+                await navigator.clipboard.writeText(code);
+                codeCopyBtn.textContent = "✅";
+                setTimeout(() => { codeCopyBtn.textContent = "📋"; }, 1400);
+            } catch(e) {}
+        });
+    }
+
+    const enterCodeOption = document.getElementById("enterCodeOption");
+    if(enterCodeOption){
+        enterCodeOption.classList.add("is-clickable");
+        enterCodeOption.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if(codeReveal) codeReveal.classList.remove("is-open");
+            codeEnter.classList.toggle("is-open");
+            if(codeEnter.classList.contains("is-open") && codeInput) codeInput.focus();
+        });
+    }
+
+    if(codeInput) codeInput.addEventListener("click", (event) => event.stopPropagation());
+
+    if(codeSubmit && codeInput){
+        const submitCode = () => {
+            const value = codeInput.value.trim();
+            if(!value) return;
+            if(typeof window.showRestoreConfirmDialogue === "function") window.showRestoreConfirmDialogue(value);
+        };
+        codeSubmit.addEventListener("click", (event) => {
+            event.stopPropagation();
+            submitCode();
+        });
+        codeInput.addEventListener("keydown", (event) => {
+            if(event.key === "Enter") submitCode();
         });
     }
 }

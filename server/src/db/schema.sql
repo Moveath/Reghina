@@ -51,3 +51,32 @@ select
     'egor',
     'regina'
 where not exists (select 1 from letters where direction = 'incoming');
+
+-- ============================================================
+-- Система постоянного кода пользователя (Этап 3): одна запись в profiles
+-- на устройство/человека, идентифицируется owner_code (генерируется один
+-- раз на бэкенде, никогда сам не меняется). Ввод того же кода на другом
+-- устройстве подтягивает весь прогресс — см. server/src/routes/profile.js
+-- и js/storage/storage.js.
+-- ============================================================
+create table if not exists profiles (
+    owner_code             text primary key,
+    dog_name                text not null default '',
+    dialogue_index          integer not null default 0,
+    intro_completed          boolean not null default false,
+    selected_theme          text not null default '',
+    unlocked_pieces          jsonb not null default '[]'::jsonb,
+    key_count                integer not null default 0,
+    puzzle_container_state  jsonb,
+    created_at              timestamptz not null default now(),
+    updated_at              timestamptz not null default now()
+);
+
+-- Письма теперь тоже привязаны к owner_code — без этого нельзя понять,
+-- кому какая переписка принадлежит при нескольких кодах. Колонка nullable
+-- на случай старых строк без кода (реальных данных пока нет — сайт ещё не
+-- запущен для получателя), но новые запросы всегда будут её передавать.
+alter table letters add column if not exists owner_code text references profiles(owner_code) on delete cascade;
+
+create index if not exists letters_owner_code_direction_idx
+    on letters (owner_code, direction, created_at desc);

@@ -11,7 +11,10 @@ const puzzleKeySystem = (() => {
     const cancelButton = document.getElementById("cancelKeyUse");
     const heldKeyCursor = document.getElementById("heldKeyCursor");
 
-    let keyCount = 0;
+    const keyCountStorageKey = "reginaKeyCount";
+    let keyCount = (() => {
+        try { return Number(localStorage.getItem(keyCountStorageKey)) || 0; } catch(e) { return 0; }
+    })();
     let isKeySelected = false;
     let pendingUseCallback = null;
     let cursorFrame;
@@ -19,6 +22,9 @@ const puzzleKeySystem = (() => {
 
     function updateKeyInterface(){
         const hasKey = keyCount > 0;
+
+        try { localStorage.setItem(keyCountStorageKey, String(keyCount)); } catch(e) {}
+        if(typeof scheduleProfileSync === "function") scheduleProfileSync();
 
         keyCounter.textContent = `🔑 ${keyCount}/${MAX_KEYS}`;
         keyInventory.classList.toggle("has-key", hasKey);
