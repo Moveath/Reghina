@@ -34,13 +34,29 @@ async function sendLetterToEgor(letter){
 }
 
 // Егор отвечает боту напрямую в Telegram — каждое такое сообщение сразу
-// становится новым входящим письмом для Регины.
+// становится новым входящим письмом для Регины. Егор коды не вводит, поэтому
+// его ответ привязывается к владельцу того письма, которое ему последним
+// уходило — это и есть тот, кому он сейчас отвечает.
 if(bot && supabase){
     bot.on("message", async (msg) => {
         // Бот личный — реагируем только на сообщения от самого Егора.
         if(!config.telegram.egorChatId || String(msg.from.id) !== String(config.telegram.egorChatId)) return;
         if(!msg.text) return; // пока только текстовые письма, без фото/голоса
         if(msg.text.startsWith("/")) return; // служебные команды (/start и т.п.) письмами не считаем
+
+        const { data: lastOutgoing } = await supabase
+            .from(TABLE)
+            .select("owner_code")
+            .eq("direction", "outgoing")
+            .not("owner_code", "is", null)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if(!lastOutgoing){
+            console.warn("[telegram] Не удалось определить владельца для ответа Егора — ни одного исходящего письма с owner_code ещё нет.");
+            return;
+        }
 
         const { error } = await supabase
             .from(TABLE)
@@ -50,7 +66,8 @@ if(bot && supabase){
                 status: "delivered",
                 sender: "egor",
                 receiver: "regina",
-                telegram_message_id: msg.message_id
+                telegram_message_id: msg.message_id,
+                owner_code: lastOutgoing.owner_code
             });
 
         if(error){

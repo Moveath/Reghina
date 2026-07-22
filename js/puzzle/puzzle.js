@@ -24,6 +24,7 @@ function saveUnlockedPieces(){
             .filter(index => index !== null);
         localStorage.setItem(unlockedPiecesStorageKey, JSON.stringify(unlockedIndexes));
     } catch(e) {}
+    if(typeof scheduleProfileSync === "function") scheduleProfileSync();
 }
 
 function restoreUnlockedPieces(){

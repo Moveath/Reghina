@@ -4,10 +4,9 @@
 // определены в js/ui/settings.js — здесь только логика самого виджета и
 // обращения к backend (см. server/).
 
-// Единственное место, которое нужно поменять при переносе backend'а
-// куда-то ещё. Сейчас backend задеплоен на Railway и работает постоянно,
-// независимо от локального компьютера.
-const API_BASE_URL = "https://reghina-production.up.railway.app";
+// API_BASE_URL и владение (owner_code) — в js/storage/storage.js, которая
+// грузится раньше этого файла (см. index.html) и создаёт код при самом
+// первом визите на устройстве.
 
 // Реплики собаки после отправки письма Егору — сюжетный момент (полноэкранная
 // сцена через showDogRemark), меняй фразы прямо здесь, ничего больше трогать
@@ -92,23 +91,16 @@ async function apiRequest(path, options){
     return res.status === 204 ? null : res.json();
 }
 
-const fetchInbox = () => apiRequest("/letters/inbox");
-const fetchOutbox = () => apiRequest("/letters/outbox");
-const sendLetterRequest = (message) => apiRequest("/letters", { method: "POST", body: JSON.stringify({ message }) });
+// Все запросы к письмам требуют owner_code — дожидаемся его (обычно он уже
+// готов к этому моменту, ensureOwnerCode вызывается сразу при загрузке
+// storage.js) перед каждым обращением к серверу.
+const fetchInbox = async () => apiRequest(`/letters/inbox?owner_code=${await ensureOwnerCode()}`);
+const fetchOutbox = async () => apiRequest(`/letters/outbox?owner_code=${await ensureOwnerCode()}`);
+const sendLetterRequest = async (message) => apiRequest("/letters", {
+    method: "POST",
+    body: JSON.stringify({ message, owner_code: await ensureOwnerCode() })
+});
 const markLetterRead = (id) => apiRequest(`/letters/${id}`, { method: "PATCH", body: JSON.stringify({ status: "read" }) });
-
-// Письма живут в Supabase, а не в localStorage — поэтому "Сбросить прогресс"
-// (см. resetAllProgress в dialogue.js) отдельно просит сервер стереть всю
-// историю писем и вернуть стартовое состояние, прежде чем перезагрузить
-// страницу.
-async function resetLettersOnServer(){
-    try {
-        await apiRequest("/letters/reset", { method: "POST" });
-    } catch(err){
-        console.error("[letters] Не удалось сбросить письма на сервере:", err.message);
-    }
-}
-window.resetLettersOnServer = resetLettersOnServer;
 
 let lettersView = "folders"; // folders | outbox | inbox | compose
 let outboxCache = [];

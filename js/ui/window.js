@@ -19,6 +19,7 @@ function saveContainerState(state){
     try {
         localStorage.setItem(containerStateStorageKey, JSON.stringify(state));
     } catch (e) {}
+    if(typeof scheduleProfileSync === "function") scheduleProfileSync();
 }
 
 function applyContainerState(state){

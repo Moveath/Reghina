@@ -22,10 +22,25 @@ function requireSupabase(req, res, next){
 
 router.use(requireSupabase);
 
+// Письма привязаны к owner_code (система постоянного кода пользователя,
+// см. server/src/routes/profile.js) — без него не понятно, чья это
+// переписка. Приходит либо query-параметром (GET), либо полем в теле
+// (POST/DELETE-подобные маршруты).
+function requireOwnerCode(getter){
+    return (req, res, next) => {
+        const code = getter(req);
+        if(!code || typeof code !== "string" || !code.trim()){
+            return res.status(400).json({ error: "Поле owner_code обязательно." });
+        }
+        req.ownerCode = code.trim().toUpperCase();
+        next();
+    };
+}
+
 // POST /letters — Регина пишет новое письмо Егору. Через этот маршрут
 // всегда уходит исходящее: направление и отправитель/получатель здесь
 // фиксированы, входящие письма от Егора появятся отдельным путём (бот).
-router.post("/", async (req, res) => {
+router.post("/", requireOwnerCode(req => req.body.owner_code), async (req, res) => {
     const { message } = req.body;
 
     if(!message || typeof message !== "string" || !message.trim()){
@@ -39,7 +54,8 @@ router.post("/", async (req, res) => {
             message: message.trim(),
             status: "pending",
             sender: "regina",
-            receiver: "egor"
+            receiver: "egor",
+            owner_code: req.ownerCode
         })
         .select()
         .single();
@@ -66,17 +82,17 @@ router.post("/", async (req, res) => {
     res.status(201).json(data);
 });
 
-// POST /letters/reset — полная очистка истории писем (используется кнопкой
-// "Сбросить прогресс" на сайте, см. window.resetAllProgress в dialogue.js).
-// Удаляет вообще все письма — и входящие, и исходящие — и создаёт заново
-// ровно одно стартовое входящее, чтобы новый заход выглядел как первый.
-router.post("/reset", async (req, res) => {
+// Общая логика полного сброса переписки одного владельца — используется и
+// маршрутом ниже (POST /letters/reset), и сбросом профиля целиком (см.
+// POST /profile/:code/reset в server/src/routes/profile.js), поэтому вынесена
+// в отдельную функцию и экспортирована.
+async function resetLettersForOwner(ownerCode){
     const { error: deleteError } = await supabase
         .from(TABLE)
         .delete()
-        .not("id", "is", null); // PostgREST требует явный фильтр даже для "удалить всё"
+        .eq("owner_code", ownerCode);
 
-    if(deleteError) return res.status(500).json({ error: deleteError.message });
+    if(deleteError) throw new Error(deleteError.message);
 
     const { data, error: insertError } = await supabase
         .from(TABLE)
@@ -85,33 +101,51 @@ router.post("/reset", async (req, res) => {
             message: STARTER_LETTER_MESSAGE,
             status: "delivered",
             sender: "egor",
-            receiver: "regina"
+            receiver: "regina",
+            owner_code: ownerCode
         })
         .select()
         .single();
 
-    if(insertError) return res.status(500).json({ error: insertError.message });
-    res.json(data);
+    if(insertError) throw new Error(insertError.message);
+    return data;
+}
+
+// POST /letters/reset — полная очистка истории писем ОДНОГО владельца
+// (используется кнопкой "Сбросить прогресс" на сайте, см.
+// window.resetAllProgress в dialogue.js). Удаляет все его письма — и
+// входящие, и исходящие — и создаёт заново ровно одно стартовое входящее,
+// чтобы новый заход выглядел как первый. Код владельца при этом не трогается.
+router.post("/reset", requireOwnerCode(req => req.body.owner_code), async (req, res) => {
+    try {
+        const data = await resetLettersForOwner(req.ownerCode);
+        res.json(data);
+    } catch(err){
+        res.status(500).json({ error: err.message });
+    }
 });
 
-// GET /letters/inbox — письма от Егора (входящие).
-router.get("/inbox", async (req, res) => {
+// GET /letters/inbox — письма от Егора (входящие) для конкретного владельца.
+router.get("/inbox", requireOwnerCode(req => req.query.owner_code), async (req, res) => {
     const { data, error } = await supabase
         .from(TABLE)
         .select("*")
         .eq("direction", "incoming")
+        .eq("owner_code", req.ownerCode)
         .order("created_at", { ascending: false });
 
     if(error) return res.status(500).json({ error: error.message });
     res.json(data);
 });
 
-// GET /letters/outbox — письма, отправленные Региной (исходящие).
-router.get("/outbox", async (req, res) => {
+// GET /letters/outbox — письма, отправленные Региной (исходящие), для
+// конкретного владельца.
+router.get("/outbox", requireOwnerCode(req => req.query.owner_code), async (req, res) => {
     const { data, error } = await supabase
         .from(TABLE)
         .select("*")
         .eq("direction", "outgoing")
+        .eq("owner_code", req.ownerCode)
         .order("created_at", { ascending: false });
 
     if(error) return res.status(500).json({ error: error.message });
@@ -119,7 +153,8 @@ router.get("/outbox", async (req, res) => {
 });
 
 // PATCH /letters/:id — смена статуса письма (например pending -> delivered,
-// или отметить входящее письмо прочитанным).
+// или отметить входящее письмо прочитанным). id уже уникален глобально,
+// owner_code здесь не нужен.
 router.patch("/:id", async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
@@ -146,3 +181,4 @@ router.patch("/:id", async (req, res) => {
 });
 
 module.exports = router;
+module.exports.resetLettersForOwner = resetLettersForOwner;

@@ -618,6 +618,7 @@ function saveDogName(name){
     try {
         localStorage.setItem("dog_name", name);
     } catch(e) {}
+    if(typeof scheduleProfileSync === "function") scheduleProfileSync();
 }
 
 // Загрузка имени из localStorage
@@ -647,6 +648,7 @@ function markIntroCompleted(){
         localStorage.setItem(introCompletedStorageKey, "true");
         localStorage.removeItem(dialogueIndexStorageKey);
     } catch(e) {}
+    if(typeof scheduleProfileSync === "function") scheduleProfileSync();
 }
 
 function isIntroAlreadyCompleted(){
@@ -655,6 +657,7 @@ function isIntroAlreadyCompleted(){
 
 function saveDialogueIndex(index){
     try { localStorage.setItem(dialogueIndexStorageKey, String(index)); } catch(e) {}
+    if(typeof scheduleProfileSync === "function") scheduleProfileSync();
 }
 
 function loadDialogueIndex(){
@@ -665,12 +668,13 @@ function loadDialogueIndex(){
 }
 
 // Полный сброс прогресса: имя, тема, открытые кусочки, состояние пазла,
-// сам факт прохождения интро и вся история писем в Supabase — используется
-// и dev-меню, и кнопкой "Сбросить прогресс" в виджете прогресса (см.
-// settings.js). Письма хранятся не в localStorage, а на сервере — поэтому
-// их сброс идёт отдельным запросом (см. resetLettersOnServer в
-// js/ui/letters.js) и мы ждём его перед перезагрузкой страницы, иначе
-// после сброса всё ещё будет видна старая переписка.
+// ключи, сам факт прохождения интро и вся история писем — используется и
+// dev-меню, и кнопкой "Сбросить прогресс" в виджете прогресса (см.
+// settings.js). Код владельца (owner_code) НЕ меняется — сброс на сервере
+// идёт через POST /profile/:code/reset (см. resetProfileOnServer в
+// js/storage/storage.js), который заодно чистит и пересевает письма этого
+// же владельца. Ждём ответа сервера перед перезагрузкой страницы, иначе
+// после сброса ещё будет видна старая переписка/прогресс.
 async function resetAllProgress(){
     try {
         localStorage.removeItem("dog_name");
@@ -679,10 +683,11 @@ async function resetAllProgress(){
         localStorage.removeItem("reginaSelectedTheme");
         localStorage.removeItem("reginaPuzzleUnlockedPieces");
         localStorage.removeItem("reginaPuzzleContainerState");
+        localStorage.removeItem("reginaKeyCount");
     } catch(e) {}
 
-    if(typeof window.resetLettersOnServer === "function"){
-        await window.resetLettersOnServer();
+    if(typeof window.resetProfileOnServer === "function"){
+        await window.resetProfileOnServer();
     }
 
     location.reload();
@@ -753,6 +758,83 @@ function hideResetConfirmDialogue(){
 }
 
 window.showResetConfirmDialogue = showResetConfirmDialogue;
+
+// Подтверждение восстановления прогресса по коду "от лица" собаки —
+// вызывается из виджета "Прогресс" (вкладка "Ввести код", см. settings.js)
+// после того, как введён код. Тот же визуальный приём, что и подтверждение
+// сброса выше. При "Да" текущий локальный прогресс полностью заменяется
+// тем, что лежит на сервере под этим кодом (см. restoreProgressFromCode в
+// js/storage/storage.js) — код устройства тоже подменяется на введённый.
+// При "Нет" — ничего не происходит, введённый код просто отбрасывается.
+function showRestoreConfirmDialogue(code){
+    if(resetConfirmActive) return;
+    if(document.body.classList.contains("intro-active")) return;
+    resetConfirmActive = true;
+
+    if(typeof closePanels === "function") closePanels();
+    if(typeof closeThemeMenu === "function") closeThemeMenu();
+
+    characterContainer.classList.add("is-intro-scene");
+    setDogEmotion("thinking");
+
+    dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
+    dialogueContainer.classList.add("is-active");
+    showIntroOverlay();
+
+    dialogueContainer.innerHTML = `
+        <div class="intro-dialogue" role="dialog" aria-live="polite">
+            <div class="intro-dialogue__bubble intro-dialogue__bubble--interactive">
+                <p>Ты хочешь восстановить прогресс по этому коду? Всё, что сейчас есть на этом устройстве, будет заменено.</p>
+                <div class="choice-buttons">
+                    <button id="restoreConfirmYes" class="choice-btn choice-btn--0" type="button">Да</button>
+                    <button id="restoreConfirmNo" class="choice-btn choice-btn--1" type="button">Нет</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("restoreConfirmYes").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const yesBtn = document.getElementById("restoreConfirmYes");
+        const noBtn = document.getElementById("restoreConfirmNo");
+        if(yesBtn) yesBtn.disabled = true;
+        if(noBtn) noBtn.disabled = true;
+
+        const result = typeof window.restoreProgressFromCode === "function"
+            ? await window.restoreProgressFromCode(code)
+            : { ok: false };
+
+        if(result.ok){
+            location.reload();
+        } else {
+            showRestoreFailedMessage();
+        }
+    });
+    document.getElementById("restoreConfirmNo").addEventListener("click", (e) => {
+        e.stopPropagation();
+        hideResetConfirmDialogue();
+    });
+}
+
+// Код не найден на сервере — заменяем содержимое уже открытого пузыря
+// вместо того, чтобы открывать ещё один диалог поверх.
+function showRestoreFailedMessage(){
+    const bubble = dialogueContainer.querySelector(".intro-dialogue__bubble");
+    if(!bubble) return;
+    setDogEmotion("confused");
+    bubble.innerHTML = `
+        <p>Такой код не найден. Проверь, что ввела его без ошибок.</p>
+        <div class="choice-buttons">
+            <button id="restoreFailedOk" class="choice-btn choice-btn--0" type="button">Понятно</button>
+        </div>
+    `;
+    document.getElementById("restoreFailedOk").addEventListener("click", (e) => {
+        e.stopPropagation();
+        hideResetConfirmDialogue();
+    });
+}
+
+window.showRestoreConfirmDialogue = showRestoreConfirmDialogue;
 
 // Разовая реплика собаки вне сценария интро — используется письмами
 // (js/ui/letters.js): подтверждение "отнесла письмо" и оповещение о новом

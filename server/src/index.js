@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const config = require("./config");
 const lettersRouter = require("./routes/letters");
+const profileRouter = require("./routes/profile");
 
 // Побочный эффект импорта: если TELEGRAM_BOT_TOKEN задан, запускает
 // long polling и подписывается на ответы Егора (см. telegram/bot.js).
@@ -25,6 +26,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/letters", lettersRouter);
+app.use("/profile", profileRouter);
 
 app.listen(config.port, () => {
     console.log(`[server] Letters API запущен на порту ${config.port}`);
