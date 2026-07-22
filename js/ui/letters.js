@@ -168,7 +168,9 @@ function ensureLetterReadModal(){
                     <p class="letter-read-card__meta"></p>
                     <p class="letter-read-card__text"></p>
                 </div>
-                <div class="letter-read-paper__cap letter-read-paper__cap--bottom"></div>
+                <div class="letter-read-paper__cap letter-read-paper__cap--bottom">
+                    <div class="letter-read-paper__seal"></div>
+                </div>
             </div>
             <button class="letter-read-card__close" type="button" aria-label="Закрыть">✕</button>
         </div>

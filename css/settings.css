@@ -1101,9 +1101,27 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
 }
 
 .letter-read-paper__cap--bottom{
+    position:relative;
     aspect-ratio:990/320;
     background-image:url('../images/items/paper-bottom.webp');
     margin-top:-1px;
+}
+
+/* Восковая печать — настоящее изображение (images/items/seal.webp, вырезано
+   из присланного фото), не CSS-рисунок. Декоративная, не зависит от текста
+   письма, поэтому сидит фиксированно у шва с нижним краем, а не "после
+   подписи" (подпись не гарантирована в свободном тексте письма). */
+.letter-read-paper__seal{
+    position:absolute;
+    top:-30px;
+    right:38px;
+    width:76px;
+    height:74px;
+    background-image:url('../images/items/seal.webp');
+    background-size:contain;
+    background-repeat:no-repeat;
+    transform:rotate(-6deg);
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.5));
 }
 
 .letter-read-paper__body{
@@ -1138,9 +1156,9 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
 }
 
 .letter-read-card__meta{
-    margin:0 0 14px;
-    font-family:'Segoe UI',sans-serif;
-    font-size:12px;
+    margin:0 0 10px;
+    font-family:'Marck Script', cursive;
+    font-size:17px;
     opacity:.6;
 }
 
