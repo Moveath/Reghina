@@ -81,17 +81,28 @@ function collectLocalProfileState(){
 
 let profileSyncTimer = null;
 
+// Пока локальное изменение ждёт отправки (или отправляется) — reconcile
+// (сверка с сервером, см. ниже) не должен затирать его версией с сервера,
+// которая на этот момент уже устарела. Без этого флага можно было бы
+// поймать гонку: правишь что-то локально, а параллельный опрос сервера
+// откатывает это же изменение назад.
+let pendingLocalChange = false;
+
 // Вызывается после каждого значимого изменения прогресса (имя, тема,
 // шаг диалога, открытый кусочек пазла, ключи) — с небольшой задержкой,
 // чтобы несколько изменений подряд не улетали отдельными запросами.
 function scheduleProfileSync(){
+    pendingLocalChange = true;
     clearTimeout(profileSyncTimer);
     profileSyncTimer = setTimeout(pushProfileSync, 700);
 }
 
 async function pushProfileSync(){
     const code = getOwnerCode();
-    if(!code) return;
+    if(!code){
+        pendingLocalChange = false;
+        return;
+    }
 
     try {
         await fetch(`${API_BASE_URL}/profile/${code}`, {
@@ -101,6 +112,8 @@ async function pushProfileSync(){
         });
     } catch(err){
         console.warn("[storage] Не удалось синхронизировать прогресс:", err);
+    } finally {
+        pendingLocalChange = false;
     }
 }
 
@@ -143,6 +156,58 @@ function applyProfileToLocalStorage(profile){
     } catch(e) {}
 }
 
+// Сравнивает локальный снимок прогресса с профилем от сервера — плоское
+// сравнение по значению всех отслеживаемых полей, без учёта updated_at
+// (сервер всегда считается главным, поэтому важно не "новее ли он", а
+// "отличается ли вообще").
+function profilesAreEqual(local, server){
+    return local.dog_name === (server.dog_name || "")
+        && local.dialogue_index === (server.dialogue_index || 0)
+        && local.intro_completed === Boolean(server.intro_completed)
+        && local.selected_theme === (server.selected_theme || "")
+        && JSON.stringify(local.unlocked_pieces) === JSON.stringify(server.unlocked_pieces || [])
+        && local.key_count === (server.key_count || 0)
+        && JSON.stringify(local.puzzle_container_state) === JSON.stringify(server.puzzle_container_state || null);
+}
+
+let isReconciling = false;
+
+// Сердце автосинхронизации между устройствами: спрашивает у сервера
+// актуальный профиль этого owner_code и, если он отличается от того, что
+// сейчас лежит локально (кто-то поменял прогресс на другом устройстве —
+// или сбросил его), применяет серверную версию и перезагружает страницу,
+// чтобы всё (диалог, пазл, ключи, тема) перерисовалось с нуля из уже
+// обновлённого localStorage — так же, как это давно и надёжно работает
+// при обычном восстановлении по коду и при сбросе прогресса.
+// Пока есть несохранённое локальное изменение (pendingLocalChange) —
+// сверку пропускаем, чтобы не откатить его версией с сервера, которая на
+// этот момент ещё не знает о нём.
+async function reconcileWithServer(){
+    const code = getOwnerCode();
+    if(!code || isReconciling || pendingLocalChange) return;
+
+    isReconciling = true;
+    try {
+        const res = await fetch(`${API_BASE_URL}/profile/${code}`);
+        if(!res.ok) return;
+
+        const serverProfile = await res.json();
+        const localState = collectLocalProfileState();
+
+        if(!profilesAreEqual(localState, serverProfile)){
+            applyProfileToLocalStorage(serverProfile);
+            location.reload();
+        }
+    } catch(err){
+        console.warn("[storage] Не удалось сверить прогресс с сервером:", err);
+    } finally {
+        isReconciling = false;
+    }
+}
+
+const PROFILE_POLL_INTERVAL_MS = 20000;
+setInterval(reconcileWithServer, PROFILE_POLL_INTERVAL_MS);
+
 // Восстановление прогресса по чужому (или своему, введённому заново) коду.
 // Возвращает { ok: true } при успехе или { ok: false } если код не найден
 // либо запрос не удался — вызывающий код (dialogue.js) сам решает, что
@@ -170,8 +235,15 @@ window.ensureOwnerCode = ensureOwnerCode;
 window.scheduleProfileSync = scheduleProfileSync;
 window.resetProfileOnServer = resetProfileOnServer;
 window.restoreProgressFromCode = restoreProgressFromCode;
+window.reconcileWithServer = reconcileWithServer;
 
 // Код нужен сразу — письма (js/ui/letters.js) и прочие системы завязаны на
 // его наличие с самого начала визита, поэтому создаём/подтягиваем его,
-// не дожидаясь никакого конкретного действия пользователя.
-ensureOwnerCode();
+// не дожидаясь никакого конкретного действия пользователя. Сразу вслед за
+// этим — разовая сверка с сервером при каждом запуске сайта (см. п.1-3 в
+// комментарии у reconcileWithServer): если прогресс успел измениться на
+// другом устройстве с тем же кодом, эта же вкладка получит его без
+// повторного ввода кода.
+ensureOwnerCode().then(code => {
+    if(code) reconcileWithServer();
+});
