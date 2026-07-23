@@ -42,6 +42,17 @@ router.post("/", async (req, res) => {
             .single();
 
         if(error) return res.status(500).json({ error: error.message });
+
+        // Новый код — новый почтовый ящик, ему тоже нужно стартовое письмо
+        // (как раньше было при первом визите на весь сайт). Раньше это
+        // делалось один раз для всех сидом в schema.sql — теперь письма
+        // привязаны к owner_code, значит и сеять их нужно на каждый новый код.
+        try {
+            await resetLettersForOwner(owner_code);
+        } catch(err){
+            console.error("[profile] Не удалось создать стартовое письмо для нового кода:", err.message);
+        }
+
         res.status(201).json(data);
     } catch(err){
         res.status(500).json({ error: err.message });
