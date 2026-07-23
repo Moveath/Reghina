@@ -32,19 +32,28 @@ async function ensureOwnerCode(){
     if(ownerCodeReadyPromise) return ownerCodeReadyPromise;
 
     ownerCodeReadyPromise = (async () => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/profile`, { method: "POST" });
-            if(!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            setOwnerCode(data.owner_code);
-            return data.owner_code;
-        } catch(err){
-            console.warn("[storage] Не удалось создать код пользователя:", err);
-            return null;
-        } finally {
-            ownerCodeReadyPromise = null;
+        // Пара попыток с небольшой паузой — на случай кратковременного
+        // сетевого сбоя при самой первой загрузке страницы (слабый сигнал
+        // на телефоне и т.п.). Без этого разовая заминка сети означала бы,
+        // что письма и прогресс на этой загрузке просто не заработают.
+        for(let attempt = 0; attempt < 3; attempt++){
+            try {
+                const res = await fetch(`${API_BASE_URL}/profile`, { method: "POST" });
+                if(!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                setOwnerCode(data.owner_code);
+                return data.owner_code;
+            } catch(err){
+                if(attempt === 2){
+                    console.warn("[storage] Не удалось создать код пользователя:", err);
+                    return null;
+                }
+                await new Promise(resolve => setTimeout(resolve, 800));
+            }
         }
-    })();
+    })().finally(() => {
+        ownerCodeReadyPromise = null;
+    });
 
     return ownerCodeReadyPromise;
 }
