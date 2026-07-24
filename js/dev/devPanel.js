@@ -112,10 +112,17 @@ function buildEligibleMonths(){
     return months;
 }
 
+// Результат последней проверки хранится отдельно от DOM: "Проверить ключ"
+// вызывает afterAdminAction, который тут же перестраивает всю Admin-вкладку
+// заново с нуля — без этого сообщение появлялось бы и тут же стиралось
+// свежей пустой вёрсткой прежде, чем его успевали прочитать.
+let devLastMonthlyKeyResultText = "";
+
 function renderMonthlyKeyResult(resultEl, result){
-    if(!result) resultEl.textContent = "Ошибка запроса.";
-    else if(result.granted) resultEl.textContent = `Выдан ключ за ${result.month}, часть #${result.piece_index + 1}.`;
-    else resultEl.textContent = `Ключ не выдан (${result.reason || "нечего выдавать"}).`;
+    if(!result) devLastMonthlyKeyResultText = "Ошибка запроса.";
+    else if(result.granted) devLastMonthlyKeyResultText = `Выдан ключ за ${result.month}, часть #${result.piece_index + 1}.`;
+    else devLastMonthlyKeyResultText = `Ключ не выдан (${result.reason || "нечего выдавать"}).`;
+    resultEl.textContent = devLastMonthlyKeyResultText;
 }
 
 // ===== Каркас панели =====
@@ -436,7 +443,7 @@ function renderAdminTab(bundle){
             <label class="dev-menu__label" for="devTestDate">Тестовая дата</label>
             <input id="devTestDate" class="dev-menu__input" type="date">
             <button id="devCheckMonthlyKey" class="dev-menu__btn" type="button">Проверить ключ</button>
-            <p id="devMonthlyKeyResult" class="dev-menu__hint"></p>
+            <p id="devMonthlyKeyResult" class="dev-menu__hint">${escapeHtml(devLastMonthlyKeyResultText)}</p>
             <label class="dev-menu__label" for="devAccelSelect">Ускоренный режим</label>
             <select id="devAccelSelect" class="dev-menu__input">
                 <option value="off" ${!devAccelIntervalMs ? "selected" : ""}>Выкл</option>
