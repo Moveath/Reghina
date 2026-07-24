@@ -80,3 +80,12 @@ alter table letters add column if not exists owner_code text references profiles
 
 create index if not exists letters_owner_code_direction_idx
     on letters (owner_code, direction, created_at desc);
+
+-- ============================================================
+-- Система ежемесячных ключей (Этап 4): часть 1 пазла открывается вручную
+-- через существующий сценарий интро (тестовый ключ от собаки), части 2-4 —
+-- этой системой, по одной в месяц, начиная с сентября 2026. См.
+-- server/src/routes/profile.js (POST /profile/:code/monthly-key).
+-- ============================================================
+alter table profiles add column if not exists claimed_key_months jsonb not null default '[]'::jsonb;
+alter table profiles add column if not exists last_key_granted_at timestamptz;

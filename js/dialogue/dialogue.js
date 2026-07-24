@@ -703,7 +703,7 @@ window.resetAllProgress = resetAllProgress;
 // сброс вообще не предлагаем: тур сначала должен закончиться сам собой,
 // без вмешательства этого выбора.
 function showResetConfirmDialogue(){
-    if(resetConfirmActive) return;
+    if(resetConfirmActive || monthlyKeySceneActive) return;
     if(document.body.classList.contains("intro-active")) return;
     resetConfirmActive = true;
 
@@ -767,7 +767,7 @@ window.showResetConfirmDialogue = showResetConfirmDialogue;
 // js/storage/storage.js) — код устройства тоже подменяется на введённый.
 // При "Нет" — ничего не происходит, введённый код просто отбрасывается.
 function showRestoreConfirmDialogue(code){
-    if(resetConfirmActive) return;
+    if(resetConfirmActive || monthlyKeySceneActive) return;
     if(document.body.classList.contains("intro-active")) return;
     resetConfirmActive = true;
 
@@ -836,6 +836,112 @@ function showRestoreFailedMessage(){
 
 window.showRestoreConfirmDialogue = showRestoreConfirmDialogue;
 
+// ============================================================
+// Ежемесячные ключи — вызывается из checkMonthlyKey (js/storage/storage.js)
+// при каждом запуске сайта, когда сервер решил, что положен новый ключ
+// (см. POST /profile/:code/monthly-key). Сцена в два этапа в одном и том
+// же пузыре: сначала собака "нашла" что-то (эмоция + случайная реплика),
+// после подтверждения — сообщает, что часть пазла открылась. Сам кусочек
+// реально открывается только ПОСЛЕ закрытия сцены (unlockPieceByIndex из
+// js/puzzle/puzzle.js) — чтобы открытие было видно, а не произошло тихо
+// где-то за диалогом.
+// ============================================================
+const monthlyKeyFoundLines = [
+    "Кажется, сегодня я нашёл кое-что важное для тебя!",
+    "У меня для тебя кое-какая находка... интересно, что это?",
+    "Я всю ночь искал этот ключ и наконец-то нашёл его!",
+    "Похоже, кто-то оставил для тебя новый секретный ключ."
+];
+
+const monthlyKeyOpenedLines = [
+    "Ура! Одна часть тайны стала открыта!",
+    "Смотри, ещё один кусочек собрался!",
+    "Кажется, мы стали ещё ближе к разгадке!",
+    "Новый ключ подошёл! Пазл открывает следующую часть!"
+];
+
+function pickRandomLine(list){
+    return list[Math.floor(Math.random() * list.length)];
+}
+
+let monthlyKeySceneActive = false;
+
+function showMonthlyKeyDialogue(pieceIndex){
+    // Сюжетные сценарии (интро, сброс, восстановление, реплика после
+    // письма) — приоритетнее. Ключ никуда не денется — checkMonthlyKey
+    // вызывается заново при каждой следующей загрузке сайта, пока сервер
+    // не подтвердит, что он выдан.
+    if(document.body.classList.contains("intro-active")) return;
+    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive) return;
+    monthlyKeySceneActive = true;
+
+    if(typeof closePanels === "function") closePanels();
+    if(typeof closeThemeMenu === "function") closeThemeMenu();
+
+    characterContainer.classList.add("is-intro-scene", "is-key-found");
+    setDogEmotion("happy");
+
+    dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
+    dialogueContainer.classList.add("is-active");
+    showIntroOverlay();
+
+    dialogueContainer.innerHTML = `
+        <div class="intro-dialogue" role="dialog" aria-live="polite">
+            <div class="intro-dialogue__bubble intro-dialogue__bubble--interactive monthly-key-bubble">
+                <span class="monthly-key-sparkle" aria-hidden="true">🔑✨</span>
+                <p>${pickRandomLine(monthlyKeyFoundLines)}</p>
+                <div class="choice-buttons">
+                    <button id="monthlyKeyFoundOk" class="choice-btn choice-btn--0" type="button">Ого, покажи!</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("monthlyKeyFoundOk").addEventListener("click", (e) => {
+        e.stopPropagation();
+        showMonthlyKeyOpenedStage(pieceIndex);
+    });
+}
+
+function showMonthlyKeyOpenedStage(pieceIndex){
+    const bubble = dialogueContainer.querySelector(".intro-dialogue__bubble");
+    if(!bubble) return;
+
+    bubble.innerHTML = `
+        <p>${pickRandomLine(monthlyKeyOpenedLines)}</p>
+        <div class="choice-buttons">
+            <button id="monthlyKeyOpenedOk" class="choice-btn choice-btn--0" type="button">Ура!</button>
+        </div>
+    `;
+
+    document.getElementById("monthlyKeyOpenedOk").addEventListener("click", (e) => {
+        e.stopPropagation();
+        finishMonthlyKeyDialogue(pieceIndex);
+    });
+}
+
+function finishMonthlyKeyDialogue(pieceIndex){
+    monthlyKeySceneActive = false;
+
+    hideIntroOverlay();
+    dialogueContainer.classList.add("is-fading");
+    dialogueContainer.classList.remove("is-active");
+
+    characterContainer.classList.remove("is-intro-scene", "is-key-found");
+    resetDogToNeutral();
+
+    setTimeout(() => {
+        dialogueContainer.innerHTML = "";
+        dialogueContainer.classList.remove("is-fading");
+    }, 850);
+
+    if(typeof window.unlockPieceByIndex === "function"){
+        window.unlockPieceByIndex(pieceIndex);
+    }
+}
+
+window.showMonthlyKeyDialogue = showMonthlyKeyDialogue;
+
 // Разовая реплика собаки вне сценария интро — используется письмами
 // (js/ui/letters.js): подтверждение "отнесла письмо" и оповещение о новом
 // письме от Егора. Тот же визуальный приём, что и в интро (собака
@@ -844,7 +950,7 @@ window.showRestoreConfirmDialogue = showRestoreConfirmDialogue;
 // вообще не показывается, чтобы не мешать сценарию.
 function showDogRemark(text){
     if(document.body.classList.contains("intro-active")) return;
-    if(resetConfirmActive || dogRemarkActive) return;
+    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive) return;
     dogRemarkActive = true;
 
     // Реплика — полноэкранная сцена, под ней не должно оставаться открытых
@@ -932,6 +1038,12 @@ function ensureDevMenu(){
     menu.innerHTML = `
         <h3 class="dev-menu__title">Режим разработчика</h3>
         <button id="devResetProgress" class="dev-menu__btn dev-menu__btn--danger" type="button">Сбросить прогресс</button>
+        <div class="dev-menu__section">
+            <label class="dev-menu__label" for="devTestDate">Тестовая дата (ключи месяца)</label>
+            <input id="devTestDate" class="dev-menu__input" type="date" placeholder="ГГГГ-ММ-ДД">
+            <button id="devCheckMonthlyKey" class="dev-menu__btn" type="button">Проверить ключ</button>
+            <p id="devMonthlyKeyResult" class="dev-menu__hint"></p>
+        </div>
         <button id="devMenuClose" class="dev-menu__btn" type="button">Закрыть</button>
     `;
     document.body.appendChild(menu);
@@ -939,6 +1051,27 @@ function ensureDevMenu(){
     menu.addEventListener("click", (event) => event.stopPropagation());
 
     menu.querySelector("#devResetProgress").addEventListener("click", resetAllProgress);
+
+    menu.querySelector("#devCheckMonthlyKey").addEventListener("click", async () => {
+        const dateInput = menu.querySelector("#devTestDate");
+        const resultEl = menu.querySelector("#devMonthlyKeyResult");
+        const testDate = dateInput.value; // "YYYY-MM-DD" или пусто (реальная дата)
+
+        if(typeof window.checkMonthlyKey !== "function"){
+            resultEl.textContent = "checkMonthlyKey недоступен.";
+            return;
+        }
+
+        resultEl.textContent = "Проверяю...";
+        const result = await window.checkMonthlyKey(testDate || undefined);
+        if(!result){
+            resultEl.textContent = "Ошибка запроса.";
+        } else if(result.granted){
+            resultEl.textContent = `Выдан ключ за ${result.month}, часть #${result.piece_index + 1}.`;
+        } else {
+            resultEl.textContent = `Ключ не выдан (${result.reason || "нечего выдавать"}).`;
+        }
+    });
 
     menu.querySelector("#devMenuClose").addEventListener("click", closeDevMenu);
 

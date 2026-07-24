@@ -239,12 +239,47 @@ async function restoreProgressFromCode(code){
     }
 }
 
+// Проверка ежемесячного ключа — вызывается при каждом запуске сайта (п.2
+// требований), но только если интро уже пройдено (иначе это лезло бы прямо
+// поверх сценария знакомства с собакой и первого тестового ключа, который
+// открывает часть 1). testDate — необязательный override только для
+// dev-меню (см. dialogue.js); в обычной работе не передаётся вообще, и
+// сервер сам берёт настоящую дату. Решение "выдавать или нет" и "какой
+// месяц" целиком на сервере (server/src/routes/profile.js) — здесь только
+// показ найденного результата.
+async function checkMonthlyKey(testDate){
+    const code = getOwnerCode();
+    if(!code) return;
+
+    let introCompleted = false;
+    try { introCompleted = localStorage.getItem("regina_intro_completed") === "true"; } catch(e) {}
+    if(!introCompleted && !testDate) return; // тестовый вызов из dev-меню разрешаем и до конца интро
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/profile/${code}/monthly-key`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(testDate ? { test_date: testDate } : {})
+        });
+        if(!res.ok) return;
+
+        const result = await res.json();
+        if(result.granted && typeof window.showMonthlyKeyDialogue === "function"){
+            window.showMonthlyKeyDialogue(result.piece_index);
+        }
+        return result;
+    } catch(err){
+        console.warn("[storage] Не удалось проверить ежемесячный ключ:", err);
+    }
+}
+
 window.getOwnerCode = getOwnerCode;
 window.ensureOwnerCode = ensureOwnerCode;
 window.scheduleProfileSync = scheduleProfileSync;
 window.resetProfileOnServer = resetProfileOnServer;
 window.restoreProgressFromCode = restoreProgressFromCode;
 window.reconcileWithServer = reconcileWithServer;
+window.checkMonthlyKey = checkMonthlyKey;
 
 // Код нужен сразу — письма (js/ui/letters.js) и прочие системы завязаны на
 // его наличие с самого начала визита, поэтому создаём/подтягиваем его,
@@ -259,5 +294,7 @@ window.reconcileWithServer = reconcileWithServer;
 // изменения с сервера.
 const hadOwnerCodeBeforeStartup = Boolean(getOwnerCode());
 ensureOwnerCode().then(code => {
-    if(code && hadOwnerCodeBeforeStartup) reconcileWithServer();
+    if(!code) return;
+    if(hadOwnerCodeBeforeStartup) reconcileWithServer();
+    checkMonthlyKey();
 });
