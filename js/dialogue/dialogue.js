@@ -867,12 +867,19 @@ function pickRandomLine(list){
 let monthlyKeySceneActive = false;
 
 function showMonthlyKeyDialogue(pieceIndex){
-    // Сюжетные сценарии (интро, сброс, восстановление, реплика после
-    // письма) — приоритетнее. Ключ никуда не денется — checkMonthlyKey
-    // вызывается заново при каждой следующей загрузке сайта, пока сервер
-    // не подтвердит, что он выдан.
+    // Настоящее интро — приоритетнее, а вот ключ уже точно выдан на
+    // сервере (checkMonthlyKey успел получить granted:true до этого
+    // вызова), так что просто ждать следующей загрузки сайта нельзя —
+    // тогда ключ показался бы только после ПЕРЕЗАГРУЗКИ, то есть будто
+    // потерялся на этот раз. Если сейчас идёт другая сюжетная сцена
+    // (например, "пока тебя не было, пришло письмо" от js/ui/letters.js) —
+    // не перебиваем её, а тихо ждём и пробуем ещё раз, пока экран не
+    // освободится.
     if(document.body.classList.contains("intro-active")) return;
-    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive) return;
+    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive){
+        setTimeout(() => showMonthlyKeyDialogue(pieceIndex), 1500);
+        return;
+    }
     monthlyKeySceneActive = true;
 
     if(typeof closePanels === "function") closePanels();
