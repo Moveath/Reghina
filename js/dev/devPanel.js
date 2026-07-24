@@ -315,7 +315,10 @@ function afterAdminAction(code){
 function renderMonitoringTab(bundle){
     const p = bundle.profile;
     const total = (typeof introDialogueLines !== "undefined" && introDialogueLines.length) ? introDialogueLines.length : null;
-    const percent = total ? Math.min(100, Math.round((p.dialogue_index / total) * 100)) : null;
+    // Как только интро пройдено, dialogue_index намеренно обнуляется (см.
+    // markIntroCompleted в dialogue.js) — он больше ничего не значит, поэтому
+    // процент считаем от него только пока интро ещё идёт.
+    const percent = p.intro_completed ? 100 : (total ? Math.min(100, Math.round((p.dialogue_index / total) * 100)) : null);
     const daysSince = p.created_at ? Math.floor((Date.now() - new Date(p.created_at).getTime()) / 86400000) : null;
 
     const piecesHtml = [0, 1, 2, 3].map(i => {
@@ -360,7 +363,7 @@ function renderMonitoringTab(bundle){
         </div>
         <div class="dev-panel__section">
             <h4 class="dev-panel__section-title">Прогресс</h4>
-            <p>${percent === null ? "—" : percent + "%"} (шаг ${p.dialogue_index}${total ? " из " + total : ""})</p>
+            <p>${percent === null ? "—" : percent + "%"} ${p.intro_completed ? "(интро завершено)" : `(шаг ${p.dialogue_index}${total ? " из " + total : ""})`}</p>
         </div>
         <div class="dev-panel__section">
             <h4 class="dev-panel__section-title">Пазл</h4>
@@ -411,6 +414,7 @@ function renderAdminTab(bundle){
         </div>
         <div class="dev-panel__section">
             <h4 class="dev-panel__section-title">Ключи</h4>
+            <p class="dev-menu__hint">Галочки ниже — это ежемесячные ключи (открывают части 2-4, начиная с сентября 2026). Кнопка под ними — отдельная одноразовая "ключ в руке" механика из интро (часть 1), с месяцами никак не связана.</p>
             <div class="dev-panel__months">${monthsChecklist}</div>
             <button id="devHandKeyToggle" class="dev-menu__btn" type="button">${p.key_count > 0 ? "Забрать ключ-в-руке" : "Выдать ключ-в-руке"}</button>
             <div class="dev-menu__section">
@@ -426,6 +430,7 @@ function renderAdminTab(bundle){
             <button id="devDialogueIndexApply" class="dev-menu__btn" type="button">Сохранить</button>
             <button id="devDialogueBack" class="dev-menu__btn" type="button">Откатить на шаг назад</button>
             <label class="dev-panel__checkbox"><input type="checkbox" id="devIntroCompleted" ${p.intro_completed ? "checked" : ""}> Сюжет (интро) завершён</label>
+            <p class="dev-menu__hint">Индекс диалога имеет смысл только пока интро НЕ завершено — если чекбокс выше включён, сайт всё равно показывает обычный вид и число ниже игнорирует. Меняя число, снимай галочку выше, иначе можно словить нестабильное состояние.</p>
         </div>
         <div class="dev-panel__section">
             <h4 class="dev-panel__section-title">Письма</h4>

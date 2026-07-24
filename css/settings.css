@@ -956,6 +956,14 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     gap:12px;
 }
 
+/* Без этого правила скрытая вкладка (атрибут hidden) всё равно оставалась
+   бы видна — [hidden] в браузерном стиле имеет ту же специфичность, что и
+   .dev-panel__body{display:flex} выше, а автор-стили побеждают user-agent
+   при равной специфичности. */
+.dev-panel__body[hidden]{
+    display:none;
+}
+
 .dev-panel__section{
     padding-top:12px;
     border-top:1px solid rgba(255,255,255,.14);
