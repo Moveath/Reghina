@@ -14,6 +14,11 @@ let devAccelTestDate = null;
 let devAccelIntervalMs = null;
 let devAccelCode = null;
 
+// Каждое admin-действие (в т.ч. сама проверка ключа) перестраивает всю
+// Admin-вкладку заново — без этого при повторной проверке соседних месяцев
+// подряд введённая дата стиралась бы после первого же клика.
+let devLastTestDateValue = "";
+
 const devSecretStorageKey = "reginaDevSecret";
 
 function getDevSecret(){
@@ -441,7 +446,7 @@ function renderAdminTab(bundle){
         <div class="dev-panel__section">
             <h4 class="dev-panel__section-title">Тестовое время (ежемесячные ключи)</h4>
             <label class="dev-menu__label" for="devTestDate">Тестовая дата</label>
-            <input id="devTestDate" class="dev-menu__input" type="date">
+            <input id="devTestDate" class="dev-menu__input" type="date" value="${escapeHtml(devLastTestDateValue)}">
             <button id="devCheckMonthlyKey" class="dev-menu__btn" type="button">Проверить ключ</button>
             <p id="devMonthlyKeyResult" class="dev-menu__hint">${escapeHtml(devLastMonthlyKeyResultText)}</p>
             <label class="dev-menu__label" for="devAccelSelect">Ускоренный режим</label>
@@ -566,6 +571,10 @@ function wireAdminHandlers(code){
             await devFetch(`/developer/profile/${code}/snapshots`, { method: "POST", body: JSON.stringify({ label }) });
             loadSnapshots(code);
         } catch(err){ handleDevError(err); }
+    });
+
+    el.querySelector("#devTestDate").addEventListener("input", event => {
+        devLastTestDateValue = event.target.value;
     });
 
     el.querySelector("#devCheckMonthlyKey").addEventListener("click", async () => {
