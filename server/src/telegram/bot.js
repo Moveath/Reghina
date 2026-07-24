@@ -1,6 +1,7 @@
 const { TelegramBot } = require("node-telegram-bot-api");
 const config = require("../config");
 const supabase = require("../db/supabaseClient");
+const { logEvent } = require("../utils/logger");
 
 const TABLE = "letters";
 
@@ -74,6 +75,7 @@ if(bot && supabase){
             console.error("[telegram] Не удалось сохранить письмо от Егора:", error.message);
         } else {
             console.log("[telegram] Новое письмо от Егора сохранено во «Входящих».");
+            logEvent(supabase, lastOutgoing.owner_code, "letter_received");
         }
     });
 } else if(bot && !supabase){

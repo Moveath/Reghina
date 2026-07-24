@@ -1,6 +1,7 @@
 const express = require("express");
 const supabase = require("../db/supabaseClient");
 const { sendLetterToEgor } = require("../telegram/bot");
+const { logEvent } = require("../utils/logger");
 
 const router = express.Router();
 const TABLE = "letters";
@@ -61,6 +62,8 @@ router.post("/", requireOwnerCode(req => req.body.owner_code), async (req, res) 
         .single();
 
     if(error) return res.status(500).json({ error: error.message });
+
+    logEvent(supabase, req.ownerCode, "letter_sent");
 
     // Письмо уже сохранено — теперь собака относит его Егору в Telegram.
     // Если отправка не удалась (бот не настроен, Егор ещё не писал боту
@@ -177,6 +180,11 @@ router.patch("/:id", async (req, res) => {
 
     if(error) return res.status(500).json({ error: error.message });
     if(!data) return res.status(404).json({ error: "Письмо с таким id не найдено." });
+
+    if(status === "read"){
+        logEvent(supabase, data.owner_code, "letter_read");
+    }
+
     res.json(data);
 });
 

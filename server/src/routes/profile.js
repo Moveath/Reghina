@@ -1,6 +1,7 @@
 const express = require("express");
 const supabase = require("../db/supabaseClient");
 const { generateUniqueOwnerCode } = require("../utils/ownerCode");
+const { logEvent } = require("../utils/logger");
 const { resetLettersForOwner } = require("./letters");
 
 const router = express.Router();
@@ -84,6 +85,8 @@ router.post("/", async (req, res) => {
             console.error("[profile] Не удалось создать стартовое письмо для нового кода:", err.message);
         }
 
+        logEvent(supabase, owner_code, "profile_created");
+
         res.status(201).json(data);
     } catch(err){
         res.status(500).json({ error: err.message });
@@ -103,12 +106,52 @@ router.get("/:code", async (req, res) => {
 
     if(error) return res.status(500).json({ error: error.message });
     if(!data) return res.status(404).json({ error: "Код не найден." });
+
+    // Отличаем осознанное восстановление по коду (пользователь вручную ввёл
+    // код на новом устройстве, js/storage/storage.js добавляет ?source=restore)
+    // от фонового 20-секундного опроса reconcileWithServer — иначе журнал
+    // залился бы шумом из каждого опроса.
+    if(req.query.source === "restore"){
+        logEvent(supabase, code, "restored_by_code");
+    }
+
     res.json(data);
 });
 
 // PATCH /profile/:code — сохранить прогресс. Присылается любое подмножество
 // полей из EDITABLE_FIELDS — вызывается часто (после каждого значимого
 // изменения), поэтому лишние поля просто игнорируются, а не считаются ошибкой.
+// Точечное логирование изменений, которые реально интересны в Timeline —
+// сравнивает состояние профиля до и после PATCH. Не блокирует ответ клиенту
+// (вызывается уже после res.json), ошибки логирования только предупреждают.
+function logProfileDiff(code, before, after){
+    if(!before || !after) return;
+
+    if(before.dialogue_index !== after.dialogue_index){
+        logEvent(supabase, code, "dialogue_progressed", { dialogue_index: after.dialogue_index });
+    }
+    if(!before.intro_completed && after.intro_completed){
+        logEvent(supabase, code, "story_completed");
+    }
+    if(before.selected_theme !== after.selected_theme && after.selected_theme){
+        logEvent(supabase, code, "theme_changed", { theme: after.selected_theme });
+    }
+
+    const beforePieces = Array.isArray(before.unlocked_pieces) ? before.unlocked_pieces : [];
+    const afterPieces = Array.isArray(after.unlocked_pieces) ? after.unlocked_pieces : [];
+    afterPieces.filter(i => !beforePieces.includes(i)).forEach(i => {
+        logEvent(supabase, code, "puzzle_piece_opened", { piece: i });
+    });
+    beforePieces.filter(i => !afterPieces.includes(i)).forEach(i => {
+        logEvent(supabase, code, "puzzle_piece_closed", { piece: i });
+    });
+
+    const beforeKeyCount = before.key_count || 0;
+    const afterKeyCount = after.key_count || 0;
+    if(afterKeyCount > beforeKeyCount) logEvent(supabase, code, "key_obtained");
+    else if(afterKeyCount < beforeKeyCount) logEvent(supabase, code, "key_used");
+}
+
 router.patch("/:code", async (req, res) => {
     const code = req.params.code.trim().toUpperCase();
 
@@ -120,6 +163,12 @@ router.patch("/:code", async (req, res) => {
     }
     updates.updated_at = new Date().toISOString();
 
+    const { data: before } = await supabase
+        .from(TABLE)
+        .select("dialogue_index, intro_completed, selected_theme, unlocked_pieces, key_count")
+        .eq("owner_code", code)
+        .maybeSingle();
+
     const { data, error } = await supabase
         .from(TABLE)
         .update(updates)
@@ -129,7 +178,9 @@ router.patch("/:code", async (req, res) => {
 
     if(error) return res.status(500).json({ error: error.message });
     if(!data) return res.status(404).json({ error: "Код не найден." });
+
     res.json(data);
+    logProfileDiff(code, before, data);
 });
 
 // POST /profile/:code/reset — сброс прогресса ("Сбросить прогресс" на
@@ -166,7 +217,45 @@ router.post("/:code/reset", async (req, res) => {
         console.error("[profile] Не удалось сбросить письма при сбросе профиля:", err.message);
     }
 
+    // Сброс трогает только profiles и letters — таблицу logs этот роут не
+    // очищает и не должен: история событий должна пережить сброс прогресса.
+    logEvent(supabase, code, "progress_reset");
+
     res.json(data);
+});
+
+// POST /profile/:code/heartbeat — лёгкая телеметрия визита, не требует
+// секрета разработчика (обычная фоновая отметка "я всё ещё здесь"). Вызывается
+// с фронтенда (js/storage/storage.js): один раз с new_session:true сразу
+// после ensureOwnerCode() на старте страницы, дальше раз в минуту с false.
+// Питает "онлайн сейчас" и карточку "Даты" в Developer Panel.
+router.post("/:code/heartbeat", async (req, res) => {
+    const code = req.params.code.trim().toUpperCase();
+    const device = typeof req.body.device === "string" ? req.body.device.slice(0, 120) : "";
+    const isNewSession = Boolean(req.body.new_session);
+
+    const { data: before } = await supabase
+        .from(TABLE)
+        .select("last_device, visit_count")
+        .eq("owner_code", code)
+        .maybeSingle();
+
+    if(!before) return res.status(404).json({ error: "Код не найден." });
+
+    const updates = { last_seen_at: new Date().toISOString(), last_device: device };
+    if(isNewSession) updates.visit_count = (before.visit_count || 0) + 1;
+
+    const { error } = await supabase.from(TABLE).update(updates).eq("owner_code", code);
+    if(error) return res.status(500).json({ error: error.message });
+
+    if(before.last_device && device && before.last_device !== device){
+        logEvent(supabase, code, "device_changed", { from: before.last_device, to: device });
+    }
+    if(isNewSession){
+        logEvent(supabase, code, "visit", { device });
+    }
+
+    res.json({ ok: true });
 });
 
 // POST /profile/:code/monthly-key — проверить и, если положено, выдать
@@ -233,6 +322,8 @@ router.post("/:code/monthly-key", async (req, res) => {
         .single();
 
     if(updateError) return res.status(500).json({ error: updateError.message });
+
+    logEvent(supabase, code, "monthly_key_granted", { month: monthToGrant, piece_index: pieceIndex });
 
     res.json({ granted: true, month: monthToGrant, piece_index: pieceIndex, profile: updated });
 });

@@ -758,8 +758,10 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
 }
 
 /* ============================================================
-   ВРЕМЕННОЕ МЕНЮ РАЗРАБОТЧИКА (5 кликов по собаке).
-   Убрать вместе со скриптом, когда тестирование закончится.
+   DEVELOPER PANEL (скрытая, 5 кликов по собаке, см. js/dev/devPanel.js).
+   Базовый .dev-menu — компактный экран ввода секрета; модификатор
+   .dev-menu--panel растягивает тот же блок под полноценную панель с
+   вкладками Monitoring/Admin, когда секрет уже введён.
    ============================================================ */
 .dev-menu{
     position:fixed;
@@ -861,6 +863,224 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     line-height:1.4;
     opacity:.75;
     text-align:center;
+}
+
+.dev-menu__hint--error{
+    color:#ff9a9a;
+}
+
+/* Модификатор для полноценной панели — та же тёмная стеклянная карточка,
+   но шире/выше, со своим скроллом и текстом по левому краю. */
+.dev-menu--panel{
+    width:min(92vw, 460px);
+    max-height:min(86vh, 720px);
+    padding:16px;
+    text-align:left;
+    overflow-y:auto;
+}
+
+.dev-panel__header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+}
+
+.dev-panel__header .dev-menu__title{
+    margin:0;
+}
+
+.dev-panel__close{
+    flex-shrink:0;
+    width:28px;
+    height:28px;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,.14);
+    color:white;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.dev-panel__close:hover{
+    background:rgba(255,255,255,.24);
+}
+
+.dev-panel__code-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:10px;
+}
+
+.dev-panel__code-row .dev-menu__input{
+    flex:1;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+}
+
+.dev-panel__code-row .dev-menu__btn{
+    width:auto;
+    margin-top:0;
+    flex-shrink:0;
+}
+
+.dev-panel__tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+}
+
+.dev-panel__tab{
+    flex:1;
+    padding:8px;
+    border:none;
+    border-radius:10px;
+    background:rgba(255,255,255,.08);
+    color:white;
+    opacity:.65;
+    font:inherit;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .2s ease, opacity .2s ease;
+}
+
+.dev-panel__tab.is-active{
+    background:rgba(255,255,255,.2);
+    opacity:1;
+}
+
+.dev-panel__body{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.dev-panel__section{
+    padding-top:12px;
+    border-top:1px solid rgba(255,255,255,.14);
+    font-size:13px;
+    line-height:1.5;
+}
+
+.dev-panel__section:first-child{
+    padding-top:0;
+    border-top:none;
+}
+
+.dev-panel__section-title{
+    margin:0 0 6px;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    opacity:.65;
+}
+
+.dev-panel__section p{
+    margin:2px 0;
+}
+
+.dev-panel__dot{
+    display:inline-block;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:rgba(255,255,255,.3);
+    margin-right:4px;
+}
+
+.dev-panel__dot.is-online{
+    background:#7CFF9B;
+    box-shadow:0 0 6px rgba(124,255,155,.8);
+}
+
+.dev-panel__pills{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+}
+
+.dev-panel__pill{
+    padding:4px 10px;
+    border-radius:999px;
+    background:rgba(255,255,255,.1);
+    font-size:12px;
+    opacity:.7;
+}
+
+.dev-panel__pill.is-open{
+    background:rgba(124,255,155,.22);
+    opacity:1;
+}
+
+.dev-panel__letter,
+.dev-panel__timeline-item,
+.dev-panel__snapshot{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding:6px 0;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    font-size:12px;
+}
+
+.dev-panel__timeline{
+    max-height:220px;
+    overflow-y:auto;
+}
+
+.dev-panel__piece-btn{
+    display:inline-block;
+    width:auto;
+    margin-top:0;
+    padding:6px 10px;
+    font-size:12px;
+}
+
+.dev-panel__months{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:10px;
+}
+
+.dev-panel__month{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    padding:4px 8px;
+    border-radius:8px;
+    background:rgba(255,255,255,.08);
+    font-size:12px;
+    cursor:pointer;
+}
+
+.dev-panel__checkbox{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-top:10px;
+    font-size:13px;
+    cursor:pointer;
+}
+
+.dev-panel__snapshots{
+    margin-bottom:10px;
+}
+
+.dev-panel__snapshot{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+}
+
+.dev-panel__snapshot-restore{
+    width:auto;
+    margin-top:0;
+    padding:6px 10px;
+    font-size:12px;
+    flex-shrink:0;
 }
 
 /* ============================================================

@@ -226,7 +226,11 @@ async function restoreProgressFromCode(code){
     if(!trimmed) return { ok: false };
 
     try {
-        const res = await fetch(`${API_BASE_URL}/profile/${trimmed}`);
+        // ?source=restore отличает осознанное восстановление по коду от
+        // фонового 20-секундного опроса reconcileWithServer ниже — бэкенд
+        // логирует событие "restored_by_code" только для этого случая
+        // (см. server/src/routes/profile.js), иначе журнал заливался бы шумом.
+        const res = await fetch(`${API_BASE_URL}/profile/${trimmed}?source=restore`);
         if(res.status === 404) return { ok: false, reason: "not_found" };
         if(!res.ok) return { ok: false, reason: "error" };
 
@@ -273,6 +277,43 @@ async function checkMonthlyKey(testDate){
     }
 }
 
+// Лёгкая телеметрия визита — питает "онлайн сейчас" и карточку "Даты" в
+// скрытой Developer Panel (см. js/dev/devPanel.js). Не требует секрета
+// разработчика, это обычная фоновая отметка "устройство ещё здесь".
+function detectDeviceLabel(){
+    const ua = navigator.userAgent || "";
+    const platform = /iPhone|iPad/.test(ua) ? "iPhone/iPad"
+        : /Android/.test(ua) ? "Android"
+        : /Windows/.test(ua) ? "Windows"
+        : /Macintosh/.test(ua) ? "Mac"
+        : "Другое устройство";
+    const browser = /Edg\//.test(ua) ? "Edge"
+        : /OPR\//.test(ua) ? "Opera"
+        : /Chrome\//.test(ua) ? "Chrome"
+        : /Firefox\//.test(ua) ? "Firefox"
+        : /Safari\//.test(ua) ? "Safari"
+        : "браузер";
+    return `${platform} · ${browser}`;
+}
+
+async function sendHeartbeat(isNewSession){
+    const code = getOwnerCode();
+    if(!code) return;
+
+    try {
+        await fetch(`${API_BASE_URL}/profile/${code}/heartbeat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ device: detectDeviceLabel(), new_session: Boolean(isNewSession) })
+        });
+    } catch(err){
+        console.warn("[storage] Не удалось отправить heartbeat:", err);
+    }
+}
+
+const HEARTBEAT_INTERVAL_MS = 60000;
+setInterval(() => sendHeartbeat(false), HEARTBEAT_INTERVAL_MS);
+
 window.getOwnerCode = getOwnerCode;
 window.ensureOwnerCode = ensureOwnerCode;
 window.scheduleProfileSync = scheduleProfileSync;
@@ -297,4 +338,5 @@ ensureOwnerCode().then(code => {
     if(!code) return;
     if(hadOwnerCodeBeforeStartup) reconcileWithServer();
     checkMonthlyKey();
+    sendHeartbeat(true);
 });
