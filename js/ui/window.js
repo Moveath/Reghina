@@ -36,10 +36,18 @@ function applyContainerState(state){
     }
 }
 
+// Раньше эта функция игнорировала readContainerState() и на каждой
+// загрузке страницы безусловно выставляла {minimized:true}, да ещё и
+// пушила это на сервер (saveContainerState → scheduleProfileSync). Если
+// реальное сохранённое состояние было {minimized:false} (окно оставили
+// развёрнутым), это создавало несовпадение с сервером при каждой
+// перезагрузке — а автосинхронизация (reconcileWithServer) как раз и
+// перезагружает страницу при таком несовпадении. Получался бесконечный
+// цикл: загрузка → форс minimized:true → рассинхрон с сервером →
+// reconcile перезагружает страницу → форс minimized:true снова → ...
 function restoreContainerState(){
-    const initialState = { minimized: true };
+    const initialState = readContainerState() || { minimized: true };
     applyContainerState(initialState);
-    saveContainerState(initialState);
 }
 
 toggleBtn.addEventListener("click",(e)=>{
