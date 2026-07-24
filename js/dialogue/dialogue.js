@@ -1029,70 +1029,13 @@ if(isIntroAlreadyCompleted()){
     pausePuzzleAnimations();
 }
 
-// ===== Временный режим разработчика: 5 кликов по собаке подряд открывают
-// меню с кнопкой полного сброса прогресса. Убрать, когда тестирование
-// закончится. =====
+// ===== Скрытый доступ к Developer Panel: 5 быстрых кликов по собаке подряд
+// открывают панель (см. js/dev/devPanel.js — секрет-гейт, Monitoring и
+// Admin/Test режимы). Сама панель ничего не показывает и не даёт ничего
+// изменить без верного DEVELOPER_SECRET, поэтому случайное открытие этим
+// жестом безопасно. =====
 let devClickCount = 0;
 let devClickResetTimer = null;
-let devMenuElement = null;
-
-function ensureDevMenu(){
-    if(devMenuElement) return devMenuElement;
-
-    const menu = document.createElement("div");
-    menu.id = "devMenu";
-    menu.className = "dev-menu";
-    menu.innerHTML = `
-        <h3 class="dev-menu__title">Режим разработчика</h3>
-        <button id="devResetProgress" class="dev-menu__btn dev-menu__btn--danger" type="button">Сбросить прогресс</button>
-        <div class="dev-menu__section">
-            <label class="dev-menu__label" for="devTestDate">Тестовая дата (ключи месяца)</label>
-            <input id="devTestDate" class="dev-menu__input" type="date" placeholder="ГГГГ-ММ-ДД">
-            <button id="devCheckMonthlyKey" class="dev-menu__btn" type="button">Проверить ключ</button>
-            <p id="devMonthlyKeyResult" class="dev-menu__hint"></p>
-        </div>
-        <button id="devMenuClose" class="dev-menu__btn" type="button">Закрыть</button>
-    `;
-    document.body.appendChild(menu);
-
-    menu.addEventListener("click", (event) => event.stopPropagation());
-
-    menu.querySelector("#devResetProgress").addEventListener("click", resetAllProgress);
-
-    menu.querySelector("#devCheckMonthlyKey").addEventListener("click", async () => {
-        const dateInput = menu.querySelector("#devTestDate");
-        const resultEl = menu.querySelector("#devMonthlyKeyResult");
-        const testDate = dateInput.value; // "YYYY-MM-DD" или пусто (реальная дата)
-
-        if(typeof window.checkMonthlyKey !== "function"){
-            resultEl.textContent = "checkMonthlyKey недоступен.";
-            return;
-        }
-
-        resultEl.textContent = "Проверяю...";
-        const result = await window.checkMonthlyKey(testDate || undefined);
-        if(!result){
-            resultEl.textContent = "Ошибка запроса.";
-        } else if(result.granted){
-            resultEl.textContent = `Выдан ключ за ${result.month}, часть #${result.piece_index + 1}.`;
-        } else {
-            resultEl.textContent = `Ключ не выдан (${result.reason || "нечего выдавать"}).`;
-        }
-    });
-
-    menu.querySelector("#devMenuClose").addEventListener("click", closeDevMenu);
-
-    devMenuElement = menu;
-    return menu;
-}
-
-function openDevMenu(){
-    ensureDevMenu().classList.add("is-open");
-}
-
-function closeDevMenu(){
-    if(devMenuElement) devMenuElement.classList.remove("is-open");
-}
 
 // Считаем клики по ОБЛАСТИ собаки через координаты, а не через слушатель
 // на самой картинке: у неё намеренно pointer-events:none большую часть
@@ -1114,20 +1057,14 @@ document.addEventListener("click", (event) => {
 
     if(devClickCount >= 5){
         devClickCount = 0;
-        // Без этого тот же самый клик долетает и до слушателя "клик мимо
-        // меню — закрыть" ниже (он висит на document в bubble-фазе) и
-        // закрывает меню в тот же миг, что и открыл — она никогда не
-        // становится видна.
+        // Без этого тот же самый клик долетает до глобального "клик мимо
+        // панели — закрыть" слушателя внутри devPanel.js и закрывает панель
+        // в тот же миг, что и открыл.
         event.stopPropagation();
-        openDevMenu();
+        if(typeof window.openDeveloperPanel === "function") window.openDeveloperPanel();
     }
 }, true);
 
-document.addEventListener("click", (event) => {
-    if(!devMenuElement || !devMenuElement.classList.contains("is-open")) return;
-    if(event.target.closest("#devMenu")) return;
-    closeDevMenu();
-});
 document.addEventListener("click", (event) => {
     if(introFrozen) return;
     if(resetConfirmActive) return;

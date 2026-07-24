@@ -10,6 +10,9 @@ const config = {
     telegram: {
         botToken: process.env.TELEGRAM_BOT_TOKEN || "",
         egorChatId: process.env.EGOR_TELEGRAM_ID || ""
+    },
+    developer: {
+        secret: process.env.DEVELOPER_SECRET || ""
     }
 };
 

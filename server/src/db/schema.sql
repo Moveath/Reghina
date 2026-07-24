@@ -89,3 +89,58 @@ create index if not exists letters_owner_code_direction_idx
 -- ============================================================
 alter table profiles add column if not exists claimed_key_months jsonb not null default '[]'::jsonb;
 alter table profiles add column if not exists last_key_granted_at timestamptz;
+
+-- ============================================================
+-- Developer Panel (Этап 5): скрытая панель наблюдения/управления для
+-- разработчика. Доступ защищён отдельным секретом (DEVELOPER_SECRET),
+-- см. server/src/routes/developer.js — здесь только схема данных.
+-- ============================================================
+
+-- Телеметрия визитов — используется для "онлайн сейчас" и карточки "Даты"
+-- в Monitoring Mode. Обновляется через POST /profile/:code/heartbeat,
+-- не требует секрета разработчика (обычная телеметрия визита).
+alter table profiles add column if not exists last_seen_at timestamptz;
+alter table profiles add column if not exists last_device text;
+alter table profiles add column if not exists visit_count integer not null default 0;
+
+-- Тестовые письма, создаваемые из Admin Mode — помечены отдельным флагом,
+-- чтобы их можно было безопасно удалить, не трогая настоящую переписку.
+alter table letters add column if not exists is_test boolean not null default false;
+
+-- Журнал событий пользователя — лента Timeline в Monitoring Mode. НЕ
+-- очищается сбросом прогресса (POST /profile/:code/reset) — история должна
+-- копиться бессрочно, даже после сброса.
+create table if not exists logs (
+    id          bigint generated always as identity primary key,
+    owner_code  text references profiles(owner_code) on delete cascade,
+    event_type  text not null,
+    data        jsonb not null default '{}'::jsonb,
+    created_at  timestamptz not null default now()
+);
+
+create index if not exists logs_owner_code_created_at_idx
+    on logs (owner_code, created_at desc);
+
+-- Аудит действий разработчика (Admin/Test Mode) — отдельно от logs, хранит
+-- старое/новое значение каждого ручного изменения.
+create table if not exists developer_logs (
+    id          bigint generated always as identity primary key,
+    owner_code  text references profiles(owner_code) on delete set null,
+    action      text not null,
+    old_value   jsonb,
+    new_value   jsonb,
+    created_at  timestamptz not null default now()
+);
+
+-- Снимки состояния профиля (прогресс + письма) для восстановления после
+-- ошибок при тестировании.
+create table if not exists snapshots (
+    id          uuid primary key default gen_random_uuid(),
+    owner_code  text not null references profiles(owner_code) on delete cascade,
+    label       text not null default '',
+    data        jsonb not null,
+    created_at  timestamptz not null default now()
+);
+
+create index if not exists snapshots_owner_code_created_at_idx
+    on snapshots (owner_code, created_at desc);
