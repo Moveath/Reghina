@@ -828,6 +828,73 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     background:rgba(255,90,90,.4);
 }
 
+.dev-menu__section{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid rgba(255,255,255,.14);
+    text-align:left;
+}
+
+.dev-menu__label{
+    display:block;
+    margin-bottom:6px;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    opacity:.65;
+}
+
+.dev-menu__input{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:10px;
+    background:rgba(0,0,0,.25);
+    color:white;
+    font:inherit;
+    font-size:13px;
+}
+
+.dev-menu__hint{
+    margin:8px 0 0;
+    font-size:12px;
+    line-height:1.4;
+    opacity:.75;
+    text-align:center;
+}
+
+/* ============================================================
+   ЕЖЕМЕСЯЧНЫЙ КЛЮЧ — та же полноэкранная сцена, что и подтверждения выше
+   (.intro-dialogue__bubble), плюс лёгкий "искрящийся" акцент над текстом.
+   ============================================================ */
+.monthly-key-bubble{
+    position:relative;
+}
+
+.monthly-key-sparkle{
+    display:block;
+    margin-bottom:8px;
+    font-size:28px;
+    line-height:1;
+    animation:monthlyKeySparkle 1.4s ease-in-out infinite;
+}
+
+@keyframes monthlyKeySparkle{
+    0%, 100% { transform:scale(1) rotate(0deg); }
+    50% { transform:scale(1.15) rotate(-6deg); }
+}
+
+.is-key-found{
+    animation:monthlyKeyBounce .6s ease-in-out;
+}
+
+@keyframes monthlyKeyBounce{
+    0%, 100% { transform:translateY(0); }
+    30% { transform:translateY(-14px); }
+    55% { transform:translateY(0); }
+    75% { transform:translateY(-6px); }
+}
+
 /* ============================================================
    ВИДЖЕТ «ПИСЬМА» — почтовая система, не чат. Панель наследует базовые
    .settings-panel (позиция/блюр/цвет), но не в углу — это отдельная

@@ -99,6 +99,39 @@ function unlockPiece(piece){
     }, 700);
 }
 
+// Открытие конкретного кусочка по индексу, в обход ключа-в-руке —
+// используется системой ежемесячных ключей (см. window.checkMonthlyKey в
+// js/storage/storage.js и showMonthlyKeyDialogue в js/dialogue/dialogue.js):
+// там ключ выдаётся автоматически по дате, а не через puzzleKeySystem.
+// Разворачиваем окно пазла, если оно было свёрнуто — иначе открытие
+// части никто не увидит.
+function unlockPieceByIndex(index){
+    const piece = pieces[index];
+    if(!piece) return false;
+    if(piece.classList.contains("unlocked") || piece.classList.contains("unlocking")) return false;
+
+    if(typeof applyContainerState === "function") applyContainerState({ minimized: false });
+    if(typeof saveContainerState === "function") saveContainerState({ minimized: false });
+
+    piece.classList.add("unlocking");
+
+    setTimeout(() => {
+        piece.classList.remove("locked", "unlocking");
+        piece.classList.add("open", "unlocked");
+        piece.replaceChildren();
+        updatePuzzleProgress();
+        saveUnlockedPieces();
+        showPuzzleToast("Часть открыта");
+
+        if(pieces.every(item => item.classList.contains("unlocked"))){
+            setTimeout(() => showPuzzleToast("Все части открыты!"), 1200);
+        }
+    }, 700);
+
+    return true;
+}
+window.unlockPieceByIndex = unlockPieceByIndex;
+
 function handlePieceClick(piece){
     if(container.classList.contains("minimized")) return;
 
