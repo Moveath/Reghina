@@ -256,6 +256,8 @@ function renderPanelShell(){
             <input id="devPanelCode" class="dev-menu__input" type="text" placeholder="OWNER CODE" value="${escapeHtml(defaultCode)}">
             <button id="devPanelLoad" class="dev-menu__btn" type="button">Загрузить</button>
         </div>
+        <button id="devShowAllCodes" class="dev-menu__btn" type="button">Все коды в базе</button>
+        <div id="devAllCodesList" class="dev-panel__snapshots" hidden></div>
         <div class="dev-panel__tabs">
             <button class="dev-panel__tab is-active" data-tab="monitoring" type="button">Наблюдение</button>
             <button class="dev-panel__tab" data-tab="admin" type="button">Управление</button>
@@ -273,8 +275,45 @@ function renderPanelShell(){
         const code = el.querySelector("#devPanelCode").value.trim().toUpperCase();
         if(code) loadDevCode(code);
     });
+    el.querySelector("#devShowAllCodes").addEventListener("click", toggleAllCodesList);
 
     if(defaultCode) loadDevCode(defaultCode);
+}
+
+// Список всех кодов в базе — нужен, чтобы найти код человека, который сам
+// его не называл (например, чтобы понять, что кто-то открыл присланную
+// ссылку в первый раз: новый код появится тут с недавним "создан").
+async function toggleAllCodesList(){
+    const container = devPanelElement.querySelector("#devAllCodesList");
+    if(!container.hidden){
+        container.hidden = true;
+        return;
+    }
+
+    container.hidden = false;
+    container.innerHTML = `<p class="dev-menu__hint">Загружаю...</p>`;
+
+    try {
+        const list = await devFetch("/developer/profiles");
+        container.innerHTML = list.length ? list.map(p => `
+            <div class="dev-panel__snapshot">
+                <span>${escapeHtml(p.owner_code)}${p.dog_name ? " · " + escapeHtml(p.dog_name) : ""}<br>
+                <span class="dev-menu__hint">создан: ${fmtDate(p.created_at)} · последний визит: ${fmtDate(p.last_seen_at)} · визитов: ${p.visit_count || 0}${p.intro_completed ? " · интро пройдено" : ""}</span></span>
+                <button class="dev-menu__btn dev-panel__snapshot-restore" data-pick-code="${escapeHtml(p.owner_code)}" type="button">Открыть</button>
+            </div>
+        `).join("") : `<p class="dev-menu__hint">Кодов пока нет</p>`;
+
+        container.querySelectorAll("[data-pick-code]").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const code = btn.dataset.pickCode;
+                devPanelElement.querySelector("#devPanelCode").value = code;
+                container.hidden = true;
+                loadDevCode(code);
+            });
+        });
+    } catch(err){
+        container.innerHTML = `<p class="dev-menu__hint">Ошибка загрузки: ${escapeHtml(err.message)}</p>`;
+    }
 }
 
 function switchDevTab(tab){

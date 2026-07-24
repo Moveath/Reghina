@@ -66,6 +66,20 @@ async function fetchProfile(code){
 // пароль" при входе в панель.
 router.post("/auth", (req, res) => res.json({ ok: true }));
 
+// GET /developer/profiles — короткий список ВСЕХ существующих кодов
+// (без глубоких данных), чтобы разработчик мог найти нужный код, даже если
+// его владелец сам ничего не говорил — например, после отправки ссылки
+// новый код появится в этом списке с недавним created_at.
+router.get("/profiles", async (req, res) => {
+    const { data, error } = await supabase
+        .from(PROFILES)
+        .select("owner_code, dog_name, created_at, last_seen_at, visit_count, intro_completed")
+        .order("created_at", { ascending: false });
+
+    if(error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+});
+
 // GET /developer/profile/:code — агрегированный снимок для Monitoring Mode:
 // профиль + признак "онлайн" + письма + последние события. Один запрос —
 // вся панель просмотра рисуется из одного ответа.
