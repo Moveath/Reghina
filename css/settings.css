@@ -608,14 +608,17 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
    панель по центру экрана — чтобы будущие виджеты не выходили
    за границы.
    ============================================================ */
-/* Сдвинута правее центра (не left:50%) — иначе перекрывает пузырь
-   реплики собаки во время интро (он занимает левую/центральную часть
-   экрана, см. .intro-dialogue в css/dialogue.css). */
+/* По центру экрана, как Developer Panel (.dev-menu) — раньше стояло
+   right:3vw, чтобы не перекрывать пузырь реплики собаки во время интро,
+   но эта менюшка никогда не открывается автоматически во время интро (её
+   можно открыть только вручную из настроек), так что конфликта на деле
+   нет, а по центру она выглядит как самостоятельное окно, а не что-то
+   прибитое к краю поверх других виджетов. */
 .theme-selection-menu{
     position:fixed;
-    right:3vw;
+    left:50%;
     top:50%;
-    transform:translateY(-50%);
+    transform:translate(-50%, -50%);
     width:min(90vw, 280px);
     padding:18px;
     border-radius:18px;
@@ -632,7 +635,7 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
 .theme-selection-menu.is-open{
     opacity:1;
     pointer-events:auto;
-    transform:translateY(-50%) scale(1);
+    transform:translate(-50%, -50%) scale(1);
 }
 
 .theme-selection-menu__title{
@@ -764,11 +767,13 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
    position:fixed — отсюда "сдвигается" и "некрасиво"). Больше не пиши
    звёздочку впритык перед слэшем внутри этого комментария.
    ============================================================ */
+/* По центру экрана, как Developer Panel (.dev-menu) — см. тот же приём и
+   пояснение у .theme-selection-menu выше. */
 .language-selection-menu{
     position:fixed;
-    right:3vw;
+    left:50%;
     top:50%;
-    transform:translateY(-50%);
+    transform:translate(-50%, -50%);
     width:min(90vw, 280px);
     padding:18px;
     border-radius:18px;
@@ -785,7 +790,7 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
 .language-selection-menu.is-open{
     opacity:1;
     pointer-events:auto;
-    transform:translateY(-50%) scale(1);
+    transform:translate(-50%, -50%) scale(1);
 }
 
 .language-selection-menu__title{
