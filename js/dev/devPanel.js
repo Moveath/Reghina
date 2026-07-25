@@ -160,6 +160,12 @@ function handleDevError(err){
 }
 
 function openDeveloperPanel(){
+    // Иначе меню темы/языка (если оставалось открытым) продолжает висеть
+    // поверх/под панелью разработчика — оно позиционируется независимо от
+    // неё, и без явного закрытия торчит краем из-за карточки Dev Panel.
+    if(typeof closePanels === "function") closePanels();
+    if(typeof closeThemeMenu === "function") closeThemeMenu();
+    if(typeof closeLanguageMenu === "function") closeLanguageMenu();
     ensureDevPanelElement().classList.add("is-open");
     if(getDevSecret()) verifyAndRenderPanel();
     else renderSecretGate();

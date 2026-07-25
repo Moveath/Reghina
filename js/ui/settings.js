@@ -52,13 +52,18 @@ const themeOptions = [
 ];
 const defaultThemeId = "pink";
 
-// Языки — те же самоназвания, что видит любой человек независимо от того,
-// какой язык у него сейчас выбран (проще узнать нужный пункт).
+// Названия языков переведены на ТЕКУЩИЙ выбранный язык интерфейса (не
+// самоназвание): если сейчас русский, второй пункт читается "Английский",
+// а не "English"; если сейчас английский — "Russian", а не "Русский".
+// Превью — не emoji-флаг (эмодзи флага не рендерится как флаг на Windows,
+// показывает уродливые буквы "RU"/"GB"/"RO" в квадратике), а нарисованный
+// через CSS флаг (см. .language-option-preview--* в css/settings.css),
+// выглядит одинаково на любой системе.
 let languageSelectionMenuElement = null;
 const languageOptions = [
-    { id: "ru", label: "Русский", flag: "🇷🇺" },
-    { id: "en", label: "English", flag: "🇬🇧" },
-    { id: "ro", label: "Română",  flag: "🇷🇴" }
+    { id: "ru", label: t("lang_name_ru") },
+    { id: "en", label: t("lang_name_en") },
+    { id: "ro", label: t("lang_name_ro") }
 ];
 
 function saveSelectedTheme(themeId){
@@ -173,7 +178,7 @@ function ensureLanguageSelectionMenu(){
             ${languageOptions.map(lang => `
                 <li>
                     <button class="language-option-btn" type="button" data-language="${lang.id}">
-                        <span class="language-option-preview" aria-hidden="true">${lang.flag}</span>
+                        <span class="language-option-preview language-option-preview--${lang.id}" aria-hidden="true"></span>
                         <span class="language-option-label">${lang.label}</span>
                         <span class="language-option-check" aria-hidden="true"><span>&#10003;</span></span>
                     </button>

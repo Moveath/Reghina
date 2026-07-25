@@ -11,7 +11,10 @@ const emotionMap = {
     sleeping: "images/dog/sleeping.png",
     sleepy:   "images/dog/sleepy.png",
     happy:    "images/dog/happy.png",
-    thinking: "images/dog/thinking.png",
+    // Отдельного thinking.png не существует — используем neutral, иначе
+    // <img> ловит 404 и полностью пропадает (не просто не та эмоция, а
+    // именно НЕВИДИМАЯ собака: сломанная картинка схлопывается по высоте).
+    thinking: "images/dog/neutral.png",
     confused: "images/dog/confused.png",
     neutral:  "images/dog/neutral.png",
     sad:      "images/dog/sad.png",
