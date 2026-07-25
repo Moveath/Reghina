@@ -190,6 +190,23 @@ router.patch("/profile/:code/keys", async (req, res) => {
                 before.claimed_key_months = months;
                 after.claimed_key_months = [...months, req.body.monthly_add].sort();
                 updates.claimed_key_months = after.claimed_key_months;
+
+                // Отмечать месяц "выданным" без открытия части пазла — это не
+                // то же самое, что настоящая выдача (см. POST
+                // /profile/:code/monthly-key), и вводит в заблуждение при
+                // тестировании. Поэтому чек-бокс здесь ведёт себя как
+                // настоящая выдача: сразу открывает следующую ещё закрытую
+                // часть пазла, если она есть.
+                const currentPieces = Array.isArray(profile.unlocked_pieces) ? profile.unlocked_pieces : [];
+                let nextPieceIndex = -1;
+                for(let i = 0; i < MAX_PUZZLE_PIECES; i++){
+                    if(!currentPieces.includes(i)){ nextPieceIndex = i; break; }
+                }
+                if(nextPieceIndex !== -1){
+                    before.unlocked_pieces = currentPieces;
+                    after.unlocked_pieces = [...currentPieces, nextPieceIndex].sort((a, b) => a - b);
+                    updates.unlocked_pieces = after.unlocked_pieces;
+                }
             }
         }
         if(typeof req.body.monthly_remove === "string"){

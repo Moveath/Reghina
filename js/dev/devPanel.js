@@ -96,20 +96,20 @@ function getEventLabel(type){
     return type;
 }
 
-// Диапазон месяцев для чек-листа в Admin Mode — от начала системы
-// ежемесячных ключей (см. KEY_SYSTEM_START_YEAR/MONTH в
-// server/src/routes/profile.js — если дата старта там изменится, поправить
-// и здесь) до реальной текущей даты + 6 месяцев вперёд про запас для теста.
+// Диапазон месяцев для чек-листа в Admin Mode — ровно столько месяцев,
+// сколько ежемесячная система вообще когда-либо использует: часть 1 — через
+// интро, остальные части — по одному месячному ключу каждая (см.
+// KEY_SYSTEM_START_YEAR/MONTH в server/src/routes/profile.js — если
+// поменяется там, поправить и здесь). pieces — глобальный массив кусочков
+// пазла из js/puzzle/puzzle.js, его длина и есть общее число частей.
+// Дальше этого числа месяцев ключей никогда не будет — все части уже открыты.
 function buildEligibleMonths(){
+    const monthlyKeysCount = pieces.length - 1; // часть 1 не через месяцы
     const months = [];
     let year = 2026;
     let month = 9;
-    const end = new Date();
-    end.setMonth(end.getMonth() + 6);
-    const endYear = end.getFullYear();
-    const endMonth = end.getMonth() + 1;
 
-    while(year < endYear || (year === endYear && month <= endMonth)){
+    for(let i = 0; i < monthlyKeysCount; i++){
         months.push(`${year}-${String(month).padStart(2, "0")}`);
         month += 1;
         if(month > 12){ month = 1; year += 1; }
