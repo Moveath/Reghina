@@ -322,6 +322,7 @@ setInterval(() => sendHeartbeat(false), HEARTBEAT_INTERVAL_MS);
 window.getOwnerCode = getOwnerCode;
 window.ensureOwnerCode = ensureOwnerCode;
 window.scheduleProfileSync = scheduleProfileSync;
+window.pushProfileSync = pushProfileSync;
 window.resetProfileOnServer = resetProfileOnServer;
 window.restoreProgressFromCode = restoreProgressFromCode;
 window.reconcileWithServer = reconcileWithServer;

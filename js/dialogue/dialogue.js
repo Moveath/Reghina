@@ -882,9 +882,16 @@ function showLanguageConfirmDialogue(lang){
         </div>
     `;
 
-    document.getElementById("languageConfirmYes").addEventListener("click", (e) => {
+    document.getElementById("languageConfirmYes").addEventListener("click", async (e) => {
         e.stopPropagation();
         if(typeof window.setSelectedLanguage === "function") window.setSelectedLanguage(lang);
+        // setSelectedLanguage() только ПЛАНИРУЕТ отправку на сервер (обычный
+        // debounce в 700мс, как и у темы) — а reload() убивает этот таймер,
+        // не дав ему сработать. Без явного немедленного пуша сервер так и не
+        // узнаёт о новом языке, и следующая же сверка (reconcileWithServer
+        // на старте страницы) видит несовпадение и тихо откатывает язык
+        // обратно. Поэтому здесь дожидаемся реальной отправки перед перезагрузкой.
+        if(typeof window.pushProfileSync === "function") await window.pushProfileSync();
         location.reload();
     });
     document.getElementById("languageConfirmNo").addEventListener("click", (e) => {
