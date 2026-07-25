@@ -66,24 +66,24 @@ const puzzleKeySystem = (() => {
 
         isKeySelected = false;
         updateKeyInterface();
-        showMessage("Ключ возвращён в инвентарь.");
+        showMessage(t("keys_returned"));
     }
 
     function grantKey(){
         if(areAllPiecesOpened()){
-            showMessage("Похоже, ты уже открыла все части ✨");
+            showMessage(t("keys_all_open_already"));
             return false;
         }
 
         if(keyCount >= MAX_KEYS){
-            showMessage("У вас уже есть ключ. Используйте его.");
+            showMessage(t("keys_already_have"));
             return false;
         }
 
         keyCount = 1;
         isKeySelected = false;
         updateKeyInterface();
-        showMessage("Ключ получен.");
+        showMessage(t("keys_obtained"));
         return true;
     }
 
@@ -98,7 +98,7 @@ const puzzleKeySystem = (() => {
 
     function selectKey(event){
         if(keyCount === 0){
-            showMessage("Сначала получите ключ.");
+            showMessage(t("keys_get_first"));
             return;
         }
 
@@ -110,7 +110,7 @@ const puzzleKeySystem = (() => {
         isKeySelected = true;
         updateKeyInterface();
         if(event) moveHeldKey(event);
-        showMessage("Ключ у вас в руке.");
+        showMessage(t("keys_in_hand"));
     }
 
     function openConfirmation(onConfirm){

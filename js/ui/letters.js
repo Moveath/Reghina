@@ -11,22 +11,24 @@
 // Реплики собаки после отправки письма Егору — сюжетный момент (полноэкранная
 // сцена через showDogRemark), меняй фразы прямо здесь, ничего больше трогать
 // не нужно.
-const dogRemarksAfterSend = [
-    "Не переживай, я обязательно передам это Егору.",
-    "Хорошо, я отнесу это письмо.",
-    "Думаю, Егору будет интересно это прочитать."
-];
+function getDogRemarksAfterSend(){
+    return [t("letters_remark_1"), t("letters_remark_2"), t("letters_remark_3")];
+}
 
 // Короткая реплика для лёгкого уведомления-тоста, когда новое письмо
 // приходит прямо во время активной сессии (см. showLettersToast в
 // loadInbox) — не сюжетный момент, окно диалога не открывается.
-const lettersToastNewLetterText = "Для тебя пришло новое письмо.";
+function getLettersToastNewLetterText(){
+    return t("letters_new_toast");
+}
 
-const letterStatusInfo = {
-    pending: { icon: "⏳", label: "Ожидает передачи" },
-    delivered: { icon: "📨", label: "Передано Егору" },
-    read: { icon: "✓", label: "Прочитано" }
-};
+function getLetterStatusInfo(){
+    return {
+        pending: { icon: "⏳", label: t("letters_status_pending") },
+        delivered: { icon: "📨", label: t("letters_status_delivered") },
+        read: { icon: "✓", label: t("letters_status_read") }
+    };
+}
 
 // Собака "стоит рядом с почтой", а не сама себе шлёт письма — это просто
 // постоянная подсказка вверху папок, не запись в таблице letters: не письмо,
@@ -35,18 +37,20 @@ const letterStatusInfo = {
 // (см. saveDogName/loadDogName в dialogue.js) — тут просто читаем то же
 // значение из localStorage напрямую, как и settings.js.
 function getDogName(){
-    try { return localStorage.getItem("dog_name") || "Кане-корсо"; } catch(e) { return "Кане-корсо"; }
+    try { return localStorage.getItem("dog_name") || t("letters_dog_fallback_name"); } catch(e) { return t("letters_dog_fallback_name"); }
 }
 
 function getDogInboxNoteText(){
-    return `Привет! Меня зовут ${getDogName()}, и с этого момента я — твой почтовый пёс. Все письма от Егора будут появляться прямо здесь 🐾`;
+    return t("letters_inbox_note").replace("{name}", getDogName());
 }
 
 function getDogOutboxNoteText(){
-    return "Здесь можешь написать что-нибудь Егору — я обязательно всё передам.";
+    return t("letters_outbox_note");
 }
 
-function pluralizeLetters(count){
+// Множественное число слова "письмо/письма/писем" — только для русского,
+// у английского и румынского простая форма единственное/множественное.
+function pluralizeLettersRu(count){
     const mod10 = count % 10;
     const mod100 = count % 100;
     if(mod10 === 1 && mod100 !== 11) return "письмо";
@@ -54,11 +58,18 @@ function pluralizeLetters(count){
     return "писем";
 }
 
+function pluralizeLetters(count){
+    const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
+    if(lang === "en") return count === 1 ? "letter" : "letters";
+    if(lang === "ro") return count === 1 ? "scrisoare" : "scrisori";
+    return pluralizeLettersRu(count);
+}
+
 // Сюжетная реплика при возвращении на сайт, если за время отсутствия
 // накопились непрочитанные письма — количество всегда настоящее, из
 // inboxCache, не захардкожено.
 function buildWelcomeBackText(count){
-    return `Пока тебя не было, Егор оставил ${count} ${pluralizeLetters(count)}. Он попросил меня передать их тебе. Загляни во входящие 🐾`;
+    return t("letters_welcome_back").replace("{count}", count).replace("{word}", pluralizeLetters(count));
 }
 
 function pickRandom(list){
@@ -71,11 +82,15 @@ function escapeHtml(str){
     return div.innerHTML;
 }
 
+const dateLocaleByLanguage = { ru: "ru-RU", en: "en-US", ro: "ro-RO" };
+
 function formatDateTime(iso){
     const date = new Date(iso);
     if(Number.isNaN(date.getTime())) return "";
-    const datePart = date.toLocaleDateString("ru-RU");
-    const timePart = date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
+    const locale = dateLocaleByLanguage[lang] || "ru-RU";
+    const datePart = date.toLocaleDateString(locale);
+    const timePart = date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
     return `${datePart}, ${timePart}`;
 }
 
@@ -86,7 +101,7 @@ async function apiRequest(path, options){
     });
     if(!res.ok){
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `Ошибка запроса: ${res.status}`);
+        throw new Error(body.error || `HTTP ${res.status}`);
     }
     return res.status === 204 ? null : res.json();
 }
@@ -125,7 +140,7 @@ function updateUnreadBadge(){
 function renderBackHeader(title){
     return `
         <div class="letters-list-header">
-            <button class="letters-back-btn" type="button" aria-label="Назад">←</button>
+            <button class="letters-back-btn" type="button" aria-label="${t("letters_back_aria")}">←</button>
             <h3 class="settings-panel__title">${title}</h3>
         </div>
     `;
@@ -164,7 +179,7 @@ function ensureLetterReadModal(){
                     <div class="letter-read-paper__seal"></div>
                 </div>
             </div>
-            <button class="letter-read-card__close" type="button" aria-label="Закрыть">✕</button>
+            <button class="letter-read-card__close" type="button" aria-label="${t("letters_close_aria")}">✕</button>
         </div>
     `;
     document.body.appendChild(modal);
@@ -256,15 +271,15 @@ function renderFoldersView(){
     const unreadCount = inboxCache.filter(letter => letter.status !== "read").length;
 
     lettersPanel.innerHTML = `
-        <h3 class="settings-panel__title">Письма</h3>
+        <h3 class="settings-panel__title">${t("letters_panel_title")}</h3>
         <div class="letters-folders">
             <button class="letter-folder" type="button" data-folder="outbox">
                 <span class="letter-folder__icon">📤</span>
-                <span class="letter-folder__label">Исходящие</span>
+                <span class="letter-folder__label">${t("letters_outbox_label")}</span>
             </button>
             <button class="letter-folder" type="button" data-folder="inbox">
                 <span class="letter-folder__icon">📥</span>
-                <span class="letter-folder__label">Входящие</span>
+                <span class="letter-folder__label">${t("letters_inbox_label")}</span>
                 ${unreadCount > 0 ? `<span class="letter-folder__badge">${unreadCount}</span>` : ""}
             </button>
         </div>
@@ -285,9 +300,10 @@ function renderFoldersView(){
 function renderOutboxView(){
     lettersView = "outbox";
 
+    const statusInfoDict = getLetterStatusInfo();
     const itemsHtml = outboxCache.length
         ? outboxCache.map(letter => {
-            const statusInfo = letterStatusInfo[letter.status] || letterStatusInfo.pending;
+            const statusInfo = statusInfoDict[letter.status] || statusInfoDict.pending;
             return `
                 <li class="letter-item">
                     <p class="letter-item__text">${escapeHtml(letter.message)}</p>
@@ -298,17 +314,17 @@ function renderOutboxView(){
                 </li>
             `;
         }).join("")
-        : `<p class="letters-empty">Пока ничего не отправлено.</p>`;
+        : `<p class="letters-empty">${t("letters_empty_outbox")}</p>`;
 
     lettersPanel.innerHTML = `
-        ${renderBackHeader("Исходящие")}
+        ${renderBackHeader(t("letters_outbox_label"))}
         <div class="letters-dog-note">
             <span class="letters-dog-note__author">🐶 ${escapeHtml(getDogName())}:</span>
             <p class="letters-dog-note__text">${escapeHtml(getDogOutboxNoteText())}</p>
         </div>
         <div class="letters-divider"></div>
         <ul class="letters-list">${itemsHtml}</ul>
-        <button class="letters-compose-btn" type="button">Написать Егору</button>
+        <button class="letters-compose-btn" type="button">${t("letters_compose_btn")}</button>
     `;
 
     bindBackButton();
@@ -324,23 +340,23 @@ function renderInboxView(){
     const itemsHtml = inboxCache.length
         ? inboxCache.map(letter => `
             <li class="letter-item ${letter.status !== "read" ? "letter-item--unread" : ""}" data-id="${letter.id}">
-                ${letter.status !== "read" ? `<span class="letter-item__new-badge">● Новое</span>` : ""}
+                ${letter.status !== "read" ? `<span class="letter-item__new-badge">${t("letters_new_badge")}</span>` : ""}
                 <p class="letter-item__text">${escapeHtml(letter.message)}</p>
                 <div class="letter-item__meta">
                     <span class="letter-item__date">${formatDateTime(letter.created_at)}</span>
                 </div>
             </li>
         `).join("")
-        : `<p class="letters-empty">Егор пока ничего не присылал.</p>`;
+        : `<p class="letters-empty">${t("letters_empty_inbox")}</p>`;
 
     lettersPanel.innerHTML = `
-        ${renderBackHeader("Входящие")}
+        ${renderBackHeader(t("letters_inbox_label"))}
         <div class="letters-dog-note">
             <span class="letters-dog-note__author">🐶 ${escapeHtml(getDogName())}:</span>
             <p class="letters-dog-note__text">${escapeHtml(getDogInboxNoteText())}</p>
         </div>
         <div class="letters-divider"></div>
-        <h4 class="letters-section-label">✉️ Письма</h4>
+        <h4 class="letters-section-label">${t("letters_section_label")}</h4>
         <ul class="letters-list">${itemsHtml}</ul>
     `;
 
@@ -388,10 +404,10 @@ function renderComposeView(){
     lettersView = "compose";
 
     lettersPanel.innerHTML = `
-        ${renderBackHeader("Написать Егору")}
-        <textarea class="letters-compose-input" placeholder="Что бы ты хотела передать?" maxlength="1000"></textarea>
+        ${renderBackHeader(t("letters_compose_btn"))}
+        <textarea class="letters-compose-input" placeholder="${t("letters_compose_placeholder")}" maxlength="1000"></textarea>
         <p class="letters-compose-error" hidden></p>
-        <button class="letters-compose-send" type="button">Отправить</button>
+        <button class="letters-compose-send" type="button">${t("letters_send_btn")}</button>
     `;
 
     bindBackButton();
@@ -413,11 +429,11 @@ function renderComposeView(){
             outboxCache.unshift(created);
             renderOutboxView();
             if(typeof showDogRemark === "function"){
-                showDogRemark(pickRandom(dogRemarksAfterSend));
+                showDogRemark(pickRandom(getDogRemarksAfterSend()));
             }
         } catch(err){
             console.error("[letters] Не удалось отправить письмо:", err.message);
-            errorEl.textContent = "Не получилось отправить — похоже, собака сейчас не на связи. Попробуй ещё раз.";
+            errorEl.textContent = t("letters_send_error");
             errorEl.hidden = false;
             sendBtn.disabled = false;
         }
@@ -431,7 +447,7 @@ async function loadOutbox(){
         console.error("[letters] Не удалось загрузить исходящие:", err.message);
         if(lettersView === "outbox"){
             const list = lettersPanel.querySelector(".letters-list");
-            if(list) list.innerHTML = `<p class="letters-empty">Не получилось загрузить письма — попробуй позже.</p>`;
+            if(list) list.innerHTML = `<p class="letters-empty">${t("letters_load_error")}</p>`;
         }
     }
 }
@@ -461,7 +477,7 @@ async function loadInbox(){
             // не сюжетную сцену — не мешаем тому, чем сейчас занята Регина.
             const newOnes = fresh.filter(letter => !knownInboxIds.has(letter.id));
             if(newOnes.length > 0){
-                showLettersToast(lettersToastNewLetterText);
+                showLettersToast(getLettersToastNewLetterText());
                 const notified = loadNotifiedUnreadIds();
                 newOnes.forEach(letter => notified.add(letter.id));
                 saveNotifiedUnreadIds(notified);
@@ -487,7 +503,7 @@ async function loadInbox(){
         console.error("[letters] Не удалось загрузить входящие:", err.message);
         if(lettersView === "inbox"){
             const list = lettersPanel.querySelector(".letters-list");
-            if(list) list.innerHTML = `<p class="letters-empty">Не получилось загрузить письма — попробуй позже.</p>`;
+            if(list) list.innerHTML = `<p class="letters-empty">${t("letters_load_error")}</p>`;
         }
     }
 }

@@ -45,6 +45,7 @@ const EDITABLE_FIELDS = [
     "dialogue_index",
     "intro_completed",
     "selected_theme",
+    "selected_language",
     "unlocked_pieces",
     "key_count",
     "puzzle_container_state"
@@ -136,6 +137,9 @@ function logProfileDiff(code, before, after){
     if(before.selected_theme !== after.selected_theme && after.selected_theme){
         logEvent(supabase, code, "theme_changed", { theme: after.selected_theme });
     }
+    if(before.selected_language !== after.selected_language && after.selected_language){
+        logEvent(supabase, code, "language_changed", { language: after.selected_language });
+    }
 
     const beforePieces = Array.isArray(before.unlocked_pieces) ? before.unlocked_pieces : [];
     const afterPieces = Array.isArray(after.unlocked_pieces) ? after.unlocked_pieces : [];
@@ -165,7 +169,7 @@ router.patch("/:code", async (req, res) => {
 
     const { data: before } = await supabase
         .from(TABLE)
-        .select("dialogue_index, intro_completed, selected_theme, unlocked_pieces, key_count")
+        .select("dialogue_index, intro_completed, selected_theme, selected_language, unlocked_pieces, key_count")
         .eq("owner_code", code)
         .maybeSingle();
 

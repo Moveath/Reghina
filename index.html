@@ -20,16 +20,16 @@
 </head>
 <body>
     <div class="top-actions">
-        <button id="aboutButton" class="top-action-btn" type="button" aria-label="О проекте" data-label="О проекте">ℹ️</button>
-        <button id="progressButton" class="top-action-btn" type="button" aria-label="Управление прогрессом" data-label="Прогресс">📈</button>
-        <button id="musicBoxButton" class="side-widget side-widget--music top-action-btn" type="button" aria-label="Музыкальная шкатулка" data-label="Музыкальная шкатулка">🎵</button>
-        <button id="settingsButton" class="settings-button" type="button" aria-label="Открыть настройки" data-label="Настройки">⚙️</button>
+        <button id="aboutButton" class="top-action-btn" type="button" data-i18n="about_panel_title" data-i18n-attr="aria-label,data-label" aria-label="О проекте" data-label="О проекте">ℹ️</button>
+        <button id="progressButton" class="top-action-btn" type="button" data-i18n="progress_panel_title" data-i18n-attr="aria-label,data-label" aria-label="Управление прогрессом" data-label="Прогресс">📈</button>
+        <button id="musicBoxButton" class="side-widget side-widget--music top-action-btn" type="button" data-i18n="music_panel_title" data-i18n-attr="aria-label,data-label" aria-label="Музыкальная шкатулка" data-label="Музыкальная шкатулка">🎵</button>
+        <button id="settingsButton" class="settings-button" type="button" data-i18n="static_settings_data_label" data-i18n-attr="aria-label,data-label" aria-label="Открыть настройки" data-label="Настройки">⚙️</button>
     </div>
-    <div id="settingsPanel" class="settings-panel" aria-label="Меню настроек"></div>
-    <div id="progressPanel" class="settings-panel progress-panel" aria-label="Управление прогрессом"></div>
-    <div id="musicPanel" class="settings-panel music-panel" aria-label="Музыкальная шкатулка"></div>
-    <div id="aboutPanel" class="settings-panel about-panel" aria-label="О проекте"></div>
-    <div id="lettersPanel" class="settings-panel letters-panel" aria-label="Письма"></div>
+    <div id="settingsPanel" class="settings-panel" data-i18n="static_settings_menu_aria" data-i18n-attr="aria-label" aria-label="Меню настроек"></div>
+    <div id="progressPanel" class="settings-panel progress-panel" data-i18n="progress_panel_title" data-i18n-attr="aria-label" aria-label="Управление прогрессом"></div>
+    <div id="musicPanel" class="settings-panel music-panel" data-i18n="music_panel_title" data-i18n-attr="aria-label" aria-label="Музыкальная шкатулка"></div>
+    <div id="aboutPanel" class="settings-panel about-panel" data-i18n="about_panel_title" data-i18n-attr="aria-label" aria-label="О проекте"></div>
+    <div id="lettersPanel" class="settings-panel letters-panel" data-i18n="letters_panel_title" data-i18n-attr="aria-label" aria-label="Письма"></div>
     <div id="characterContainer"></div>
     <div id="dialogueContainer"></div>
 
@@ -41,52 +41,52 @@
             <div class="piece locked" data-piece aria-label="Открыть часть 1">
                 <div class="lock-wrap">
                     <div class="lock">&#128274;</div>
-                    <div class="hint">Нажми, чтобы открыть</div>
+                    <div class="hint" data-i18n="static_piece_hint">Нажми, чтобы открыть</div>
                 </div>
             </div>
             <div class="piece locked" data-piece aria-label="Открыть часть 2">
                 <div class="lock-wrap">
                     <div class="lock">&#128274;</div>
-                    <div class="hint">Нажми, чтобы открыть</div>
+                    <div class="hint" data-i18n="static_piece_hint">Нажми, чтобы открыть</div>
                 </div>
             </div>
             <div class="piece locked" data-piece aria-label="Открыть часть 3">
                 <div class="lock-wrap">
                     <div class="lock">&#128274;</div>
-                    <div class="hint">Нажми, чтобы открыть</div>
+                    <div class="hint" data-i18n="static_piece_hint">Нажми, чтобы открыть</div>
                 </div>
             </div>
             <div class="piece locked" data-piece aria-label="Открыть часть 4">
                 <div class="lock-wrap">
                     <div class="lock">&#128274;</div>
-                    <div class="hint">Нажми, чтобы открыть</div>
+                    <div class="hint" data-i18n="static_piece_hint">Нажми, чтобы открыть</div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="progressIndicator" class="progress-indicator">0/4</div>
-    <div class="footer">Собери все части ✨</div>
+    <div class="footer" data-i18n="static_footer">Собери все части ✨</div>
 
-    <div class="side-widgets" aria-label="Боковые виджеты"></div>
-    <div class="left-edge-icons" aria-label="Иконки по левому краю">
-        <button id="lettersButton" class="side-widget left-edge-icon" type="button" aria-label="Письма" data-label="Письма">📬</button>
+    <div class="side-widgets" data-i18n="static_side_widgets_aria" data-i18n-attr="aria-label" aria-label="Боковые виджеты"></div>
+    <div class="left-edge-icons" data-i18n="static_left_icons_aria" data-i18n-attr="aria-label" aria-label="Иконки по левому краю">
+        <button id="lettersButton" class="side-widget left-edge-icon" type="button" data-i18n="letters_panel_title" data-i18n-attr="aria-label,data-label" aria-label="Письма" data-label="Письма">📬</button>
     </div>
-    <div class="dog-side-icons" aria-label="Иконки рядом с собакой">
+    <div class="dog-side-icons" data-i18n="static_dog_side_icons_aria" data-i18n-attr="aria-label" aria-label="Иконки рядом с собакой">
         <button id="characterInfoButton" class="side-widget character-icon" type="button" aria-label="О персонаже" data-label="О персонаже">
             <span class="character-icon__emoji">🐾</span>
-            <span class="character-icon__label">персонаж</span>
+            <span class="character-icon__label" data-i18n="character_fallback_label">персонаж</span>
         </button>
-        <button id="dogNameButton" class="side-widget character-icon" type="button" aria-label="Имя персонажа" data-label="Имя персонажа">
+        <button id="dogNameButton" class="side-widget character-icon" type="button" data-i18n="static_dog_name_aria" data-i18n-attr="aria-label" aria-label="Имя персонажа" data-label="Имя персонажа">
             <span class="character-icon__emoji">🐶</span>
-            <span class="character-icon__label">персонаж</span>
+            <span class="character-icon__label" data-i18n="character_fallback_label">персонаж</span>
         </button>
-        <button id="diaryButton" class="side-widget" type="button" aria-label="Дневник проводника" data-label="Дневник">📓</button>
+        <button id="diaryButton" class="side-widget" type="button" data-i18n="static_diary_aria" data-i18n-attr="aria-label" aria-label="Дневник проводника" data-label="Дневник">📓</button>
     </div>
 
     <div class="key-counter" id="keyCounter" type="button" aria-live="polite">🔑 0/1</div>
 
-    <button id="resetPuzzle" class="reset-puzzle-btn" type="button" hidden>Сбросить тест</button>
+    <button id="resetPuzzle" class="reset-puzzle-btn" type="button" hidden data-i18n="puzzle_reset_test">Сбросить тест</button>
     <div id="puzzleToast" class="puzzle-toast" role="status" aria-live="polite"></div>
 
     <!-- Служебная тестовая панель ключей — скрыта, реальный способ получить
@@ -94,20 +94,20 @@
     <div class="key-test-panel" hidden>
         <button id="getTestKey" class="get-key-btn" type="button">Получить тестовый ключ</button>
         <div class="key-inventory" id="keyInventory">
-            <button id="inventoryKeyButton" class="inventory-key" type="button" aria-label="Ключ" aria-pressed="false" disabled>
+            <button id="inventoryKeyButton" class="inventory-key" type="button" data-i18n="static_key_aria" data-i18n-attr="aria-label" aria-label="Ключ" aria-pressed="false" disabled>
                 <span class="inventory-key-fallback">🔑</span>
                 <img id="inventoryKeyImage" class="inventory-key-image" src="images/items/key.png" alt="">
             </button>
-            <span class="inventory-label">Ключ</span>
+            <span class="inventory-label" data-i18n="static_key_aria">Ключ</span>
         </div>
     </div>
 
     <div id="keyConfirmModal" class="key-confirm-modal" hidden>
         <div class="key-confirm-card">
-            <p>Использовать ключ и открыть эту часть?</p>
+            <p data-i18n="static_key_confirm_text">Использовать ключ и открыть эту часть?</p>
             <div class="key-confirm-actions">
-                <button id="cancelKeyUse" class="key-confirm-btn" type="button">Отмена</button>
-                <button id="confirmKeyUse" class="key-confirm-btn key-confirm-btn--yes" type="button">Открыть</button>
+                <button id="cancelKeyUse" class="key-confirm-btn" type="button" data-i18n="static_cancel">Отмена</button>
+                <button id="confirmKeyUse" class="key-confirm-btn key-confirm-btn--yes" type="button" data-i18n="static_open_btn">Открыть</button>
             </div>
         </div>
     </div>
@@ -118,9 +118,16 @@
     </div>
 
     <script src="data/dialogues.js"></script>
+    <script src="data/translations.js"></script>
     <script src="data/monthlyEvents.js"></script>
     <script src="data/gifts.js"></script>
     <script src="data/settings.js"></script>
+
+    <!-- Движок переводов — до всех остальных js/*.js: js/ui/settings.js
+         вызывает t() уже на верхнем уровне (при построении списков меню),
+         поэтому t() должен существовать раньше, чем settings.js будет
+         разобран браузером. -->
+    <script src="js/i18n/i18n.js"></script>
 
     <script src="js/main.js"></script>
     <script src="js/puzzle/progress.js"></script>

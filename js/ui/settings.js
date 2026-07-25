@@ -12,27 +12,27 @@ const lettersButton = document.getElementById("lettersButton");
 const lettersPanel = document.getElementById("lettersPanel");
 
 const settingsSections = [
-    { icon: "🎨", label: "Темы", id: "themesOption" },
-    { icon: "🔊", label: "Звуки", id: "soundsOption" },
-    { icon: "🌐", label: "Язык", id: "languageOption" }
+    { icon: "🎨", label: t("settings_theme_label"), id: "themesOption" },
+    { icon: "🔊", label: t("settings_sounds_label"), id: "soundsOption" },
+    { icon: "🌐", label: t("settings_language_label"), id: "languageOption" }
 ];
 const progressActions = [
-    { icon: "🔍", label: "Показать код", id: "showCodeOption" },
-    { icon: "⌨️", label: "Ввести код", id: "enterCodeOption" },
-    { icon: "♻️", label: "Сбросить прогресс", id: "resetProgressOption" }
+    { icon: "🔍", label: t("progress_show_code"), id: "showCodeOption" },
+    { icon: "⌨️", label: t("progress_enter_code"), id: "enterCodeOption" },
+    { icon: "♻️", label: t("progress_reset"), id: "resetProgressOption" }
 ];
 
 const musicSections = [
-    { icon: "🎶", label: "Музыка", id: "musicWidgetOption" },
-    { icon: "➕", label: "Добавить песню", id: "addSongOption" },
-    { icon: "📋", label: "Список музыки", id: "musicListOption" }
+    { icon: "🎶", label: t("music_music_label"), id: "musicWidgetOption" },
+    { icon: "➕", label: t("music_add_song"), id: "addSongOption" },
+    { icon: "📋", label: t("music_list"), id: "musicListOption" }
 ];
 
 const aboutSections = [
-    { icon: "ℹ️", label: "Информация о сайте" },
-    { icon: "📜", label: "История создания" },
-    { icon: "💡", label: "Идея проекта" },
-    { icon: "🕓", label: "История обновлений" }
+    { icon: "ℹ️", label: t("about_site_info") },
+    { icon: "📜", label: t("about_creation_story") },
+    { icon: "💡", label: t("about_project_idea") },
+    { icon: "🕓", label: t("about_update_history") }
 ];
 
 let themeSelectionMenuElement = null;
@@ -45,12 +45,21 @@ const selectedThemeStorageKey = "reginaSelectedTheme";
 // "white" — без картинки, просто сплошной белый цвет (референс в
 // images/backgrounds/theme-white.jpg был не нужен, попросили чистый белый).
 const themeOptions = [
-    { id: "pink",   label: "Розовый",    image: "images/backgrounds/theme-pink.png" },
-    { id: "purple", label: "Фиолетовый", image: "images/backgrounds/theme-purple.png" },
-    { id: "blue",   label: "Голубой",    image: "images/backgrounds/theme-blue.png" },
-    { id: "white",  label: "Белый",      color: "#ffffff" }
+    { id: "pink",   label: t("theme_pink"),   image: "images/backgrounds/theme-pink.png" },
+    { id: "purple", label: t("theme_purple"), image: "images/backgrounds/theme-purple.png" },
+    { id: "blue",   label: t("theme_blue"),   image: "images/backgrounds/theme-blue.png" },
+    { id: "white",  label: t("theme_white"),  color: "#ffffff" }
 ];
 const defaultThemeId = "pink";
+
+// Языки — те же самоназвания, что видит любой человек независимо от того,
+// какой язык у него сейчас выбран (проще узнать нужный пункт).
+let languageSelectionMenuElement = null;
+const languageOptions = [
+    { id: "ru", label: "Русский", flag: "🇷🇺" },
+    { id: "en", label: "English", flag: "🇬🇧" },
+    { id: "ro", label: "Română",  flag: "🇷🇴" }
+];
 
 function saveSelectedTheme(themeId){
     try { localStorage.setItem(selectedThemeStorageKey, themeId); } catch(e) {}
@@ -85,7 +94,7 @@ function ensureThemeSelectionMenu(){
     menu.id = "themeSelectionMenu";
     menu.className = "theme-selection-menu";
     menu.innerHTML = `
-        <h3 class="theme-selection-menu__title">Выбери тему</h3>
+        <h3 class="theme-selection-menu__title">${t("theme_choose_title")}</h3>
         <ul class="theme-selection-menu__list">
             ${themeOptions.map(theme => `
                 <li>
@@ -148,11 +157,79 @@ function toggleThemeMenu(){
     menu.classList.toggle("is-open");
 }
 
+// Менюшка выбора языка — 1:1 копия архитектуры меню тем выше. Отличие: клик
+// по НЕ выбранному языку не применяет его сразу, а зовёт собаку спросить
+// подтверждение (showLanguageConfirmDialogue в dialogue.js) — смена языка
+// куда заметнее смены фона, поэтому её сначала подтверждают.
+function ensureLanguageSelectionMenu(){
+    if(languageSelectionMenuElement) return languageSelectionMenuElement;
+
+    const menu = document.createElement("div");
+    menu.id = "languageSelectionMenu";
+    menu.className = "language-selection-menu";
+    menu.innerHTML = `
+        <h3 class="language-selection-menu__title">${t("language_choose_title")}</h3>
+        <ul class="language-selection-menu__list">
+            ${languageOptions.map(lang => `
+                <li>
+                    <button class="language-option-btn" type="button" data-language="${lang.id}">
+                        <span class="language-option-preview" aria-hidden="true">${lang.flag}</span>
+                        <span class="language-option-label">${lang.label}</span>
+                        <span class="language-option-check" aria-hidden="true"><span>&#10003;</span></span>
+                    </button>
+                </li>
+            `).join("")}
+        </ul>
+    `;
+    document.body.appendChild(menu);
+
+    menu.addEventListener("click", (event) => event.stopPropagation());
+
+    menu.querySelectorAll(".language-option-btn").forEach(btn => {
+        btn.addEventListener("click", (event) => {
+            event.stopPropagation();
+
+            // На уже выбранный язык клик ничего не делает.
+            if(btn.classList.contains("is-selected")) return;
+
+            closeLanguageMenu();
+            if(typeof window.showLanguageConfirmDialogue === "function"){
+                window.showLanguageConfirmDialogue(btn.dataset.language);
+            }
+        });
+    });
+
+    const activeLang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
+    const activeBtn = menu.querySelector(`.language-option-btn[data-language="${activeLang}"]`);
+    if(activeBtn) activeBtn.classList.add("is-selected");
+
+    languageSelectionMenuElement = menu;
+    return menu;
+}
+
+function openLanguageMenu(){
+    ensureLanguageSelectionMenu().classList.add("is-open");
+}
+
+function closeLanguageMenu(){
+    if(languageSelectionMenuElement){
+        languageSelectionMenuElement.classList.remove("is-open");
+    }
+}
+
+function toggleLanguageMenu(){
+    const menu = ensureLanguageSelectionMenu();
+    const isOpen = menu.classList.contains("is-open");
+    if(isOpen && typeof isIntroCloseLocked === "function" && isIntroCloseLocked()) return;
+    menu.classList.toggle("is-open");
+}
+window.closeLanguageMenu = closeLanguageMenu;
+
 function renderSettingsPanel(){
     if(!settingsPanel) return;
 
     settingsPanel.innerHTML = `
-        <h3 class="settings-panel__title">Настройки</h3>
+        <h3 class="settings-panel__title">${t("settings_panel_title")}</h3>
         <ul class="settings-section-list">
             ${settingsSections.map(section => `
                 <li class="settings-section-item" ${section.id ? `id="${section.id}"` : ""}>
@@ -170,13 +247,21 @@ function renderSettingsPanel(){
             toggleThemeMenu();
         });
     }
+
+    const languageOption = document.getElementById("languageOption");
+    if(languageOption){
+        languageOption.addEventListener("click", (event) => {
+            event.stopPropagation();
+            toggleLanguageMenu();
+        });
+    }
 }
 
 function renderMusicPanel(){
     if(!musicPanel) return;
 
     musicPanel.innerHTML = `
-        <h3 class="settings-panel__title">Музыкальная шкатулка</h3>
+        <h3 class="settings-panel__title">${t("music_panel_title")}</h3>
         <ul class="settings-section-list">
             ${musicSections.map(section => `
                 <li class="settings-section-item" ${section.id ? `id="${section.id}"` : ""}>
@@ -191,7 +276,7 @@ function renderAboutPanel(){
     if(!aboutPanel) return;
 
     aboutPanel.innerHTML = `
-        <h3 class="settings-panel__title">О проекте</h3>
+        <h3 class="settings-panel__title">${t("about_panel_title")}</h3>
         <ul class="settings-section-list">
             ${aboutSections.map(section => `
                 <li class="settings-section-item">
@@ -207,7 +292,7 @@ function renderProgressPanel(){
     if(!progressPanel) return;
 
     progressPanel.innerHTML = `
-        <h3 class="settings-panel__title">Управление прогрессом</h3>
+        <h3 class="settings-panel__title">${t("progress_panel_title")}</h3>
         <ul class="progress-actions-list">
             ${progressActions.map(action => `
                 <li class="progress-action-item" ${action.id ? `id="${action.id}"` : ""}>
@@ -218,11 +303,11 @@ function renderProgressPanel(){
         </ul>
         <div class="progress-code-reveal" id="progressCodeReveal">
             <span class="progress-code-reveal__value" id="progressCodeValue">••••••••</span>
-            <button type="button" class="progress-code-reveal__copy" id="progressCodeCopy" aria-label="Скопировать код">📋</button>
+            <button type="button" class="progress-code-reveal__copy" id="progressCodeCopy" aria-label="${t("progress_copy_code_aria")}">📋</button>
         </div>
         <div class="progress-code-enter" id="progressCodeEnter">
-            <input type="text" id="progressCodeInput" class="progress-code-enter__input" placeholder="Введи код для восстановления прогресса" maxlength="16" autocomplete="off" autocapitalize="characters" spellcheck="false">
-            <button type="button" class="progress-code-enter__submit" id="progressCodeSubmit">Восстановить</button>
+            <input type="text" id="progressCodeInput" class="progress-code-enter__input" placeholder="${t("progress_enter_placeholder")}" maxlength="16" autocomplete="off" autocapitalize="characters" spellcheck="false">
+            <button type="button" class="progress-code-enter__submit" id="progressCodeSubmit">${t("progress_restore_btn")}</button>
         </div>
     `;
 
@@ -254,7 +339,7 @@ function renderProgressPanel(){
             const isOpen = codeReveal.classList.toggle("is-open");
             if(isOpen){
                 const code = typeof window.ensureOwnerCode === "function" ? await window.ensureOwnerCode() : null;
-                codeValue.textContent = code || "не удалось получить код";
+                codeValue.textContent = code || t("progress_code_fetch_failed");
             }
         });
     }
@@ -315,7 +400,7 @@ function updateCharacterButtonLabel(){
         name = localStorage.getItem("dog_name") || "";
     } catch (e) {}
 
-    const nextLabel = name && name.trim() ? `О ${name.trim()}` : "О персонаже";
+    const nextLabel = name && name.trim() ? `${t("character_about_prefix")}${name.trim()}` : t("character_about_fallback");
 
     if(characterInfoButton){
         characterInfoButton.setAttribute("data-label", nextLabel);
@@ -323,9 +408,9 @@ function updateCharacterButtonLabel(){
     }
 
     if(dogNameButton){
-        const dogNameLabel = name && name.trim() ? name.trim() : "персонаж";
+        const dogNameLabel = name && name.trim() ? name.trim() : t("character_fallback_label");
         dogNameButton.setAttribute("data-label", dogNameLabel);
-        dogNameButton.setAttribute("aria-label", `Имя: ${dogNameLabel}`);
+        dogNameButton.setAttribute("aria-label", `${t("character_name_aria_prefix")}${dogNameLabel}`);
     }
 }
 

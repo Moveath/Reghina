@@ -208,7 +208,7 @@ function setHighlight(elementId){
 
 function showClickHint(hintText, targetId){
     const hint = ensureSettingsHint();
-    hint.innerHTML = `<span>${hintText || "Нажми, чтобы продолжить"}</span>`;
+    hint.innerHTML = `<span>${hintText || t("dlg_default_continue_hint")}</span>`;
     hint.classList.add("is-visible");
 
     // В сцене с развёрнутым пазлом кладём подсказку понизу по центру —
@@ -280,25 +280,28 @@ function renderIntroDialogue(){
     // (даже Ctrl+F5), продолжим ровно с этого места, а не с начала.
     saveDialogueIndex(dialogueIndex);
 
-    // Заменяем плейсхолдер «имя» на реальное имя (и в тексте, и в подсказке)
-    let displayHintText = line.hintText;
+    // Заменяем плейсхолдер «имя» на реальное имя (и в тексте, и в подсказке).
+    // Текст/подсказка/варианты выбора берутся через td()/tdHint()/tdChoices()
+    // на текущем языке сайта, с откатом на русский оригинал.
+    let displayHintText = tdHint(dialogueIndex, line.hintText);
     if(dogName && displayHintText && displayHintText.includes("«имя»")){
         displayHintText = displayHintText.replace("«имя»", dogName);
     }
 
     // Определяем подпись снизу (нажми / кнопки / ввод)
-    let footerHtml = '<span>нажми в любом месте, чтобы продолжить</span>';
+    let footerHtml = `<span>${t("dlg_click_anywhere_footer")}</span>`;
 
     if(line.waitForClick){
-        footerHtml = `<span>${displayHintText || "нажми, чтобы продолжить"}</span>`;
+        footerHtml = `<span>${displayHintText || t("dlg_click_anywhere")}</span>`;
     }
 
     if(line.type === "choice"){
         // Кнопки выбора — никакого "нажми"
+        const choiceLabels = tdChoices(dialogueIndex, line.choices);
         footerHtml = `
             <div class="choice-buttons">
                 ${line.choices.map((c, i) =>
-                    `<button class="choice-btn choice-btn--${i}" data-next="${c.next}">${c.label}</button>`
+                    `<button class="choice-btn choice-btn--${i}" data-next="${c.next}">${choiceLabels[i]}</button>`
                 ).join("")}
             </div>
         `;
@@ -306,14 +309,14 @@ function renderIntroDialogue(){
         // Поле ввода имени
         footerHtml = `
             <div class="name-input-wrap">
-                <input type="text" id="dogNameInput" class="dog-name-input" placeholder="Введи имя..." maxlength="20" autofocus>
-                <button id="dogNameConfirm" class="choice-btn choice-btn--0">Готово</button>
+                <input type="text" id="dogNameInput" class="dog-name-input" placeholder="${t("dlg_name_input_placeholder")}" maxlength="20" autofocus>
+                <button id="dogNameConfirm" class="choice-btn choice-btn--0">${t("dlg_name_input_confirm")}</button>
             </div>
         `;
     }
 
     // Заменяем плейсхолдер «имя» на реальное имя
-    let displayText = line.text;
+    let displayText = td(dialogueIndex);
     if(dogName && displayText.includes("«имя»")){
         displayText = displayText.replace("«имя»", dogName);
     }
@@ -346,6 +349,7 @@ function renderIntroDialogue(){
     if(line.closeSettingsPanel){
         if(typeof closePanels === "function") closePanels();
         if(typeof closeThemeMenu === "function") closeThemeMenu();
+        if(typeof closeLanguageMenu === "function") closeLanguageMenu();
     }
 
     if(line.showNotificationBadge){
@@ -527,6 +531,7 @@ function finishIntroDialogue(){
     document.body.classList.remove("intro-active");
     if(typeof closePanels === "function") closePanels();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
+    if(typeof closeLanguageMenu === "function") closeLanguageMenu();
     clearAllPrompts();
     hideIntroOverlay();
     // Запускаем плавное рассеивание тумана
@@ -709,6 +714,7 @@ function showResetConfirmDialogue(){
 
     if(typeof closePanels === "function") closePanels();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
+    if(typeof closeLanguageMenu === "function") closeLanguageMenu();
 
     characterContainer.classList.add("is-intro-scene");
     setDogEmotion("confused");
@@ -720,10 +726,10 @@ function showResetConfirmDialogue(){
     dialogueContainer.innerHTML = `
         <div class="intro-dialogue" role="dialog" aria-live="polite">
             <div class="intro-dialogue__bubble intro-dialogue__bubble--interactive">
-                <p>Точно хочешь сбросить прогресс? Имя, тема и открытые части пазла пропадут — вернуть их будет нельзя.</p>
+                <p>${t("dlg_reset_confirm_text")}</p>
                 <div class="choice-buttons">
-                    <button id="resetConfirmYes" class="choice-btn choice-btn--0" type="button">Да</button>
-                    <button id="resetConfirmNo" class="choice-btn choice-btn--1" type="button">Нет</button>
+                    <button id="resetConfirmYes" class="choice-btn choice-btn--0" type="button">${t("dlg_yes")}</button>
+                    <button id="resetConfirmNo" class="choice-btn choice-btn--1" type="button">${t("dlg_no")}</button>
                 </div>
             </div>
         </div>
@@ -773,6 +779,7 @@ function showRestoreConfirmDialogue(code){
 
     if(typeof closePanels === "function") closePanels();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
+    if(typeof closeLanguageMenu === "function") closeLanguageMenu();
 
     characterContainer.classList.add("is-intro-scene");
     setDogEmotion("thinking");
@@ -784,10 +791,10 @@ function showRestoreConfirmDialogue(code){
     dialogueContainer.innerHTML = `
         <div class="intro-dialogue" role="dialog" aria-live="polite">
             <div class="intro-dialogue__bubble intro-dialogue__bubble--interactive">
-                <p>Ты хочешь восстановить прогресс по этому коду? Всё, что сейчас есть на этом устройстве, будет заменено.</p>
+                <p>${t("dlg_restore_confirm_text")}</p>
                 <div class="choice-buttons">
-                    <button id="restoreConfirmYes" class="choice-btn choice-btn--0" type="button">Да</button>
-                    <button id="restoreConfirmNo" class="choice-btn choice-btn--1" type="button">Нет</button>
+                    <button id="restoreConfirmYes" class="choice-btn choice-btn--0" type="button">${t("dlg_yes")}</button>
+                    <button id="restoreConfirmNo" class="choice-btn choice-btn--1" type="button">${t("dlg_no")}</button>
                 </div>
             </div>
         </div>
@@ -823,9 +830,9 @@ function showRestoreFailedMessage(){
     if(!bubble) return;
     setDogEmotion("confused");
     bubble.innerHTML = `
-        <p>Такой код не найден. Проверь, что ввела его без ошибок.</p>
+        <p>${t("dlg_restore_failed_text")}</p>
         <div class="choice-buttons">
-            <button id="restoreFailedOk" class="choice-btn choice-btn--0" type="button">Понятно</button>
+            <button id="restoreFailedOk" class="choice-btn choice-btn--0" type="button">${t("dlg_understood")}</button>
         </div>
     `;
     document.getElementById("restoreFailedOk").addEventListener("click", (e) => {
@@ -835,6 +842,58 @@ function showRestoreFailedMessage(){
 }
 
 window.showRestoreConfirmDialogue = showRestoreConfirmDialogue;
+
+// Подтверждение смены языка "от лица" собаки — вызывается из меню языка
+// (ensureLanguageSelectionMenu в settings.js) при клике на язык, отличный
+// от текущего. Структура 1:1 с showResetConfirmDialogue выше — переиспользую
+// тот же resetConfirmActive и ту же hideResetConfirmDialogue() для "Нет".
+// При "Да" — сохраняем язык и перезагружаем страницу: это самый надёжный
+// способ применить перевод сразу везде (весь текущий прогресс переживает
+// перезагрузку через localStorage+сервер, как и при сбросе/восстановлении).
+function showLanguageConfirmDialogue(lang){
+    if(resetConfirmActive || monthlyKeySceneActive) return;
+    if(document.body.classList.contains("intro-active")) return;
+    resetConfirmActive = true;
+
+    if(typeof closePanels === "function") closePanels();
+    if(typeof closeThemeMenu === "function") closeThemeMenu();
+    if(typeof closeLanguageMenu === "function") closeLanguageMenu();
+
+    characterContainer.classList.add("is-intro-scene");
+    setDogEmotion("thinking");
+
+    dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
+    dialogueContainer.classList.add("is-active");
+    showIntroOverlay();
+
+    const targetOption = (typeof languageOptions !== "undefined" ? languageOptions : []).find(l => l.id === lang);
+    const targetLabel = targetOption ? targetOption.label : lang;
+    const confirmText = t("dlg_language_confirm_text").replace("{lang}", targetLabel);
+
+    dialogueContainer.innerHTML = `
+        <div class="intro-dialogue" role="dialog" aria-live="polite">
+            <div class="intro-dialogue__bubble intro-dialogue__bubble--interactive">
+                <p>${confirmText}</p>
+                <div class="choice-buttons">
+                    <button id="languageConfirmYes" class="choice-btn choice-btn--0" type="button">${t("dlg_yes")}</button>
+                    <button id="languageConfirmNo" class="choice-btn choice-btn--1" type="button">${t("dlg_no")}</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("languageConfirmYes").addEventListener("click", (e) => {
+        e.stopPropagation();
+        if(typeof window.setSelectedLanguage === "function") window.setSelectedLanguage(lang);
+        location.reload();
+    });
+    document.getElementById("languageConfirmNo").addEventListener("click", (e) => {
+        e.stopPropagation();
+        hideResetConfirmDialogue();
+    });
+}
+
+window.showLanguageConfirmDialogue = showLanguageConfirmDialogue;
 
 // ============================================================
 // Ежемесячные ключи — вызывается из checkMonthlyKey (js/storage/storage.js)
@@ -846,19 +905,31 @@ window.showRestoreConfirmDialogue = showRestoreConfirmDialogue;
 // js/puzzle/puzzle.js) — чтобы открытие было видно, а не произошло тихо
 // где-то за диалогом.
 // ============================================================
-const monthlyKeyFoundLines = [
+const monthlyKeyFoundLinesRu = [
     "Кажется, сегодня я нашёл кое-что важное для тебя!",
     "У меня для тебя кое-какая находка... интересно, что это?",
     "Я всю ночь искал этот ключ и наконец-то нашёл его!",
     "Похоже, кто-то оставил для тебя новый секретный ключ."
 ];
 
-const monthlyKeyOpenedLines = [
+const monthlyKeyOpenedLinesRu = [
     "Ура! Одна часть тайны стала открыта!",
     "Смотри, ещё один кусочек собрался!",
     "Кажется, мы стали ещё ближе к разгадке!",
     "Новый ключ подошёл! Пазл открывает следующую часть!"
 ];
+
+function getMonthlyKeyFoundLines(){
+    const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
+    const translated = window.monthlyKeyLineTranslations && window.monthlyKeyLineTranslations[lang];
+    return (translated && translated.found) || monthlyKeyFoundLinesRu;
+}
+
+function getMonthlyKeyOpenedLines(){
+    const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
+    const translated = window.monthlyKeyLineTranslations && window.monthlyKeyLineTranslations[lang];
+    return (translated && translated.opened) || monthlyKeyOpenedLinesRu;
+}
 
 function pickRandomLine(list){
     return list[Math.floor(Math.random() * list.length)];
@@ -884,6 +955,7 @@ function showMonthlyKeyDialogue(pieceIndex){
 
     if(typeof closePanels === "function") closePanels();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
+    if(typeof closeLanguageMenu === "function") closeLanguageMenu();
 
     characterContainer.classList.add("is-intro-scene", "is-key-found");
     setDogEmotion("happy");
@@ -896,9 +968,9 @@ function showMonthlyKeyDialogue(pieceIndex){
         <div class="intro-dialogue" role="dialog" aria-live="polite">
             <div class="intro-dialogue__bubble intro-dialogue__bubble--interactive monthly-key-bubble">
                 <span class="monthly-key-sparkle" aria-hidden="true">🔑✨</span>
-                <p>${pickRandomLine(monthlyKeyFoundLines)}</p>
+                <p>${pickRandomLine(getMonthlyKeyFoundLines())}</p>
                 <div class="choice-buttons">
-                    <button id="monthlyKeyFoundOk" class="choice-btn choice-btn--0" type="button">Ого, покажи!</button>
+                    <button id="monthlyKeyFoundOk" class="choice-btn choice-btn--0" type="button">${t("dlg_wow_show_me")}</button>
                 </div>
             </div>
         </div>
@@ -915,9 +987,9 @@ function showMonthlyKeyOpenedStage(pieceIndex){
     if(!bubble) return;
 
     bubble.innerHTML = `
-        <p>${pickRandomLine(monthlyKeyOpenedLines)}</p>
+        <p>${pickRandomLine(getMonthlyKeyOpenedLines())}</p>
         <div class="choice-buttons">
-            <button id="monthlyKeyOpenedOk" class="choice-btn choice-btn--0" type="button">Ура!</button>
+            <button id="monthlyKeyOpenedOk" class="choice-btn choice-btn--0" type="button">${t("dlg_hooray")}</button>
         </div>
     `;
 
@@ -1080,7 +1152,7 @@ document.addEventListener("click", (event) => {
     // но диалог продолжается только после реального выбора темы
     // (см. handleThemeSelected, вызывается из settings.js).
     if(line.opensThemeMenu){
-        showClickHint("Выбери одну из тем", line.waitForClick);
+        showClickHint(t("dlg_theme_hint"), line.waitForClick);
         return;
     }
 

@@ -82,6 +82,7 @@ function collectLocalProfileState(){
         dialogue_index: dialogueIndex,
         intro_completed: (() => { try { return localStorage.getItem("regina_intro_completed") === "true"; } catch(e) { return false; } })(),
         selected_theme: (() => { try { return localStorage.getItem("reginaSelectedTheme") || ""; } catch(e) { return ""; } })(),
+        selected_language: (() => { try { return localStorage.getItem("reginaSelectedLanguage") || ""; } catch(e) { return ""; } })(),
         unlocked_pieces: unlockedPieces,
         key_count: keyCount,
         puzzle_container_state: containerState
@@ -157,6 +158,9 @@ function applyProfileToLocalStorage(profile){
         if(profile.selected_theme) localStorage.setItem("reginaSelectedTheme", profile.selected_theme);
         else localStorage.removeItem("reginaSelectedTheme");
 
+        if(profile.selected_language) localStorage.setItem("reginaSelectedLanguage", profile.selected_language);
+        else localStorage.removeItem("reginaSelectedLanguage");
+
         localStorage.setItem("reginaPuzzleUnlockedPieces", JSON.stringify(profile.unlocked_pieces || []));
         localStorage.setItem("reginaKeyCount", String(profile.key_count || 0));
 
@@ -174,6 +178,7 @@ function profilesAreEqual(local, server){
         && local.dialogue_index === (server.dialogue_index || 0)
         && local.intro_completed === Boolean(server.intro_completed)
         && local.selected_theme === (server.selected_theme || "")
+        && local.selected_language === (server.selected_language || "")
         && JSON.stringify(local.unlocked_pieces) === JSON.stringify(server.unlocked_pieces || [])
         && local.key_count === (server.key_count || 0)
         && JSON.stringify(local.puzzle_container_state) === JSON.stringify(server.puzzle_container_state || null);

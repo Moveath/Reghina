@@ -144,3 +144,11 @@ create table if not exists snapshots (
 
 create index if not exists snapshots_owner_code_created_at_idx
     on snapshots (owner_code, created_at desc);
+
+-- ============================================================
+-- Мультиязычность (RU/EN/RO): выбранный язык интерфейса, ведётся ровно как
+-- selected_theme (см. server/src/routes/profile.js, js/storage/storage.js).
+-- Не сбрасывается сбросом прогресса — это предпочтение доступности, а не
+-- игровой прогресс.
+-- ============================================================
+alter table profiles add column if not exists selected_language text not null default '';

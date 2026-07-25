@@ -3,16 +3,20 @@ const resetPuzzleButton = document.getElementById("resetPuzzle");
 const puzzleToast = document.getElementById("puzzleToast");
 const initialPieceContent = pieces.map(piece => piece.innerHTML);
 
+pieces.forEach((piece, index) => {
+    piece.setAttribute("aria-label", t("static_piece_aria").replace("{n}", index + 1));
+});
+
 /* Сообщения для режима без ключа. */
-const lockedMessages = [
-    "Ещё рано ✨",
-    "Не сейчас 🌙",
-    "Скоро откроется",
-    "Подожди немного",
-    "У каждой вещи своё время",
-    "Этот кусочек пока спит 💫",
-    "Вернись позже ✨",
-    "Терпение..."
+const lockedMessageKeys = [
+    "puzzle_locked_1",
+    "puzzle_locked_2",
+    "puzzle_locked_3",
+    "puzzle_locked_4",
+    "puzzle_locked_5",
+    "puzzle_locked_6",
+    "puzzle_locked_7",
+    "puzzle_locked_8"
 ];
 
 const unlockedPiecesStorageKey = "reginaPuzzleUnlockedPieces";
@@ -64,8 +68,8 @@ function updatePuzzleProgress(){
 }
 
 function showLockedMessage(){
-    const randomIndex = Math.floor(Math.random() * lockedMessages.length);
-    showPuzzleToast(`Сначала нужен ключ. ${lockedMessages[randomIndex]}`);
+    const randomIndex = Math.floor(Math.random() * lockedMessageKeys.length);
+    showPuzzleToast(`${t("puzzle_need_key_prefix")}${t(lockedMessageKeys[randomIndex])}`);
 }
 
 function shakeLockedPiece(piece){
@@ -86,7 +90,7 @@ function unlockPiece(piece){
         piece.replaceChildren();
         updatePuzzleProgress();
         saveUnlockedPieces();
-        showPuzzleToast("Часть открыта");
+        showPuzzleToast(t("puzzle_opened"));
 
         // Сообщаем интро (если оно как раз ждёт этого момента) — см. dialogue.js.
         if(typeof window.notifyPuzzlePieceUnlocked === "function"){
@@ -94,7 +98,7 @@ function unlockPiece(piece){
         }
 
         if(pieces.every(item => item.classList.contains("unlocked"))){
-            setTimeout(() => showPuzzleToast("Все части открыты!"), 1200);
+            setTimeout(() => showPuzzleToast(t("puzzle_all_opened")), 1200);
         }
     }, 700);
 }
@@ -121,10 +125,10 @@ function unlockPieceByIndex(index){
         piece.replaceChildren();
         updatePuzzleProgress();
         saveUnlockedPieces();
-        showPuzzleToast("Часть открыта");
+        showPuzzleToast(t("puzzle_opened"));
 
         if(pieces.every(item => item.classList.contains("unlocked"))){
-            setTimeout(() => showPuzzleToast("Все части открыты!"), 1200);
+            setTimeout(() => showPuzzleToast(t("puzzle_all_opened")), 1200);
         }
     }, 700);
 
@@ -136,7 +140,7 @@ function handlePieceClick(piece){
     if(container.classList.contains("minimized")) return;
 
     if(piece.classList.contains("unlocked")){
-        showPuzzleToast("Эта часть уже открыта ✨");
+        showPuzzleToast(t("puzzle_already_open"));
         return;
     }
 
@@ -149,7 +153,7 @@ function handlePieceClick(piece){
     }
 
     if(!puzzleKeySystem.isKeyInHand()){
-        showPuzzleToast("Сначала возьмите ключ из инвентаря.");
+        showPuzzleToast(t("puzzle_take_key_first"));
         return;
     }
 
@@ -177,7 +181,7 @@ resetPuzzleButton.addEventListener("click", () => {
     puzzleKeySystem.reset();
     updatePuzzleProgress();
     try { localStorage.removeItem(unlockedPiecesStorageKey); } catch(e) {}
-    showPuzzleToast("Пазл сброшен для нового теста");
+    showPuzzleToast(t("puzzle_reset_test"));
 });
 
 restoreUnlockedPieces();
