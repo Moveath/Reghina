@@ -1075,6 +1075,31 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     background:rgba(255,255,255,.24);
 }
 
+/* Переключатель "Режим владельца" — см. js/dev/devPanel.js. Независим от
+   выбранного кода: относится к ЭТОМУ устройству/браузеру. */
+.dev-panel__owner-toggle{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+    padding:10px;
+    border-radius:12px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.14);
+}
+
+.dev-panel__owner-toggle .dev-menu__hint{
+    margin:0;
+    text-align:left;
+    flex:1;
+}
+
+.dev-panel__owner-toggle .dev-menu__btn{
+    width:auto;
+    margin-top:0;
+    flex-shrink:0;
+}
+
 .dev-panel__code-row{
     display:flex;
     gap:8px;

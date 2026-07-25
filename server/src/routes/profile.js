@@ -238,6 +238,16 @@ router.post("/:code/heartbeat", async (req, res) => {
     const device = typeof req.body.device === "string" ? req.body.device.slice(0, 120) : "";
     const isNewSession = Boolean(req.body.new_session);
 
+    // Режим владельца (см. js/dev/devPanel.js — переключатель, который
+    // ставит is_owner на КОНКРЕТНОМ устройстве, независимо от того, чей
+    // owner_code сейчас на нём активен). Ничего не пишем: ни visit_count/
+    // last_seen_at/last_device, ни события "visit"/"device_changed" в logs —
+    // визиты и активность владельца не должны попадать ни в "онлайн сейчас",
+    // ни в статистику посещений, ни в ленту активности пользователя.
+    if(req.body.is_owner){
+        return res.json({ ok: true, owner: true });
+    }
+
     const { data: before } = await supabase
         .from(TABLE)
         .select("last_device, visit_count")

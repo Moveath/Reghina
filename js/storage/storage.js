@@ -282,6 +282,27 @@ async function checkMonthlyKey(testDate){
     }
 }
 
+// Роль "владелец" (Егор) — привязана к КОНКРЕТНОМУ УСТРОЙСТВУ/браузеру, а
+// не к owner_code: если он подгрузит код Регины на своём устройстве, чтобы
+// проверить прогресс, это устройство всё равно должно остаться помеченным
+// как владелец — иначе такой визит выглядел бы как "она онлайн" и попал бы
+// в её статистику посещений. Флаг ставится только через переключатель в
+// Developer Panel (js/dev/devPanel.js, доступен только после секрета) — см.
+// isOwnerRole/setOwnerRole ниже. Сам по себе не связан с owner_code и не
+// восстанавливается/не сбрасывается вместе с прогрессом.
+const ownerRoleStorageKey = "reginaOwnerRole";
+
+function isOwnerRole(){
+    try { return localStorage.getItem(ownerRoleStorageKey) === "true"; } catch(e) { return false; }
+}
+
+function setOwnerRole(value){
+    try {
+        if(value) localStorage.setItem(ownerRoleStorageKey, "true");
+        else localStorage.removeItem(ownerRoleStorageKey);
+    } catch(e) {}
+}
+
 // Лёгкая телеметрия визита — питает "онлайн сейчас" и карточку "Даты" в
 // скрытой Developer Panel (см. js/dev/devPanel.js). Не требует секрета
 // разработчика, это обычная фоновая отметка "устройство ещё здесь".
@@ -309,7 +330,7 @@ async function sendHeartbeat(isNewSession){
         await fetch(`${API_BASE_URL}/profile/${code}/heartbeat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ device: detectDeviceLabel(), new_session: Boolean(isNewSession) })
+            body: JSON.stringify({ device: detectDeviceLabel(), new_session: Boolean(isNewSession), is_owner: isOwnerRole() })
         });
     } catch(err){
         console.warn("[storage] Не удалось отправить heartbeat:", err);
@@ -321,6 +342,8 @@ setInterval(() => sendHeartbeat(false), HEARTBEAT_INTERVAL_MS);
 
 window.getOwnerCode = getOwnerCode;
 window.ensureOwnerCode = ensureOwnerCode;
+window.isOwnerRole = isOwnerRole;
+window.setOwnerRole = setOwnerRole;
 window.scheduleProfileSync = scheduleProfileSync;
 window.pushProfileSync = pushProfileSync;
 window.resetProfileOnServer = resetProfileOnServer;

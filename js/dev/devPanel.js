@@ -253,10 +253,16 @@ function renderPanelShell(){
     const defaultCode = devPanelCurrentCode ||
         (typeof window.getOwnerCode === "function" ? (window.getOwnerCode() || "") : "");
 
+    const ownerOn = typeof window.isOwnerRole === "function" && window.isOwnerRole();
+
     el.innerHTML = `
         <div class="dev-panel__header">
             <h3 class="dev-menu__title">Developer Panel</h3>
             <button id="devPanelCloseX" class="dev-panel__close" type="button" aria-label="Закрыть">✕</button>
+        </div>
+        <div class="dev-panel__owner-toggle">
+            <span class="dev-menu__hint">Режим владельца на этом устройстве: <strong>${ownerOn ? "включён" : "выключен"}</strong><br>Пока включён, визиты с этого устройства (даже если открыт чужой код) не попадают в её "онлайн сейчас", счётчик визитов и ленту активности.</span>
+            <button id="devOwnerRoleToggle" class="dev-menu__btn" type="button">${ownerOn ? "Выключить" : "Включить"}</button>
         </div>
         <div class="dev-panel__code-row">
             <input id="devPanelCode" class="dev-menu__input" type="text" placeholder="OWNER CODE" value="${escapeHtml(defaultCode)}">
@@ -274,6 +280,11 @@ function renderPanelShell(){
     `;
 
     el.querySelector("#devPanelCloseX").addEventListener("click", closeDeveloperPanel);
+    el.querySelector("#devOwnerRoleToggle").addEventListener("click", () => {
+        if(typeof window.setOwnerRole !== "function") return;
+        window.setOwnerRole(!(typeof window.isOwnerRole === "function" && window.isOwnerRole()));
+        renderPanelShell();
+    });
     el.querySelectorAll(".dev-panel__tab").forEach(btn => {
         btn.addEventListener("click", () => switchDevTab(btn.dataset.tab));
     });
