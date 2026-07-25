@@ -1,7 +1,7 @@
 #characterContainer{
     position:fixed;
     left:12px;
-    bottom:8px;
+    bottom:2px;
     width:clamp(120px, 15vw, 190px);
     opacity:0;
     pointer-events:none;
@@ -45,7 +45,7 @@
    угловом виде — как только собака возвращается в is-intro-scene (сцена
    интро, подтверждения сброса/языка и т.п.), оба прячутся.
    ============================================================ */
-/* top:6px, не отрицательный отступ — у картинок собаки (images/dog/*.png)
+/* top:2px, не отрицательный отступ — у картинок собаки (images/dog/*.png)
    довольно много прозрачного "воздуха" над самой головой (в среднем ~14%
    высоты кадра), голова начинается не у самого верха img, а значок должен
    парить именно в этом свободном месте над головой, а не улетать выше
@@ -53,13 +53,13 @@
 .character-plumbob{
     display:none;
     position:absolute;
-    top:6px;
+    top:2px;
     left:50%;
     transform:translateX(-50%);
-    width:24px;
-    height:24px;
+    width:44px;
+    height:44px;
     pointer-events:none;
-    perspective:160px;
+    perspective:220px;
 }
 
 #characterContainer:not(.is-intro-scene) .character-plumbob{
@@ -71,19 +71,21 @@
     height:100%;
     object-fit:contain;
     filter:drop-shadow(0 4px 8px rgba(19,5,13,.35));
-    animation:plumbobSpinX 2.6s linear infinite;
+    animation:plumbobSpinY 2.6s linear infinite;
 }
 
-@keyframes plumbobSpinX{
-    from{ transform:rotateX(0deg); }
-    to{ transform:rotateX(360deg); }
+/* Вращение вокруг вертикальной оси (Y) — как настоящий "ромб" в The Sims,
+   а не кувырок вперёд-назад (была X-ось). */
+@keyframes plumbobSpinY{
+    from{ transform:rotateY(0deg); }
+    to{ transform:rotateY(360deg); }
 }
 
 .character-idle-name{
     display:none;
     align-self:center;
-    margin-top:2px;
-    font-size:12px;
+    margin-top:4px;
+    font-size:20px;
     font-weight:800;
     letter-spacing:.04em;
     text-transform:uppercase;
@@ -178,6 +180,12 @@
 }
 
 .dog-character.is-resting{
+    /* У картинок собаки заметный прозрачный "воздух" под лапами (~15-20%
+       высоты кадра), поэтому в маленьком угловом виде между собакой и
+       нижним краем экрана виден лишний пустой отступ. Компенсируем это
+       сдвигом самой картинки вниз (в свою же прозрачную часть) — только
+       в угловом виде (is-resting), в сцене интро/сна не трогаем. */
+    --dog-foot-lift:16%;
     animation:dogBreathe 4.6s ease-in-out infinite;
 }
 
@@ -224,8 +232,8 @@
  * вертикальное движение. Дёшево для GPU (только transform).
  */
 @keyframes dogBreathe{
-    0%, 100%{ transform:scale(1) translateY(0); }
-    50%{ transform:scale(1.025) translateY(-3px); }
+    0%, 100%{ transform:translateY(var(--dog-foot-lift, 0)) scale(1) translateY(0); }
+    50%{ transform:translateY(var(--dog-foot-lift, 0)) scale(1.025) translateY(-3px); }
 }
 
 @keyframes dogGreeting{
@@ -236,7 +244,7 @@
 @media (max-width: 640px){
     #characterContainer{
         left:8px;
-        bottom:6px;
+        bottom:2px;
         width:clamp(95px, 26vw, 135px);
     }
 
@@ -247,12 +255,12 @@
     }
 
     .character-plumbob{
-        top:3px;
-        width:18px;
-        height:18px;
+        top:1px;
+        width:30px;
+        height:30px;
     }
 
     .character-idle-name{
-        font-size:10px;
+        font-size:15px;
     }
 }
