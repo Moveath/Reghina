@@ -14,6 +14,21 @@ const introAlreadyCompleted = (() => {
     try { return localStorage.getItem("regina_intro_completed") === "true"; } catch(e) { return false; }
 })();
 
+// Плавающий значок (как "ромб" над персонажами в Sims) и подпись с именем —
+// показываются только в маленьком "угловом" виде (см. css/dog.css:
+// #characterContainer:not(.is-intro-scene) .character-plumbob/.character-idle-name),
+// поэтому в разметке они есть в ОБОИХ вариантах ниже — это самый надёжный
+// способ: множество мест в js/dialogue/dialogue.js переключают класс
+// is-intro-scene туда-обратно (resetDogToNeutral и т.п.), не пересобирая
+// innerHTML заново, так что если добавить эти элементы только в одну из
+// веток — при переключении класса им просто неоткуда взяться.
+const idleExtrasHtml = `
+    <div class="character-plumbob" aria-hidden="true">
+        <img src="images/items/plumbob.png" alt="">
+    </div>
+    <div class="character-idle-name" id="characterIdleName"></div>
+`;
+
 if(introAlreadyCompleted){
     characterContainer.classList.remove("is-intro-scene");
     characterContainer.innerHTML = `
@@ -23,6 +38,7 @@ if(introAlreadyCompleted){
             src="images/dog/neutral.png"
             alt="Собака-проводник"
         >
+        ${idleExtrasHtml}
     `;
 } else {
     characterContainer.classList.add("is-intro-scene");
@@ -34,7 +50,18 @@ if(introAlreadyCompleted){
             src="images/dog/sleeping.png"
             alt="Собака-проводник"
         >
+        ${idleExtrasHtml}
     `;
 }
+
+// textContent, не innerHTML — имя приходит из localStorage, лишний повод не
+// собирать его прямо в HTML-строку.
+(() => {
+    const idleNameEl = document.getElementById("characterIdleName");
+    if(!idleNameEl) return;
+    try {
+        idleNameEl.textContent = localStorage.getItem("dog_name") || "";
+    } catch(e) {}
+})();
 
 requestAnimationFrame(() => characterContainer.classList.add("is-visible"));

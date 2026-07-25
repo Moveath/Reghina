@@ -385,12 +385,19 @@ function renderIntroDialogue(){
 }
     // Рендерим в зависимости от типа
     if(line.type === "thought"){
+        // isDream (только самая первая реплика, спящая собака) — картинка
+        // того, что ей снится, прямо внутри облака мысли, float слева от
+        // текста, чтобы не перекрывать его (текст просто обтекает картинку).
+        const dreamImageHtml = line.isDream
+            ? `<img class="thought-cloud__dream-image" src="images/items/dream-candy.jpg" alt="">`
+            : "";
         dialogueContainer.innerHTML = `
             <div class="intro-dialogue" role="dialog" aria-live="polite">
                 <div class="intro-dialogue__thought">
                     <div class="thought-dot thought-dot--1"></div>
                     <div class="thought-dot thought-dot--2"></div>
                     <div class="thought-cloud">
+                        ${dreamImageHtml}
                         <p>${displayText}</p>
                         ${footerHtml}
                     </div>
@@ -550,6 +557,13 @@ function finishIntroDialogue(){
     if(nameplate){
         nameplate.remove();
     }
+
+    // Маленькая подпись с именем под собакой в углу — этот элемент уже есть
+    // в разметке (см. js/character/dog.js), но при самом первом прохождении
+    // интро на момент его создания имя ещё не было выбрано, поэтому
+    // проставляем его здесь, как только оно точно известно.
+    const idleNameEl = document.getElementById("characterIdleName");
+    if(idleNameEl) idleNameEl.textContent = dogName || "";
 
     // Возобновляем анимации пазла
     resumePuzzleAnimations();

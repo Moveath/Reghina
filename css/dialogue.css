@@ -244,6 +244,19 @@
     word-wrap:break-word;
 }
 
+/* Картинка того, что снится (только самая первая реплика, isDream) — float
+   слева, текст обтекает её справа/снизу, ничего не перекрывает. */
+.thought-cloud__dream-image{
+    float:left;
+    width:64px;
+    height:64px;
+    margin:0 14px 6px 0;
+    border-radius:50%;
+    object-fit:cover;
+    border:3px solid #171014;
+    box-shadow:0 6px 14px rgba(19,5,13,.22);
+}
+
 .thought-cloud span{
     display:block;
     margin-top:10px;
@@ -431,6 +444,12 @@
         padding:16px 22px;
         font-size:17px;
     }
+
+    .thought-cloud__dream-image{
+        width:48px;
+        height:48px;
+        margin:0 10px 4px 0;
+    }
 }
 
 
@@ -482,5 +501,11 @@
         max-width:78vw;
         padding:14px 16px;
         font-size:15px;
+    }
+
+    .thought-cloud__dream-image{
+        width:40px;
+        height:40px;
+        margin:0 8px 4px 0;
     }
 }

@@ -39,6 +39,65 @@
     display:none;
 }
 
+/* ============================================================
+   Плавающий значок над собакой в углу (как "ромб" над персонажами в
+   The Sims) + подпись с именем под ней. Показываются ТОЛЬКО в маленьком
+   угловом виде — как только собака возвращается в is-intro-scene (сцена
+   интро, подтверждения сброса/языка и т.п.), оба прячутся.
+   ============================================================ */
+/* top:6px, не отрицательный отступ — у картинок собаки (images/dog/*.png)
+   довольно много прозрачного "воздуха" над самой головой (в среднем ~14%
+   высоты кадра), голова начинается не у самого верха img, а значок должен
+   парить именно в этом свободном месте над головой, а не улетать выше
+   картинки целиком. */
+.character-plumbob{
+    display:none;
+    position:absolute;
+    top:6px;
+    left:50%;
+    transform:translateX(-50%);
+    width:24px;
+    height:24px;
+    pointer-events:none;
+    perspective:160px;
+}
+
+#characterContainer:not(.is-intro-scene) .character-plumbob{
+    display:block;
+}
+
+.character-plumbob img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    filter:drop-shadow(0 4px 8px rgba(19,5,13,.35));
+    animation:plumbobSpinX 2.6s linear infinite;
+}
+
+@keyframes plumbobSpinX{
+    from{ transform:rotateX(0deg); }
+    to{ transform:rotateX(360deg); }
+}
+
+.character-idle-name{
+    display:none;
+    align-self:center;
+    margin-top:2px;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:#fffdfb;
+    text-shadow:0 2px 6px rgba(19,5,13,.5);
+    user-select:none;
+    pointer-events:none;
+    white-space:nowrap;
+}
+
+#characterContainer:not(.is-intro-scene) .character-idle-name{
+    display:block;
+}
+
 /* Имя персонажа — только в интро (большой размер).
    Позиционируется абсолютно внутри контейнера,
    помещается низко, прямо у головы собаки. */
@@ -185,5 +244,15 @@
         left:2vw;
         bottom:0;
         width:50vw;
+    }
+
+    .character-plumbob{
+        top:3px;
+        width:18px;
+        height:18px;
+    }
+
+    .character-idle-name{
+        font-size:10px;
     }
 }
