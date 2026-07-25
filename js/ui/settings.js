@@ -76,17 +76,25 @@ function loadSelectedTheme(){
 }
 
 // Реально меняет фон сайта на картинку (или сплошной цвет) выбранной темы.
+// Ставим через setProperty(..., "important"), а не просто через .style.* —
+// иначе это никогда не победит инлайн-стиль body{...!important}, который
+// index.html вставляет ДО загрузки этого файла (чтобы не мигать дефолтной
+// темой при старте, см. комментарий в <head>). !important в стиле-теге
+// побеждает обычный инлайн-style независимо от порядка, поэтому и здесь
+// нужен !important — иначе смена темы кликом переставала бы что-либо менять
+// визуально после первого рендера.
 function applyTheme(themeId){
     const theme = themeOptions.find(t => t.id === themeId) || themeOptions.find(t => t.id === defaultThemeId);
     if(!theme) return;
     if(theme.image){
-        document.body.style.backgroundImage = `url("${theme.image}")`;
-        document.body.style.backgroundSize = "cover";
-        document.body.style.backgroundPosition = "center";
-        document.body.style.backgroundRepeat = "no-repeat";
+        document.body.style.setProperty("background-image", `url("${theme.image}")`, "important");
+        document.body.style.setProperty("background-size", "cover", "important");
+        document.body.style.setProperty("background-position", "center", "important");
+        document.body.style.setProperty("background-repeat", "no-repeat", "important");
+        document.body.style.removeProperty("background-color");
     } else {
-        document.body.style.backgroundImage = "none";
-        document.body.style.backgroundColor = theme.color || "#ffffff";
+        document.body.style.setProperty("background-image", "none", "important");
+        document.body.style.setProperty("background-color", theme.color || "#ffffff", "important");
     }
 }
 
