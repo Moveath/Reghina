@@ -13,10 +13,9 @@
          из css/style.css независимо от того, кто из них догрузится раньше) —
          никакого промежуточного "не того" кадра. Список картинок ниже должен
          совпадать с themeOptions в js/ui/settings.js.
-         Заодно предзагружает (rel=preload) картинку темы и правильную позу
-         собаки (спит — если интро ещё не пройдено, обычная — если да), чтобы
-         они начали качаться параллельно с CSS/JS, а не только после того как
-         до них дойдёт исполнение settings.js/dog.js. -->
+         Заодно предзагружает (rel=preload) картинку темы и все позы собаки,
+         чтобы они качались параллельно с CSS/JS, а не только в момент, когда
+         до конкретной позы дойдёт setDogEmotion() где-то в середине интро. -->
     <script>
     (function(){
         try {
@@ -43,8 +42,19 @@
             }
             if(theme !== "white") preloadImage(THEME_IMAGES[theme] || THEME_IMAGES.pink);
 
-            var introDone = localStorage.getItem("regina_intro_completed") === "true";
-            preloadImage(introDone ? "images/dog/neutral.png" : "images/dog/sleeping.png");
+            // Все позы собаки, а не только стартовую: во время интро (и
+            // после — подтверждения/тосты) собака переключается между
+            // sleeping/sleepy/confused/happy/neutral/sad/thinking/withkey
+            // за считанные реплики, а без preload каждая новая поза
+            // качивается только в момент, когда до неё доходит setDogEmotion()
+            // — старая картинка так и остаётся видна, пока грузится новая
+            // (та самая "она на 5 шаге, а собака всё ещё выглядит как раньше").
+            // Картинки маленькие, преднагрузка всех дешёвая. "thinking" сюда
+            // не входит — такого файла нет, эмоция thinking указывает на
+            // тот же neutral.png (см. emotionMap в js/dialogue/dialogue.js).
+            ["sleeping", "sleepy", "confused", "happy", "sad", "neutral", "withkey"].forEach(function(name){
+                preloadImage("images/dog/" + name + ".png");
+            });
         } catch(e){}
     })();
     </script>
