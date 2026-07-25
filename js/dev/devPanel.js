@@ -489,8 +489,8 @@ function renderAdminTab(bundle){
         </div>
         <div class="dev-panel__section">
             <h4 class="dev-panel__section-title">Тестовое время (ежемесячные ключи)</h4>
-            <label class="dev-menu__label" for="devTestDate">Тестовая дата</label>
-            <input id="devTestDate" class="dev-menu__input" type="date" value="${escapeHtml(devLastTestDateValue)}">
+            <label class="dev-menu__label" for="devTestDate">Тестовая дата (формат: ГГГГ-ММ-ДД, например 2026-09-15)</label>
+            <input id="devTestDate" class="dev-menu__input" type="text" inputmode="numeric" placeholder="2026-09-15" value="${escapeHtml(devLastTestDateValue)}">
             <button id="devCheckMonthlyKey" class="dev-menu__btn" type="button">Проверить ключ</button>
             <p id="devMonthlyKeyResult" class="dev-menu__hint">${escapeHtml(devLastMonthlyKeyResultText)}</p>
             <label class="dev-menu__label" for="devAccelSelect">Ускоренный режим</label>
