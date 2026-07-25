@@ -159,6 +159,9 @@ function toggleThemeMenu(){
     const menu = ensureThemeSelectionMenu();
     const isOpen = menu.classList.contains("is-open");
     if(isOpen && typeof isIntroCloseLocked === "function" && isIntroCloseLocked()) return;
+    // Оба меню — независимые position:fixed элементы поверх страницы,
+    // одновременное открытие обоих даёт наложение друг на друга.
+    if(!isOpen) closeLanguageMenu();
     menu.classList.toggle("is-open");
 }
 
@@ -226,6 +229,7 @@ function toggleLanguageMenu(){
     const menu = ensureLanguageSelectionMenu();
     const isOpen = menu.classList.contains("is-open");
     if(isOpen && typeof isIntroCloseLocked === "function" && isIntroCloseLocked()) return;
+    if(!isOpen) closeThemeMenu();
     menu.classList.toggle("is-open");
 }
 window.closeLanguageMenu = closeLanguageMenu;
@@ -397,6 +401,11 @@ function closePanels(){
     if(musicPanel) musicPanel.classList.remove("is-open");
     if(aboutPanel) aboutPanel.classList.remove("is-open");
     if(lettersPanel) lettersPanel.classList.remove("is-open");
+    // Иначе меню темы/языка остаётся открытым и торчит поверх/под тем, что
+    // открывается следующим — это отдельные position:fixed элементы вне
+    // settingsPanel, закрытие самой панели их не задевает без явного вызова.
+    closeThemeMenu();
+    closeLanguageMenu();
 }
 
 function updateCharacterButtonLabel(){
