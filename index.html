@@ -5,6 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secret Puzzle</title>
 
+    <!-- Анти-мигание при загрузке: пока грузятся css/*.css и js/*.js (это
+         несколько отдельных сетевых запросов), страница долю секунды видна
+         с дефолтной розовой темой, даже если сохранена другая — на медленной
+         сети это заметный "флеш". Это ставит фон синхронно, ДО начала
+         загрузки внешних стилей, через !important (побеждает body{background}
+         из css/style.css независимо от того, кто из них догрузится раньше) —
+         никакого промежуточного "не того" кадра. Список картинок ниже должен
+         совпадать с themeOptions в js/ui/settings.js.
+         Заодно предзагружает (rel=preload) картинку темы и правильную позу
+         собаки (спит — если интро ещё не пройдено, обычная — если да), чтобы
+         они начали качаться параллельно с CSS/JS, а не только после того как
+         до них дойдёт исполнение settings.js/dog.js. -->
+    <script>
+    (function(){
+        try {
+            var THEME_IMAGES = {
+                pink:   "images/backgrounds/theme-pink.png",
+                purple: "images/backgrounds/theme-purple.png",
+                blue:   "images/backgrounds/theme-blue.png"
+            };
+            var theme = localStorage.getItem("reginaSelectedTheme") || "";
+            var css = theme === "white"
+                ? "background:#ffffff !important;"
+                : "background-image:url('" + (THEME_IMAGES[theme] || THEME_IMAGES.pink) + "') !important;" +
+                  "background-size:cover !important;background-position:center !important;background-repeat:no-repeat !important;";
+            var style = document.createElement("style");
+            style.textContent = "body{" + css + "}";
+            document.head.appendChild(style);
+
+            function preloadImage(href){
+                var link = document.createElement("link");
+                link.rel = "preload";
+                link.as = "image";
+                link.href = href;
+                document.head.appendChild(link);
+            }
+            if(theme !== "white") preloadImage(THEME_IMAGES[theme] || THEME_IMAGES.pink);
+
+            var introDone = localStorage.getItem("regina_intro_completed") === "true";
+            preloadImage(introDone ? "images/dog/neutral.png" : "images/dog/sleeping.png");
+        } catch(e){}
+    })();
+    </script>
+
     <!-- Рукописный шрифт с поддержкой кириллицы — для текста писем (карточка "на бумаге"). -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -117,28 +161,37 @@
         <img src="images/items/key.png" alt="">
     </div>
 
-    <script src="data/dialogues.js"></script>
-    <script src="data/translations.js"></script>
-    <script src="data/monthlyEvents.js"></script>
-    <script src="data/gifts.js"></script>
-    <script src="data/settings.js"></script>
+    <!-- defer вместо обычной блокирующей загрузки: раньше браузер качал эти
+         файлы ПО ОДНОМУ (каждый следующий запрос начинался только после
+         того, как предыдущий полностью скачался И выполнился) — на медленной
+         сети это могло растягиваться на секунды, и всё это время диалог не
+         запускался, а собака стояла в исходной позе. defer заставляет их все
+         качаться ПАРАЛЛЕЛЬНО, но выполняться по-прежнему строго по порядку
+         (гарантия спецификации), так что все зависимости между файлами
+         (например, i18n.js должен выполниться до settings.js) остаются
+         рабочими без изменений — меняется только скорость загрузки. -->
+    <script src="data/dialogues.js" defer></script>
+    <script src="data/translations.js" defer></script>
+    <script src="data/monthlyEvents.js" defer></script>
+    <script src="data/gifts.js" defer></script>
+    <script src="data/settings.js" defer></script>
 
     <!-- Движок переводов — до всех остальных js/*.js: js/ui/settings.js
          вызывает t() уже на верхнем уровне (при построении списков меню),
          поэтому t() должен существовать раньше, чем settings.js будет
          разобран браузером. -->
-    <script src="js/i18n/i18n.js"></script>
+    <script src="js/i18n/i18n.js" defer></script>
 
-    <script src="js/main.js"></script>
-    <script src="js/puzzle/progress.js"></script>
-    <script src="js/puzzle/keys.js"></script>
-    <script src="js/puzzle/puzzle.js"></script>
-    <script src="js/ui/window.js"></script>
-    <script src="js/ui/settings.js"></script>
-    <script src="js/storage/storage.js"></script>
-    <script src="js/character/dog.js"></script>
-    <script src="js/dialogue/dialogue.js"></script>
-    <script src="js/ui/letters.js"></script>
-    <script src="js/dev/devPanel.js"></script>
+    <script src="js/main.js" defer></script>
+    <script src="js/puzzle/progress.js" defer></script>
+    <script src="js/puzzle/keys.js" defer></script>
+    <script src="js/puzzle/puzzle.js" defer></script>
+    <script src="js/ui/window.js" defer></script>
+    <script src="js/ui/settings.js" defer></script>
+    <script src="js/storage/storage.js" defer></script>
+    <script src="js/character/dog.js" defer></script>
+    <script src="js/dialogue/dialogue.js" defer></script>
+    <script src="js/ui/letters.js" defer></script>
+    <script src="js/dev/devPanel.js" defer></script>
 </body>
 </html>
