@@ -46,7 +46,7 @@ if(introAlreadyCompleted){
         <div class="character-nameplate">Кане-корсо</div>
         <img
             id="dogCharacter"
-            class="dog-character is-intro is-sleeping"
+            class="dog-character is-intro is-sleeping dog-emotion-sleeping"
             src="images/dog/sleeping.png"
             alt="Собака-проводник"
         >

@@ -153,6 +153,7 @@
     filter:drop-shadow(0 14px 20px rgba(39,12,26,.22));
     transform-origin:center bottom;
     will-change:transform, opacity;
+    --dog-emotion-offset:0%;
 
     /* pointer-events:auto НЕ ставим здесь безусловно: во время интро
        большая собака визуально перекрывает иконки чата/уведомлений слева
@@ -179,14 +180,36 @@
 }
 
 .dog-character.is-resting{
-    /* У картинок собаки заметный прозрачный "воздух" под лапами (~15-20%
-       высоты кадра), поэтому в маленьком угловом виде между собакой и
-       нижним краем экрана виден лишний пустой отступ. Компенсируем это
-       сдвигом самой картинки вниз (в свою же прозрачную часть) — только
-       в угловом виде (is-resting), в сцене интро/сна не трогаем. */
-    --dog-foot-lift:16%;
     animation:dogBreathe 4.6s ease-in-out infinite;
 }
+
+/* У картинок собаки заметный прозрачный "воздух" под лапами (~15-20%
+   высоты кадра), поэтому в маленьком угловом виде между собакой и нижним
+   краем экрана виден лишний пустой отступ. Компенсируем это сдвигом самой
+   картинки вниз (в свою же прозрачную часть) — но ТОЛЬКО в самом угловом
+   виде (контейнер не в is-intro-scene): та же is-resting-эмоция иногда
+   встречается и КРУПНОЙ, посреди самого диалога — там этот сдвиг вниз не
+   нужен и раньше по ошибке всё равно применялся (собака "проваливалась").
+*/
+#characterContainer:not(.is-intro-scene) .dog-character.is-resting{
+    --dog-foot-lift:16%;
+}
+
+/* Выравнивание эмоций по высоте — у картинок images/dog/*.png разный
+   отступ прозрачного "воздуха" от верха кадра до головы (измерено по
+   альфа-каналу: confused ~11%, excited ~0%, happy ~12%, neutral ~14%,
+   sad ~19%, sleeping ~32%, sleepy ~8%, withkey ~10%), поэтому при смене
+   эмоции во время диалога собака визуально "прыгала" то выше, то ниже.
+   Компенсируем сдвигом вниз/вверх относительно neutral.png (наш общий
+   уровень) — значение уходит в @keyframes dogArrival/dogGreeting/dogSleep
+   через --dog-emotion-offset, см. .dog-character выше. */
+.dog-character.dog-emotion-confused{ --dog-emotion-offset:3%; }
+.dog-character.dog-emotion-excited{ --dog-emotion-offset:14%; }
+.dog-character.dog-emotion-happy{ --dog-emotion-offset:2%; }
+.dog-character.dog-emotion-sad{ --dog-emotion-offset:-5%; }
+.dog-character.dog-emotion-sleepy{ --dog-emotion-offset:7%; }
+.dog-character.dog-emotion-withKey{ --dog-emotion-offset:4%; }
+.dog-character.dog-emotion-sleeping{ --dog-emotion-offset:-18%; }
 
 /* Подсветка собаки, когда по ней нужно кликнуть (например, чтобы взять ключ).
    #characterContainer сам по себе pointer-events:none (чтобы не перехватывать
@@ -212,8 +235,8 @@
 }
 
 @keyframes dogArrival{
-    from{ opacity:0; transform:translateY(24px) scale(.94); }
-    to{ opacity:1; transform:translateY(0) scale(1); }
+    from{ opacity:0; transform:translateY(var(--dog-emotion-offset,0%)) translateY(24px) scale(.94); }
+    to{ opacity:1; transform:translateY(var(--dog-emotion-offset,0%)) translateY(0) scale(1); }
 }
 
 /*
@@ -221,8 +244,8 @@
  * как будто собака дышит во сне.
  */
 @keyframes dogSleep{
-    0%, 100%{ transform:scale(1) translateY(0); }
-    50%{ transform:scale(1.015) translateY(-2px); }
+    0%, 100%{ transform:translateY(var(--dog-emotion-offset,0%)) scale(1) translateY(0); }
+    50%{ transform:translateY(var(--dog-emotion-offset,0%)) scale(1.015) translateY(-2px); }
 }
 
 /*
@@ -236,8 +259,8 @@
 }
 
 @keyframes dogGreeting{
-    0%, 100%{ transform:scale(1) translateY(0); }
-    50%{ transform:scale(1.03) translateY(-4px); }
+    0%, 100%{ transform:translateY(var(--dog-emotion-offset,0%)) scale(1) translateY(0); }
+    50%{ transform:translateY(var(--dog-emotion-offset,0%)) scale(1.03) translateY(-4px); }
 }
 
 @media (max-width: 640px){

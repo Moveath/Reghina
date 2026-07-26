@@ -106,15 +106,19 @@ function setDogEmotion(emotion){
         // img.className затирает весь список классов — сохраняем "is-highlighted",
         // если собака в этот момент как раз подсвечена (например, ждём клика по ней).
         const keepHighlighted = lastHighlightTarget === "dogCharacter" ? " is-highlighted" : "";
+        // dog-emotion-* — у картинок эмоций (images/dog/*.png) разный отступ
+        // прозрачного "воздуха" от верха кадра до головы, из-за этого собака
+        // визуально "прыгала" по высоте при смене эмоции. Этот класс задаёт
+        // компенсирующее смещение (см. --dog-emotion-offset в css/dog.css).
         if(normalizedEmotion === "sleeping"){
             img.style.animation = "";
-            img.className = "dog-character is-intro is-sleeping" + keepHighlighted;
+            img.className = "dog-character is-intro is-sleeping dog-emotion-sleeping" + keepHighlighted;
         } else if(normalizedEmotion === "neutral"){
             img.style.animation = "";
-            img.className = "dog-character is-resting" + keepHighlighted;
+            img.className = "dog-character is-resting dog-emotion-neutral" + keepHighlighted;
         } else {
             img.style.animation = "";
-            img.className = "dog-character is-intro" + keepHighlighted;
+            img.className = "dog-character is-intro dog-emotion-" + normalizedEmotion + keepHighlighted;
         }
 
         // 3. Появление (fade-in) — сразу после смены

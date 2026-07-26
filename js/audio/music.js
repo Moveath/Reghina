@@ -121,7 +121,12 @@ function fadeTo(targetVolume, ms){
         function step(now){
             if(token !== fadeToken) return resolve(); // отменено более новым fade
             const progress = ms <= 0 ? 1 : Math.min(1, (now - startTime) / ms);
-            bgAudio.volume = startVolume + (targetVolume - startVolume) * progress;
+            const nextVolume = startVolume + (targetVolume - startVolume) * progress;
+            // Audio.volume бросает исключение вне [0,1] — при progress≈1
+            // накапливается погрешность плавающей точки (например
+            // -0.00026), из-за которой присваивание падало бы с ошибкой
+            // прямо внутри rAF-колбэка, и promise так никогда и не resolve'ился.
+            bgAudio.volume = Math.max(0, Math.min(1, nextVolume));
             if(progress < 1) requestAnimationFrame(step);
             else resolve();
         }
