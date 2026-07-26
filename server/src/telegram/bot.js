@@ -82,4 +82,21 @@ if(bot && supabase){
     console.warn("[telegram] Supabase не настроен — ответы Егора приниматься не будут.");
 }
 
-module.exports = { sendLetterToEgor };
+// Уведомление о предложенной песне (виджет "Музыкальная шкатулка" →
+// "Добавить песню") — просто текстовое сообщение Егору, без привязки к
+// таблице letters и без ожидания ответа (в отличие от писем выше).
+async function sendMusicSuggestionToEgor(name){
+    if(!bot || !config.telegram.egorChatId) return null;
+
+    const text = `🎵 Регина хочет добавить музыку\n\nНазвание: ${name}`;
+
+    try {
+        const sent = await bot.sendMessage(config.telegram.egorChatId, text);
+        return sent.message_id;
+    } catch(err){
+        console.error("[telegram] Не удалось отправить предложение музыки:", err.message);
+        return null;
+    }
+}
+
+module.exports = { sendLetterToEgor, sendMusicSuggestionToEgor };

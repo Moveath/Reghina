@@ -22,12 +22,6 @@ const progressActions = [
     { icon: "♻️", label: t("progress_reset"), id: "resetProgressOption" }
 ];
 
-const musicSections = [
-    { icon: "🎶", label: t("music_music_label"), id: "musicWidgetOption" },
-    { icon: "➕", label: t("music_add_song"), id: "addSongOption" },
-    { icon: "📋", label: t("music_list"), id: "musicListOption" }
-];
-
 const aboutSections = [
     { icon: "ℹ️", label: t("about_site_info") },
     { icon: "📜", label: t("about_creation_story") },
@@ -274,21 +268,167 @@ function renderSettingsPanel(){
     }
 }
 
+// Иконка на самой кнопке-шкатулке (top-actions) и иконка внутри виджета
+// громкости — обе отражают состояние "звук выключен" (громкость 0),
+// см. window.onMusicVolumeChanged ниже.
+function musicVolumeIconFor(percent){
+    return percent === 0 ? "🔇" : "🎵";
+}
+
 function renderMusicPanel(){
     if(!musicPanel) return;
+
+    const tracks = typeof window.musicGetTracks === "function" ? window.musicGetTracks() : [];
+    const currentTrackId = typeof window.musicGetCurrentTrackId === "function" ? window.musicGetCurrentTrackId() : null;
+    const volumePercent = typeof window.musicGetVolumePercent === "function" ? window.musicGetVolumePercent() : 45;
 
     musicPanel.innerHTML = `
         <h3 class="settings-panel__title">${t("music_panel_title")}</h3>
         <ul class="settings-section-list">
-            ${musicSections.map(section => `
-                <li class="settings-section-item" ${section.id ? `id="${section.id}"` : ""}>
-                    <span class="settings-section-icon" aria-hidden="true">${section.icon}</span>
-                    <span>${section.label}</span>
-                </li>
-            `).join("")}
+            <li class="settings-section-item is-clickable" id="musicWidgetOption">
+                <span class="settings-section-icon" aria-hidden="true">🎶</span>
+                <span>${t("music_music_label")}</span>
+            </li>
+            <li class="music-volume-section" id="musicVolumeSection">
+                <div class="music-volume-row">
+                    <span class="music-volume-icon" id="musicVolumeIcon" aria-hidden="true">${musicVolumeIconFor(volumePercent)}</span>
+                    <input type="range" min="0" max="100" step="1" id="musicVolumeSlider" class="music-volume-slider" value="${volumePercent}">
+                    <span class="music-volume-value" id="musicVolumeValue">${volumePercent}%</span>
+                </div>
+            </li>
+            <li class="settings-section-item is-clickable" id="addSongOption">
+                <span class="settings-section-icon" aria-hidden="true">➕</span>
+                <span>${t("music_add_song")}</span>
+            </li>
+            <li class="music-add-song-section" id="musicAddSongSection">
+                <div class="music-add-song-row">
+                    <input type="text" id="musicSuggestInput" class="music-suggest-input" placeholder="${t("music_add_song_placeholder")}" maxlength="120" autocomplete="off">
+                    <button type="button" id="musicSuggestSubmit" class="music-suggest-submit">${t("music_add_song_submit")}</button>
+                </div>
+            </li>
+            <li class="settings-section-item is-clickable" id="musicListOption">
+                <span class="settings-section-icon" aria-hidden="true">📋</span>
+                <span>${t("music_list")}</span>
+            </li>
+            <li class="music-track-list-section" id="musicTrackListSection">
+                <ul class="music-track-list">
+                    ${tracks.map(track => `
+                        <li>
+                            <button type="button" class="music-track-btn ${track.id === currentTrackId ? "is-selected" : ""}" data-track="${track.id}">
+                                <span class="music-track-check" aria-hidden="true">${track.id === currentTrackId ? "&#10003;" : ""}</span>
+                                <span class="music-track-title">${track.title}</span>
+                            </button>
+                        </li>
+                    `).join("")}
+                </ul>
+            </li>
         </ul>
     `;
+
+    const musicWidgetOption = document.getElementById("musicWidgetOption");
+    const musicVolumeSection = document.getElementById("musicVolumeSection");
+    if(musicWidgetOption && musicVolumeSection){
+        musicWidgetOption.addEventListener("click", (event) => {
+            event.stopPropagation();
+            musicVolumeSection.classList.toggle("is-open");
+        });
+    }
+
+    const musicVolumeSlider = document.getElementById("musicVolumeSlider");
+    if(musicVolumeSlider){
+        musicVolumeSlider.addEventListener("click", (event) => event.stopPropagation());
+        musicVolumeSlider.addEventListener("input", () => {
+            if(typeof window.musicSetVolumePercent === "function"){
+                window.musicSetVolumePercent(Number(musicVolumeSlider.value));
+            }
+        });
+    }
+
+    const addSongOption = document.getElementById("addSongOption");
+    const musicAddSongSection = document.getElementById("musicAddSongSection");
+    if(addSongOption && musicAddSongSection){
+        addSongOption.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const willOpen = !musicAddSongSection.classList.contains("is-open");
+            musicAddSongSection.classList.toggle("is-open", willOpen);
+            if(willOpen){
+                const input = document.getElementById("musicSuggestInput");
+                if(input) input.focus();
+            }
+        });
+    }
+
+    const musicSuggestInput = document.getElementById("musicSuggestInput");
+    const musicSuggestSubmit = document.getElementById("musicSuggestSubmit");
+    async function submitMusicSuggestion(){
+        if(!musicSuggestInput) return;
+        const name = musicSuggestInput.value.trim();
+        if(!name) return;
+        musicSuggestInput.value = "";
+        if(musicAddSongSection) musicAddSongSection.classList.remove("is-open");
+        if(musicPanel) musicPanel.classList.remove("is-open");
+
+        if(typeof window.suggestMusicToEgor === "function") await window.suggestMusicToEgor(name);
+        if(typeof window.showDogRemark === "function") window.showDogRemark(t("music_suggest_thanks"));
+    }
+    if(musicSuggestInput){
+        musicSuggestInput.addEventListener("click", (event) => event.stopPropagation());
+        musicSuggestInput.addEventListener("keydown", (event) => {
+            if(event.key === "Enter") submitMusicSuggestion();
+        });
+    }
+    if(musicSuggestSubmit){
+        musicSuggestSubmit.addEventListener("click", (event) => {
+            event.stopPropagation();
+            submitMusicSuggestion();
+        });
+    }
+
+    const musicListOption = document.getElementById("musicListOption");
+    const musicTrackListSection = document.getElementById("musicTrackListSection");
+    if(musicListOption && musicTrackListSection){
+        musicListOption.addEventListener("click", (event) => {
+            event.stopPropagation();
+            musicTrackListSection.classList.toggle("is-open");
+        });
+    }
+
+    musicPanel.querySelectorAll(".music-track-btn").forEach(btn => {
+        btn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            // Клик по уже играющему треку ничего не делает — он и так играет.
+            if(btn.classList.contains("is-selected")) return;
+            if(typeof window.musicSelectTrack === "function") window.musicSelectTrack(btn.dataset.track);
+        });
+    });
 }
+
+// Обновление отметки выбранного трека — единая точка правды и для клика по
+// списку, и для автоматических переходов движка (Stardew → Animal Crossing
+// в конце интро, восстановление сохранённого трека при заходе). Панель
+// рендерится один раз при загрузке (см. низ файла), поэтому элементы
+// стабильны — обновляем их напрямую, а не пересобираем панель целиком
+// (иначе открытые виджеты "мигали" бы/закрывались при каждой смене трека).
+window.onMusicTrackChanged = function(trackId){
+    if(!musicPanel) return;
+    musicPanel.querySelectorAll(".music-track-btn").forEach(btn => {
+        const isActive = btn.dataset.track === trackId;
+        btn.classList.toggle("is-selected", isActive);
+        const check = btn.querySelector(".music-track-check");
+        if(check) check.innerHTML = isActive ? "&#10003;" : "";
+    });
+};
+
+window.onMusicVolumeChanged = function(percent){
+    const icon = musicVolumeIconFor(percent);
+    const iconEl = document.getElementById("musicVolumeIcon");
+    const sliderEl = document.getElementById("musicVolumeSlider");
+    const valueEl = document.getElementById("musicVolumeValue");
+    if(iconEl) iconEl.textContent = icon;
+    if(sliderEl && Number(sliderEl.value) !== percent) sliderEl.value = percent;
+    if(valueEl) valueEl.textContent = `${percent}%`;
+    if(musicBoxButton) musicBoxButton.textContent = icon;
+};
 function renderAboutPanel(){
     if(!aboutPanel) return;
 

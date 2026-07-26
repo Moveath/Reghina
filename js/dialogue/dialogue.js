@@ -540,6 +540,7 @@ window.notifyLetterRead = resumeIntroAfterLetterRead;
 function finishIntroDialogue(){
     markIntroCompleted();
     document.body.classList.remove("intro-active");
+    if(typeof window.musicFinishIntroCinematic === "function") window.musicFinishIntroCinematic();
     if(typeof closePanels === "function") closePanels();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
@@ -729,6 +730,7 @@ function showResetConfirmDialogue(){
     if(resetConfirmActive || monthlyKeySceneActive) return;
     if(document.body.classList.contains("intro-active")) return;
     resetConfirmActive = true;
+    if(typeof window.musicDuck === "function") window.musicDuck();
 
     if(typeof closePanels === "function") closePanels();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
@@ -766,6 +768,7 @@ function showResetConfirmDialogue(){
 function hideResetConfirmDialogue(){
     if(!resetConfirmActive) return;
     resetConfirmActive = false;
+    if(typeof window.musicUnduck === "function") window.musicUnduck();
 
     hideIntroOverlay();
     dialogueContainer.classList.add("is-fading");
@@ -794,6 +797,7 @@ function showRestoreConfirmDialogue(code){
     if(resetConfirmActive || monthlyKeySceneActive) return;
     if(document.body.classList.contains("intro-active")) return;
     resetConfirmActive = true;
+    if(typeof window.musicDuck === "function") window.musicDuck();
 
     if(typeof closePanels === "function") closePanels();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
@@ -872,6 +876,7 @@ function showLanguageConfirmDialogue(lang){
     if(resetConfirmActive || monthlyKeySceneActive) return;
     if(document.body.classList.contains("intro-active")) return;
     resetConfirmActive = true;
+    if(typeof window.musicDuck === "function") window.musicDuck();
 
     if(typeof closePanels === "function") closePanels();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
@@ -977,6 +982,7 @@ function showMonthlyKeyDialogue(pieceIndex){
         return;
     }
     monthlyKeySceneActive = true;
+    if(typeof window.musicDuck === "function") window.musicDuck();
 
     if(typeof closePanels === "function") closePanels();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
@@ -1026,6 +1032,7 @@ function showMonthlyKeyOpenedStage(pieceIndex){
 
 function finishMonthlyKeyDialogue(pieceIndex){
     monthlyKeySceneActive = false;
+    if(typeof window.musicUnduck === "function") window.musicUnduck();
 
     hideIntroOverlay();
     dialogueContainer.classList.add("is-fading");
@@ -1056,6 +1063,7 @@ function showDogRemark(text){
     if(document.body.classList.contains("intro-active")) return;
     if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive) return;
     dogRemarkActive = true;
+    if(typeof window.musicDuck === "function") window.musicDuck();
 
     // Реплика — полноэкранная сцена, под ней не должно оставаться открытых
     // панелей (например, виджета "Письма" после отправки) — иначе они
@@ -1084,6 +1092,7 @@ function showDogRemark(text){
         if(ev) ev.stopPropagation();
         if(!dogRemarkActive) return;
         dogRemarkActive = false;
+        if(typeof window.musicUnduck === "function") window.musicUnduck();
 
         dialogueContainer.removeEventListener("click", closeRemark);
         clearTimeout(autoCloseTimer);
@@ -1113,6 +1122,7 @@ if(isIntroAlreadyCompleted()){
     resetDogToNeutral();
     const nameplate = document.querySelector(".character-nameplate");
     if(nameplate) nameplate.remove();
+    if(typeof window.musicStartReturningVisit === "function") window.musicStartReturningVisit();
 } else if (dialogueContainer) {
     // Интро ещё не пройдено целиком — продолжаем с сохранённого шага,
     // если он есть (например, после обновления страницы посреди диалога).
@@ -1124,6 +1134,7 @@ if(isIntroAlreadyCompleted()){
     renderIntroDialogue();
 
     pausePuzzleAnimations();
+    if(typeof window.musicStartIntroCinematic === "function") window.musicStartIntroCinematic();
 }
 
 // ===== Скрытый доступ к Developer Panel: 5 быстрых кликов по собаке подряд

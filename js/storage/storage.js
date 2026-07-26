@@ -340,6 +340,25 @@ async function sendHeartbeat(isNewSession){
 const HEARTBEAT_INTERVAL_MS = 60000;
 setInterval(() => sendHeartbeat(false), HEARTBEAT_INTERVAL_MS);
 
+// Предложение песни из виджета "Музыкальная шкатулка" (см. renderMusicPanel
+// в js/ui/settings.js) — просто уведомляет Егора в Telegram, ничего не
+// сохраняет в localStorage/профиль. Ошибки только предупреждают: сама
+// реплика собаки "передам Егору" уже показывается вызывающим кодом
+// независимо от результата, чтобы не превращать это в источник тревоги.
+async function suggestMusicToEgor(name){
+    const code = getOwnerCode();
+    try {
+        await fetch(`${API_BASE_URL}/music/suggest`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ owner_code: code, name })
+        });
+    } catch(err){
+        console.warn("[storage] Не удалось отправить предложение музыки:", err);
+    }
+}
+window.suggestMusicToEgor = suggestMusicToEgor;
+
 window.getOwnerCode = getOwnerCode;
 window.ensureOwnerCode = ensureOwnerCode;
 window.isOwnerRole = isOwnerRole;
