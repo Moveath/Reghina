@@ -184,6 +184,25 @@ function profilesAreEqual(local, server){
         && JSON.stringify(local.puzzle_container_state) === JSON.stringify(server.puzzle_container_state || null);
 }
 
+// Полная очистка локального состояния профиля (не device-настроек вроде
+// громкости музыки или роли владельца — те не привязаны к owner_code и
+// должны пережить смену профиля). Используется, когда текущий код на
+// устройстве оказался "сиротой" — сервер о нём больше не знает (см.
+// reconcileWithServer ниже).
+function clearLocalProfileState(){
+    try {
+        localStorage.removeItem(ownerCodeStorageKey);
+        localStorage.removeItem("dog_name");
+        localStorage.removeItem("regina_intro_completed");
+        localStorage.removeItem("regina_dialogue_index");
+        localStorage.removeItem("reginaSelectedTheme");
+        localStorage.removeItem("reginaSelectedLanguage");
+        localStorage.removeItem("reginaPuzzleUnlockedPieces");
+        localStorage.removeItem("reginaPuzzleContainerState");
+        localStorage.removeItem("reginaKeyCount");
+    } catch(e) {}
+}
+
 let isReconciling = false;
 
 // Сердце автосинхронизации между устройствами: спрашивает у сервера
@@ -203,6 +222,20 @@ async function reconcileWithServer(){
     isReconciling = true;
     try {
         const res = await fetch(`${API_BASE_URL}/profile/${code}`);
+
+        // Код-сирота: профиль этого owner_code удалили на сервере (например,
+        // разработчик чистил базу для теста), а на устройстве он всё ещё
+        // лежит в localStorage. Раньше это просто тихо игнорировалось (!res.ok
+        // → return), и сайт вечно показывал устаревший локальный прогресс —
+        // сервер ведь ни разу не подтверждал и не опровергал его. Теперь при
+        // 404 полностью сбрасываем локальное состояние и начинаем как в
+        // первый раз — ensureOwnerCode() после перезагрузки создаст новый
+        // профиль с нуля.
+        if(res.status === 404){
+            clearLocalProfileState();
+            location.reload();
+            return;
+        }
         if(!res.ok) return;
 
         const serverProfile = await res.json();
