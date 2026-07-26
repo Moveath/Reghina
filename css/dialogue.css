@@ -251,7 +251,7 @@
     flex-shrink:0;
     width:118px;
     height:118px;
-    border-radius:50%;
+    border-radius:22px;
     background:#fffdfb;
     border:4px solid #171014;
     box-shadow:0 12px 28px rgba(19,5,13,.18);
@@ -266,8 +266,8 @@
 .thought-dream-bubble__image{
     width:100%;
     height:100%;
-    border-radius:50%;
-    object-fit:cover;
+    border-radius:12px;
+    object-fit:contain;
 }
 
 .thought-cloud span{
