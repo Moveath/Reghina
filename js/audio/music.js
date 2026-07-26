@@ -60,6 +60,28 @@ function saveSelectedTrackId(id){
     try { localStorage.setItem(selectedTrackStorageKey, id); } catch(e) {}
 }
 
+// Позиция воспроизведения (п. "при обновлении страницы песня должна... не
+// с самого начала") — сохраняем {id, time} трека, который сейчас играет,
+// чтобы после обновления страницы продолжить с того же места, а не с нуля.
+const positionStorageKey = "reginaMusicPosition";
+
+function savePosition(){
+    if(!currentTrackId) return;
+    try {
+        localStorage.setItem(positionStorageKey, JSON.stringify({ id: currentTrackId, time: bgAudio.currentTime || 0 }));
+    } catch(e) {}
+}
+
+function loadPosition(trackId){
+    try {
+        const raw = localStorage.getItem(positionStorageKey);
+        if(!raw) return 0;
+        const parsed = JSON.parse(raw);
+        if(parsed && parsed.id === trackId && Number.isFinite(parsed.time) && parsed.time > 0) return parsed.time;
+    } catch(e) {}
+    return 0;
+}
+
 function trackById(id){
     return MUSIC_TRACKS.find(track => track.id === id) || null;
 }
@@ -69,7 +91,13 @@ function userVolumeFraction(){
 }
 
 const bgAudio = new Audio();
-bgAudio.loop = true;
+// loop:true даёт нативный повтор, но у большинства mp3 в конце файла есть
+// небольшая тишина/padding от энкодера — на стыке слышен характерный
+// "провал"/пауза, будто трек завис. Вместо этого сами гасим громкость
+// перед самым концом и рестартуем трек без паузы (см. слушатель timeupdate
+// ниже) — тот же эффект "затухает и сразу играет заново", без нативного
+// стыка.
+bgAudio.loop = false;
 bgAudio.preload = "auto";
 bgAudio.volume = 0;
 
@@ -79,6 +107,40 @@ let currentTrackId = null;
 let restingVolumeFraction = userVolumeFraction();
 let fadeToken = 0;
 let duckActive = false;
+
+// Музыка — фоновая и не должна уметь ставиться на паузу извне (медиа-клавиши
+// клавиатуры, системный оверлей громкости/медиа в Windows и т.п. — браузер
+// умеет останавливать любой играющий <audio> в ответ на них сам, без
+// какого-либо участия нашего кода). Единственный способ "заглушить" её —
+// ползунок громкости (вплоть до 0%), сама она при этом продолжает
+// технически играть. intentionalPauseExpected — единственная легитимная
+// причина для pause(): собственный fade out перед сменой трека в switchTrack.
+let intentionalPauseExpected = false;
+bgAudio.addEventListener("pause", () => {
+    if(intentionalPauseExpected){
+        intentionalPauseExpected = false;
+        return;
+    }
+    ensurePlayingLater();
+});
+
+// Разово через микротаск/rAF — сразу внутри обработчика "pause" браузер
+// иногда игнорирует немедленный повторный play() (тот же тик события).
+function ensurePlayingLater(){
+    requestAnimationFrame(() => ensurePlaying());
+}
+
+// Media Session — то самое системное всплывающее окно/медиа-клавиши.
+// Без явного переопределения play/pause/stop браузер трактует их как
+// обычные команды и сам вызывает bgAudio.pause()/play(); переопределяем,
+// чтобы pause/stop не делали ничего (или сразу же продолжали играть).
+if("mediaSession" in navigator){
+    try {
+        navigator.mediaSession.setActionHandler("play", () => ensurePlaying());
+        navigator.mediaSession.setActionHandler("pause", () => ensurePlaying());
+        navigator.mediaSession.setActionHandler("stop", () => ensurePlaying());
+    } catch(e) {}
+}
 
 // Разблокировка автовоспроизведения: браузеры не дают запустить звук без
 // жеста пользователя. Первая попытка play() почти наверняка происходит ДО
@@ -135,6 +197,39 @@ function fadeTo(targetVolume, ms){
     });
 }
 
+// Бесшовный ручной повтор (замена нативному loop, см. комментарий у
+// bgAudio.loop выше): за LOOP_TAIL_S до конца трека гасим громкость,
+// сразу прыгаем в начало (без явного pause — плеер продолжает играть) и
+// тут же поднимаем громкость обратно — так что провала/паузы не слышно
+// вообще, только лёгкое короткое притухание на стыке.
+const LOOP_TAIL_S = 0.8;
+const LOOP_FADE_MS = 650;
+let loopRestartScheduled = false;
+
+bgAudio.addEventListener("timeupdate", () => {
+    if(loopRestartScheduled) return;
+    const duration = bgAudio.duration;
+    if(!duration || !Number.isFinite(duration)) return;
+    if(duration - bgAudio.currentTime > LOOP_TAIL_S) return;
+
+    loopRestartScheduled = true;
+    (async () => {
+        await fadeTo(0, LOOP_FADE_MS);
+        bgAudio.currentTime = 0;
+        if(!duckActive) await fadeTo(restingVolumeFraction, LOOP_FADE_MS);
+        loopRestartScheduled = false;
+    })();
+});
+
+// Подстраховка: если timeupdate не успел сработать вовремя (throttling
+// браузера) и трек всё-таки честно доиграл до конца — не оставляем тишину
+// висеть, а сразу перезапускаем без дополнительного fade.
+bgAudio.addEventListener("ended", () => {
+    loopRestartScheduled = false;
+    bgAudio.currentTime = 0;
+    ensurePlaying();
+});
+
 function notifyTrackChanged(id){
     if(typeof window.onMusicTrackChanged === "function") window.onMusicTrackChanged(id);
 }
@@ -157,14 +252,16 @@ async function switchTrack(trackId, targetVolumeFraction, options){
 
     if(currentTrackId && !bgAudio.paused){
         await fadeTo(0, FADE_OUT_MS);
+        intentionalPauseExpected = true;
         bgAudio.pause();
     }
 
     bgAudio.src = track.file;
-    bgAudio.currentTime = 0;
+    bgAudio.currentTime = Number.isFinite(opts.resumeAt) && opts.resumeAt > 0 ? opts.resumeAt : 0;
     bgAudio.volume = 0;
     currentTrackId = trackId;
     restingVolumeFraction = targetVolumeFraction;
+    loopRestartScheduled = false;
 
     ensurePlaying();
 
@@ -181,7 +278,7 @@ async function switchTrack(trackId, targetVolumeFraction, options){
 // реплики интро (первый визит, интро ещё не пройдено).
 function musicStartIntroCinematic(){
     setTimeout(() => {
-        switchTrack(INTRO_TRACK_ID, INTRO_VOLUME_FRACTION, { persist: false });
+        switchTrack(INTRO_TRACK_ID, INTRO_VOLUME_FRACTION, { persist: false, resumeAt: loadPosition(INTRO_TRACK_ID) });
     }, SILENCE_BEFORE_START_MS);
 }
 
@@ -198,7 +295,7 @@ function musicFinishIntroCinematic(){
 function musicStartReturningVisit(){
     setTimeout(() => {
         const savedTrackId = loadSelectedTrackId() || MAIN_DEFAULT_TRACK_ID;
-        switchTrack(savedTrackId, userVolumeFraction(), { persist: true });
+        switchTrack(savedTrackId, userVolumeFraction(), { persist: true, resumeAt: loadPosition(savedTrackId) });
     }, SILENCE_BEFORE_START_MS);
 }
 
@@ -246,3 +343,13 @@ window.musicUnduck = musicUnduck;
 window.musicStartIntroCinematic = musicStartIntroCinematic;
 window.musicFinishIntroCinematic = musicFinishIntroCinematic;
 window.musicStartReturningVisit = musicStartReturningVisit;
+
+// Периодически запоминаем позицию (на случай вкладки, закрытой без
+// корректного pagehide — например, обесточенное устройство) + сразу же при
+// уходе со страницы/сворачивании (эти события успевают отработать надёжнее,
+// чем интервал, прямо перед самим закрытием/обновлением).
+setInterval(savePosition, 5000);
+window.addEventListener("pagehide", savePosition);
+document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "hidden") savePosition();
+});

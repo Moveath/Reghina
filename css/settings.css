@@ -573,9 +573,24 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
 .music-track-list-section{
     display:none;
     margin-top:8px;
-    padding:10px 12px;
+    padding:10px 18px 10px 12px;
     border-radius:12px;
     background:rgba(255,255,255,.08);
+    box-sizing:border-box;
+    /* Grid-дети по умолчанию min-width:auto (по содержимому) — без этого
+       содержимое (особенно длинные названия треков) может растянуть общую
+       колонку .settings-section-list шире самой панели. */
+    min-width:0;
+}
+
+.music-volume-row,
+.music-add-song-row{
+    box-sizing:border-box;
+}
+
+.music-volume-row *,
+.music-add-song-row *{
+    box-sizing:border-box;
 }
 
 .music-volume-section.is-open,
@@ -599,6 +614,7 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
 
 .music-volume-slider{
     flex:1;
+    min-width:0;
     accent-color:#ffffff;
     cursor:pointer;
 }
@@ -659,9 +675,44 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
 .music-track-list{
     list-style:none;
     margin:0;
-    padding:0;
+    padding:0 4px 0 0;
     display:grid;
     gap:6px;
+
+    /* Без этого длинное название трека (например "Animal Crossing: New
+       Horizons — 7 PM") задаёт СВОЙ min-content-размер, а он у grid-детей
+       по умолчанию auto — и через .music-track-list-section (grid-item в
+       #musicPanel) раздувает ОБЩУЮ колонку панели шире самой панели,
+       вместе с ней вылезали и другие строки (ползунок громкости и т.п.),
+       хотя сами по себе они были в порядке. */
+    min-width:0;
+
+    /* Список треков может расти (сейчас 5, в будущем больше) — вместо
+       того чтобы бесконечно растягивать панель вниз, прокручиваем сам
+       список, показывая примерно 4 пункта за раз. */
+    max-height:220px;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,255,255,.35) transparent;
+}
+
+.music-track-list::-webkit-scrollbar{
+    width:6px;
+}
+
+.music-track-list::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.music-track-list::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.35);
+    border-radius:999px;
+}
+
+.music-track-list::-webkit-scrollbar-thumb:hover{
+    background:rgba(255,255,255,.55);
 }
 
 .music-track-btn{
@@ -699,6 +750,10 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
 
 .music-track-title{
     flex:1;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
 }
 
 .progress-code-enter__input{
