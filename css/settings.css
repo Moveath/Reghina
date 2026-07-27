@@ -2170,3 +2170,53 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     opacity:1;
     transform:translate(-50%, 0);
 }
+
+/* ============================================================
+   МАЛЕНЬКАЯ СТАТИСТИКА ПРОЕКТА — угловой значок в верхнем левом углу
+   (единственный свободный угол: снизу слева собака, снизу справа пазл,
+   сверху справа иконки настроек). Значения — плейсхолдеры (xxxx/xx),
+   заменить на настоящие цифры позже.
+   ============================================================ */
+.site-stats{
+    position:fixed;
+    left:16px;
+    top:16px;
+    z-index:3000;
+
+    padding:10px 14px;
+    border-radius:14px;
+    background:rgba(255,255,255,.1);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 8px 24px rgba(0,0,0,.14);
+
+    display:grid;
+    gap:3px;
+}
+
+.site-stats__row{
+    display:flex;
+    gap:6px;
+    font-size:11px;
+    line-height:1.4;
+    color:rgba(255,255,255,.68);
+    white-space:nowrap;
+}
+
+.site-stats__value{
+    color:rgba(255,255,255,.94);
+    font-weight:700;
+}
+
+@media (max-width: 640px){
+    .site-stats{
+        left:10px;
+        top:10px;
+        padding:8px 10px;
+    }
+
+    .site-stats__row{
+        font-size:10px;
+    }
+}
