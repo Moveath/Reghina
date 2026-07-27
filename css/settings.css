@@ -2194,3 +2194,140 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     color:rgba(255,255,255,.95);
     font-weight:700;
 }
+
+/* ============================================================
+   МОДАЛЬНОЕ ОКНО "О СОБАКЕ" (см. openDogInfoModal в js/ui/settings.js) —
+   переиспользует каркас .about-site-modal (тот же тёмно-фиолетовый стиль),
+   плюс свой портрет, карточки фактов и галерея эмоций.
+   ============================================================ */
+.dog-info-modal__portrait{
+    display:flex;
+    justify-content:center;
+    margin-bottom:18px;
+}
+
+.dog-info-modal__portrait img{
+    width:min(100%, 220px);
+    aspect-ratio:1;
+    object-fit:cover;
+    border-radius:20px;
+    border:1px solid rgba(255,255,255,.16);
+    box-shadow:0 14px 34px rgba(6,2,14,.45);
+}
+
+.dog-info-modal__facts{
+    display:grid;
+    gap:8px;
+    margin-bottom:4px;
+}
+
+.dog-info-modal__fact-row{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    font-size:14px;
+    color:rgba(255,255,255,.75);
+}
+
+.dog-info-modal__fact-value{
+    color:rgba(255,255,255,.95);
+    font-weight:700;
+    text-align:right;
+}
+
+.dog-info-modal__emotions{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+    gap:14px;
+}
+
+.dog-info-modal__emotion-card{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:8px;
+    padding:14px 12px;
+    border-radius:16px;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.1);
+}
+
+.dog-info-modal__emotion-img{
+    width:76px;
+    height:76px;
+    object-fit:cover;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.14);
+}
+
+.dog-info-modal__emotion-name{
+    font-size:14px;
+    font-weight:700;
+    color:#f3c9ff;
+}
+
+.dog-info-modal__emotion-desc{
+    margin:0;
+    font-size:12.5px;
+    line-height:1.5;
+    color:rgba(255,255,255,.72);
+}
+
+.dog-info-modal__rename-row{
+    display:flex;
+    gap:10px;
+    margin-top:6px;
+}
+
+.dog-info-modal__rename-input{
+    flex:1;
+    min-width:0;
+    box-sizing:border-box;
+    padding:11px 14px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.06);
+    color:white;
+    font-size:14px;
+}
+
+.dog-info-modal__rename-input::placeholder{
+    color:rgba(255,255,255,.4);
+}
+
+.dog-info-modal__rename-save{
+    flex-shrink:0;
+    padding:11px 18px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.16);
+    background:rgba(255,255,255,.1);
+    color:white;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .2s ease, transform .15s ease;
+}
+
+.dog-info-modal__rename-save:hover{
+    background:rgba(255,255,255,.2);
+    transform:translateY(-1px);
+}
+
+.dog-info-modal__rename-status{
+    margin:10px 0 0;
+    font-size:13px;
+    min-height:1em;
+    color:rgba(255,255,255,.65);
+}
+
+@media (max-width: 640px){
+    .dog-info-modal__emotions{
+        grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
+        gap:10px;
+    }
+
+    .dog-info-modal__rename-row{
+        flex-direction:column;
+    }
+}

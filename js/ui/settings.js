@@ -619,6 +619,167 @@ function handleProjectIdeaModalEscape(event){
     if(event.key === "Escape") closeProjectIdeaModal();
 }
 
+// Отдельное окно "О собаке" — тот же визуальный стиль about-site-modal,
+// плюс своя галерея эмоций и форма смены имени. В отличие от "О сайте" и
+// "Идеи проекта" (почти полностью статичных), контент здесь пересобирается
+// заново при КАЖДОМ открытии (renderDogInfoModalContent), а не один раз —
+// имя собаки и число писем могут поменяться между открытиями в рамках
+// одной сессии.
+const dogInfoEmotions = [
+    { file: "sleeping", emoji: "😴", nameKey: "dog_info_emo_sleeping_name", descKey: "dog_info_emo_sleeping_desc" },
+    { file: "sleepy",   emoji: "😪", nameKey: "dog_info_emo_sleepy_name",   descKey: "dog_info_emo_sleepy_desc" },
+    { file: "confused", emoji: "🤔", nameKey: "dog_info_emo_confused_name", descKey: "dog_info_emo_confused_desc" },
+    { file: "happy",    emoji: "😊", nameKey: "dog_info_emo_happy_name",    descKey: "dog_info_emo_happy_desc" },
+    { file: "sad",      emoji: "😢", nameKey: "dog_info_emo_sad_name",      descKey: "dog_info_emo_sad_desc" },
+    { file: "excited",  emoji: "🎉", nameKey: "dog_info_emo_excited_name",  descKey: "dog_info_emo_excited_desc" },
+    { file: "withkey",  emoji: "🔑", nameKey: "dog_info_emo_withkey_name",  descKey: "dog_info_emo_withkey_desc" },
+    { file: "neutral",  emoji: "😌", nameKey: "dog_info_emo_neutral_name",  descKey: "dog_info_emo_neutral_desc" }
+];
+
+let dogInfoModalElement = null;
+
+function ensureDogInfoModal(){
+    if(dogInfoModalElement) return dogInfoModalElement;
+
+    const modal = document.createElement("div");
+    modal.id = "dogInfoModal";
+    modal.className = "about-site-modal";
+    modal.innerHTML = `
+        <div class="about-site-modal__card dog-info-modal__card" role="dialog" aria-modal="true" aria-labelledby="dogInfoModalTitle">
+            <button type="button" class="about-site-modal__close" id="dogInfoModalClose" aria-label="${t("about_modal_close_aria")}">&times;</button>
+            <div class="about-site-modal__scroll" id="dogInfoModalScroll"></div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.addEventListener("click", (event) => {
+        if(event.target === modal) closeDogInfoModal();
+    });
+    modal.querySelector(".about-site-modal__card").addEventListener("click", (event) => event.stopPropagation());
+    document.getElementById("dogInfoModalClose").addEventListener("click", (event) => {
+        event.stopPropagation();
+        closeDogInfoModal();
+    });
+
+    dogInfoModalElement = modal;
+    return modal;
+}
+
+function renderDogInfoModalContent(){
+    const scroll = document.getElementById("dogInfoModalScroll");
+    if(!scroll) return;
+
+    let name = "";
+    try { name = (localStorage.getItem("dog_name") || "").trim(); } catch(e) {}
+    const displayName = name || t("character_fallback_label");
+    const whoP1 = t("dog_info_who_p1").replace("«имя»", displayName);
+
+    scroll.innerHTML = `
+        <div class="dog-info-modal__portrait">
+            <img src="images/dog/happy.png" alt="${displayName}">
+        </div>
+        <h2 id="dogInfoModalTitle" class="about-site-modal__greeting">${t("dog_info_title")}</h2>
+        <div class="dog-info-modal__facts">
+            <div class="dog-info-modal__fact-row"><span>${t("dog_info_name_label")}</span><span id="dogInfoNameValue" class="dog-info-modal__fact-value">${displayName}</span></div>
+            <div class="dog-info-modal__fact-row"><span>${t("dog_info_breed_label")}</span><span class="dog-info-modal__fact-value">${t("dog_info_breed_value")}</span></div>
+            <div class="dog-info-modal__fact-row"><span>${t("dog_info_role_label")}</span><span class="dog-info-modal__fact-value">${t("dog_info_role_value")}</span></div>
+        </div>
+
+        <div class="about-site-modal__divider"></div>
+
+        <h3 class="about-site-modal__heading">${t("dog_info_who_heading")}</h3>
+        <p>${whoP1}</p>
+        <p>${t("dog_info_who_p2")}</p>
+
+        <div class="about-site-modal__divider"></div>
+
+        <h3 class="about-site-modal__heading">${t("dog_info_emotions_heading")}</h3>
+        <div class="dog-info-modal__emotions">
+            ${dogInfoEmotions.map(e => `
+                <div class="dog-info-modal__emotion-card">
+                    <img class="dog-info-modal__emotion-img" src="images/dog/${e.file}.png" alt="">
+                    <div class="dog-info-modal__emotion-name">${e.emoji} ${t(e.nameKey)}</div>
+                    <p class="dog-info-modal__emotion-desc">${t(e.descKey)}</p>
+                </div>
+            `).join("")}
+        </div>
+
+        <div class="about-site-modal__divider"></div>
+
+        <h3 class="about-site-modal__heading">${t("dog_info_facts_heading")}</h3>
+        <div class="dog-info-modal__facts">
+            <div class="dog-info-modal__fact-row"><span>${t("dog_info_fact_music_label")}</span><span class="dog-info-modal__fact-value">${t("dog_info_fact_music_value")}</span></div>
+            <div class="dog-info-modal__fact-row"><span>${t("dog_info_fact_activity_label")}</span><span class="dog-info-modal__fact-value">${t("dog_info_fact_activity_value")}</span></div>
+            <div class="dog-info-modal__fact-row"><span>${t("dog_info_fact_button_label")}</span><span class="dog-info-modal__fact-value">${t("dog_info_fact_button_value")}</span></div>
+            <div class="dog-info-modal__fact-row"><span>${t("dog_info_fact_letters_label")}</span><span id="dogInfoLettersCount" class="dog-info-modal__fact-value">…</span></div>
+        </div>
+
+        <div class="about-site-modal__divider"></div>
+
+        <h3 class="about-site-modal__heading">${t("dog_info_rename_heading")}</h3>
+        <p>${t("dog_info_rename_text")}</p>
+        <div class="dog-info-modal__rename-row">
+            <input type="text" id="dogInfoRenameInput" class="dog-info-modal__rename-input" placeholder="${t("dog_info_rename_placeholder")}" maxlength="20" autocomplete="off">
+            <button type="button" id="dogInfoRenameSave" class="dog-info-modal__rename-save">${t("dog_info_rename_save")}</button>
+        </div>
+        <p id="dogInfoRenameStatus" class="dog-info-modal__rename-status"></p>
+    `;
+
+    const renameInput = document.getElementById("dogInfoRenameInput");
+    const renameStatus = document.getElementById("dogInfoRenameStatus");
+    const submitRename = () => {
+        const value = renameInput.value.trim();
+        if(!value){
+            renameStatus.textContent = t("dog_info_rename_empty");
+            return;
+        }
+        if(typeof window.renameDog === "function") window.renameDog(value);
+        const nameValueEl = document.getElementById("dogInfoNameValue");
+        if(nameValueEl) nameValueEl.textContent = value;
+        renameInput.value = "";
+        renameStatus.textContent = t("dog_info_rename_success");
+    };
+    document.getElementById("dogInfoRenameSave").addEventListener("click", submitRename);
+    renameInput.addEventListener("keydown", (event) => { if(event.key === "Enter") submitRename(); });
+
+    loadDogInfoLetterCount();
+}
+
+// Считаем письма напрямую через fetchInbox/fetchOutbox (js/ui/letters.js) —
+// не полагаемся на внутренний кэш виджета писем, чтобы число было верным,
+// даже если письма ни разу не открывали в этой сессии.
+async function loadDogInfoLetterCount(){
+    try {
+        const [inbox, outbox] = await Promise.all([
+            typeof fetchInbox === "function" ? fetchInbox() : Promise.resolve([]),
+            typeof fetchOutbox === "function" ? fetchOutbox() : Promise.resolve([])
+        ]);
+        const total = (Array.isArray(inbox) ? inbox.length : 0) + (Array.isArray(outbox) ? outbox.length : 0);
+        const el = document.getElementById("dogInfoLettersCount");
+        if(el) el.textContent = String(total);
+    } catch(e){
+        const el = document.getElementById("dogInfoLettersCount");
+        if(el) el.textContent = "—";
+    }
+}
+
+function openDogInfoModal(){
+    if(typeof closePanels === "function") closePanels();
+    ensureDogInfoModal().classList.add("is-open");
+    renderDogInfoModalContent();
+    document.addEventListener("keydown", handleDogInfoModalEscape);
+}
+
+function closeDogInfoModal(){
+    if(!dogInfoModalElement) return;
+    dogInfoModalElement.classList.remove("is-open");
+    document.removeEventListener("keydown", handleDogInfoModalEscape);
+}
+
+function handleDogInfoModalEscape(event){
+    if(event.key === "Escape") closeDogInfoModal();
+}
+
 function renderProgressPanel(){
     if(!progressPanel) return;
 
@@ -832,6 +993,13 @@ if(musicBoxButton && musicPanel){
     musicBoxButton.addEventListener("click", (event) => {
         event.stopPropagation();
         toggleMusicPanel();
+    });
+}
+
+if(characterInfoButton){
+    characterInfoButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openDogInfoModal();
     });
 }
 

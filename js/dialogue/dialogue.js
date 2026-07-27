@@ -664,6 +664,30 @@ function updateNameplate(name){
     }
 }
 
+// Переименование собаки после интро — вызывается из виджета "О собаке"
+// (js/ui/settings.js). Обновляет ВСЁ, что зависит от имени и уже
+// нарисовано на странице прямо сейчас: переменную dogName (используется
+// для будущих подстановок «имя»), localStorage+синхронизацию с сервером,
+// nameplate (если почему-то виден), маленькую подпись рядом с собакой в
+// углу и подписи кнопок "О собаке"/"Имя персонажа". Возвращает true при
+// успехе, false если имя пустое.
+function renameDog(newName){
+    const trimmed = (newName || "").trim();
+    if(!trimmed) return false;
+
+    dogName = trimmed;
+    saveDogName(trimmed);
+    updateNameplate(trimmed);
+
+    const idleNameEl = document.getElementById("characterIdleName");
+    if(idleNameEl) idleNameEl.textContent = trimmed;
+
+    if(typeof updateCharacterButtonLabel === "function") updateCharacterButtonLabel();
+
+    return true;
+}
+window.renameDog = renameDog;
+
 // Прошла ли уже интро целиком — чтобы не показывать его заново при
 // каждом визите (в том числе после жёсткой перезагрузки страницы).
 const introCompletedStorageKey = "regina_intro_completed";
@@ -956,6 +980,13 @@ function pickRandomLine(list){
     return list[Math.floor(Math.random() * list.length)];
 }
 
+// Фразы пасхалки "5 кликов по собаке" (data/dialogues/easterEgg.js).
+function getDogClickEasterEggLines(){
+    const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
+    const translated = window.dogClickEasterEggLineTranslations && window.dogClickEasterEggLineTranslations[lang];
+    return translated || dogClickEasterEggLinesRu;
+}
+
 let monthlyKeySceneActive = false;
 
 function showMonthlyKeyDialogue(pieceIndex){
@@ -980,7 +1011,7 @@ function showMonthlyKeyDialogue(pieceIndex){
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
 
     characterContainer.classList.add("is-intro-scene", "is-key-found");
-    setDogEmotion("happy");
+    setDogEmotion("excited");
 
     dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
     dialogueContainer.classList.add("is-active");
@@ -1050,7 +1081,7 @@ window.showMonthlyKeyDialogue = showMonthlyKeyDialogue;
 // увеличивается, говорит из пузыря), но без веток выбора — просто
 // закрывается сама через паузу или по клику. Пока идёт настоящее интро —
 // вообще не показывается, чтобы не мешать сценарию.
-function showDogRemark(text){
+function showDogRemark(text, emotion){
     if(document.body.classList.contains("intro-active")) return;
     if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive) return;
     dogRemarkActive = true;
@@ -1062,7 +1093,7 @@ function showDogRemark(text){
     if(typeof closePanels === "function") closePanels();
 
     characterContainer.classList.add("is-intro-scene");
-    setDogEmotion("happy");
+    setDogEmotion(emotion || "happy");
 
     dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
     dialogueContainer.classList.add("is-active");
@@ -1128,11 +1159,10 @@ if(isIntroAlreadyCompleted()){
     if(typeof window.musicStartIntroCinematic === "function") window.musicStartIntroCinematic();
 }
 
-// ===== Скрытый доступ к Developer Panel: 5 быстрых кликов по собаке подряд
-// открывают панель (см. js/dev/devPanel.js — секрет-гейт, Monitoring и
-// Admin/Test режимы). Сама панель ничего не показывает и не даёт ничего
-// изменить без верного DEVELOPER_SECRET, поэтому случайное открытие этим
-// жестом безопасно. =====
+// ===== Пасхалка: 5 быстрых кликов по собаке подряд — она отвечает случайной
+// фразой (см. data/dialogues/easterEgg.js). Developer Panel теперь
+// открывается отдельной комбинацией клавиш (см. js/dev/devPanel.js), а не
+// этим жестом — иначе они бы конфликтовали. =====
 let devClickCount = 0;
 let devClickResetTimer = null;
 
@@ -1156,11 +1186,12 @@ document.addEventListener("click", (event) => {
 
     if(devClickCount >= 5){
         devClickCount = 0;
-        // Без этого тот же самый клик долетает до глобального "клик мимо
-        // панели — закрыть" слушателя внутри devPanel.js и закрывает панель
-        // в тот же миг, что и открыл.
+        // Не мешаем настоящему интро и другим активным сценам — просто
+        // тихо игнорируем клики, пока они идут (showDogRemark и сама делает
+        // часть этих проверок, но intro-active нужно проверить отдельно).
+        if(document.body.classList.contains("intro-active")) return;
         event.stopPropagation();
-        if(typeof window.openDeveloperPanel === "function") window.openDeveloperPanel();
+        showDogRemark(pickRandomLine(getDogClickEasterEggLines()), "confused");
     }
 }, true);
 

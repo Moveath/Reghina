@@ -1,9 +1,11 @@
-// Скрытая Developer Panel. Открывается 5 кликами по собаке (см. жест в
-// js/dialogue/dialogue.js, вызывает window.openDeveloperPanel). Сама панель
-// не показывает и не меняет ничего без верного DEVELOPER_SECRET — открытие
-// жестом само по себе безопасно. Использует API_BASE_URL/getOwnerCode/
-// checkMonthlyKey/reconcileWithServer/resetAllProgress из уже загруженных
-// storage.js и dialogue.js (классические скрипты делят одну область видимости).
+// Скрытая Developer Panel. Открывается комбинацией клавиш Ctrl+Alt+Shift+D
+// (см. слушатель keydown внизу файла) — раньше это были 5 кликов по собаке,
+// но этот жест теперь занят пасхалкой (см. data/dialogues/easterEgg.js и
+// js/dialogue/dialogue.js). Сама панель не показывает и не меняет ничего без
+// верного DEVELOPER_SECRET — случайное срабатывание комбинации само по себе
+// безопасно. Использует API_BASE_URL/getOwnerCode/checkMonthlyKey/
+// reconcileWithServer/resetAllProgress из уже загруженных storage.js и
+// dialogue.js (классические скрипты делят одну область видимости).
 
 let devPanelElement = null;
 let devPanelCurrentCode = "";
@@ -738,3 +740,14 @@ function stopAccelMode(){
     devAccelIntervalMs = null;
     devAccelCode = null;
 }
+
+// ===== Скрытый доступ: Ctrl+Alt+Shift+D =====
+// Три модификатора разом — практически нулевой шанс случайно совпасть с
+// системным или браузерным сочетанием клавиш, поэтому preventDefault здесь
+// безопасен.
+document.addEventListener("keydown", (event) => {
+    if(event.ctrlKey && event.altKey && event.shiftKey && event.key.toLowerCase() === "d"){
+        event.preventDefault();
+        openDeveloperPanel();
+    }
+});
