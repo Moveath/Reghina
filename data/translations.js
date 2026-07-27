@@ -511,7 +511,7 @@ window.uiText = {
         about_modal_video_intro: "Mai jos poți vedea o scurtă prezentare a site-ului — videoclipul arată funcțiile principale, interfața și câteva detalii interesante ale proiectului.",
         about_modal_video_placeholder: "Videoclipul va apărea în curând",
         about_modal_code_heading: "💻 Codul sursă al proiectului",
-        about_modal_code_intro: "Dacă ești curios/curioasă să vezi partea tehnică a proiectului:",
+        about_modal_code_intro: "Dacă ești curioasă să vezi partea tehnică a proiectului:",
         about_modal_code_link_label: "Deschide repository-ul pe GitHub",
         about_modal_stats_heading: "📊 Statistici despre proiect",
         about_modal_thanks_p1: "Mulțumesc că ai trecut pe aici.",
