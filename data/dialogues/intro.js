@@ -459,3 +459,134 @@ const introDialogueLines = [
     }
 
 ];
+
+// Параллельные массивы текста реплик интро — тот же порядок и длина
+// (47), что и introDialogueLines выше. Только текст, все остальные поля
+// (emotion/choices/next/...) берутся из оригинального массива без изменений.
+window.dialogueTranslations = {
+    en: [
+        "Zzz... Egor, I already told you I'd guard this place tomorrow...",
+        "Aaah...? Mm...? Who's there?",
+        "Wait... I think I know you. Ah, it's you. Hi, Regina. ✨",
+        "I was left here to meet you. Honestly, I don't fully understand what's going on myself, but before he left, Egor asked me for something. Something like: when she comes, be sure to greet her properly. So... here I am.",
+        "Egor didn't tell me much. From what he said, this place was made for one special person. And, as far as I can tell... that person is looking at the screen right now. He also asked me to tell you that you mean a lot to him.",
+        "Hmm... I think she likes him...",
+        "Huh?.. Sorry, I think I got a bit distracted. Sometimes I drift off into my own thoughts too much. So... where was I?",
+        "Ah right. Egor asked me to ask you one important question. You probably don't fully understand yet what's going on or why this place was made. But I do know for sure that everything further along didn't appear here by accident. So what happens next is entirely up to you. I won't rush you, and I won't try to convince you. But if you're even a little curious to find out what comes next, you can continue. What do you say? Do you want to continue?",
+        "I understand. It probably does seem a bit strange to you. There's nothing wrong with that. Then I won't keep you. But if one day you get curious... I'll still be waiting here.",
+        "Great. Then let's start a little journey.",
+        "By the way... before we begin, I never actually introduced myself. There's just one problem. It seems Egor forgot to give me a name.",
+        "How could he forget...",
+        "I think he wanted to leave that choice to you. What would you like to call me?",
+        "«имя»? I like it. Much better than my old placeholder.",
+        "Well then. Let me show you around this place. I have a feeling something interesting is coming up.",
+        "Don't worry. It's all much simpler than it looks.",
+        "Let's start here. This is the settings. This is exactly where all the useful stuff is hiding.",
+        "For example, themes. If you ever get tired of the site's current look, you can change everything in just a couple of seconds. It seems Egor spent way too long picking colors for this place. Give it a try.",
+        "Wow, look how everything changed, isn't it pretty? Okay, let's keep going.",
+        "Here you can turn off all the sound effects in the game, but the music will stay on.",
+        "Here you can change the language, and I'll try to translate everything here for you in the language you choose.",
+        "Let's keep going. Look — this is the music box. All the music around here comes from it.",
+        "You can turn off all the music, so nothing will play, but the sound effects will stay.",
+        "Egor said you can add your own song, and later he'll try to add it. In the future you'll be able to pick it so it plays specifically.",
+        "Egor actually said he doesn't know your favorite song yet, so I decided to leave the default one for now...",
+        "This part is a bit boring, but important — progress.",
+        "If you ever open this on another device, your current progress won't carry over on its own. That's exactly why this code exists — enter it, and your progress comes back, even on a brand new device.",
+        "Exactly like that — this is where you'd enter the code to bring your progress back.",
+        "And this button... I wouldn't press it, unless of course you want to lose all your progress.",
+        "This is where all the information about the site is kept, in case you're curious to look sometime.",
+        "This is our mailbox. You can write something to Egor, and I'll make sure he reads it. And the same way, his replies will show up here too.",
+        "Look! Looks like Egor wrote you something. Let's go read it.",
+        "And here, I think, is something written about me — you can read it sometime later.",
+        "You can tap this button whenever you need my help, or just tap me directly.",
+        "And this is my diary — I write down all my thoughts here every day.",
+        "Just don't tell Egor about it — he doesn't know it exists, it's a secret. But you're allowed to see what I write in there.",
+        "And this, I'd say, is the most interesting part of this whole place. It's really what all of this was made for.",
+        "Honestly, I still don't know myself what this is or what's inside. But Egor said you need exactly 4 keys to open it.",
+        "Luckily, I happen to have something for you...",
+        "A key... I found it recently, and I think it's exactly the one needed for this. Let's try opening one of the pieces.",
+        "WOW, look, it seems like one of the pieces just opened...",
+        "Honestly, I don't know myself what happens once all 4 pieces are open. I'm sure you'll find out the moment you open all of them.",
+        "Look, there are 3 pieces left, and you'll need 3 more keys. Unfortunately I don't have any more keys right now, but as soon as I find one, I'll bring it straight to you.",
+        "You can open and close this puzzle, and it'll take different positions — you can place it in the corner or in the center.",
+        "There's also an indicator here that shows how many keys you currently have — as you can see, right now you have none.",
+        "That's everything for now, I think I've shown you it all. If you ever need my help, just tap me or my icon.",
+        "If you ever want to come back here, I'll be waiting for you."
+    ],
+    ro: [
+        "Zzz... Egor, ți-am spus doar că voi păzi locul ăsta mâine...",
+        "Aaa...? Mm...? Cine e acolo?",
+        "Stai puțin... Parcă te cunosc. Aaa, tu ești. Salut, Regina. ✨",
+        "Am fost lăsat aici ca să te întâmpin. Sincer, nici eu nu înțeleg pe deplin ce se întâmplă, dar înainte să plece, Egor m-a rugat ceva. Ceva de genul: când vine ea, s-o întâmpini neapărat cum se cuvine. Așa că... iată-mă aici.",
+        "Egor mi-a povestit foarte puțin. După spusele lui, locul ăsta a fost creat pentru o persoană specială. Și, din câte îmi dau seama... persoana aceea se uită acum la ecran. Mi-a mai zis să-ți spun că îi pasă enorm de tine.",
+        "Hmm... Cred că îi place de el...",
+        "A?.. Scuze, parcă m-am pierdut puțin cu gândul. Uneori mă pierd prea mult în propriile gânduri. Deci... unde rămăsesem?",
+        "Ah, da. Egor m-a rugat să-ți pun o întrebare importantă. Poate că încă nu înțelegi pe deplin ce se întâmplă și de ce a fost creat locul ăsta. Dar știu sigur că tot ce urmează nu a apărut aici din întâmplare. Așa că drumul mai departe depinde doar de tine. N-o să te grăbesc și n-o să te conving. Dar dacă ești măcar puțin curioasă să afli ce urmează, poți continua. Ce zici? Vrei să continui?",
+        "Înțeleg. Probabil ți se pare puțin ciudat. Nu e nimic în neregulă cu asta. Atunci n-o să te mai rețin. Dar dacă într-o zi devii curioasă... o să te aștept tot aici.",
+        "Super. Atunci hai să începem o mică călătorie.",
+        "Apropo... înainte să începem, nu m-am prezentat de fapt. Doar că e o problemă. Se pare că Egor a uitat să-mi dea un nume.",
+        "Cum a putut să uite...",
+        "Cred că a vrut să-ți lase ție alegerea asta. Cum vrei să-mi spui?",
+        "«имя»? Îmi place. Mult mai bine decât varianta mea de dinainte.",
+        "Ei bine. Atunci dă-mi voie să-ți arăt locul ăsta. Simt că urmează ceva interesant.",
+        "Nu-ți face griji. Aici totul e mult mai simplu decât pare.",
+        "Să începem de aici. Astea sunt setările. Chiar aici se ascund toate lucrurile utile.",
+        "De exemplu, temele. Dacă într-o zi te plictisești de aspectul actual al site-ului, poți schimba totul în doar câteva secunde. Parcă Egor a stat prea mult să aleagă culorile pentru locul ăsta. Poți încerca.",
+        "Uau, uite cum s-a schimbat totul, nu-i așa că e frumos? Bine, hai să mergem mai departe.",
+        "Aici poți opri toate sunetele din joc, dar muzica va rămâne.",
+        "Aici poți schimba limba, iar eu voi încerca să traduc totul aici pentru tine, în limba aleasă.",
+        "Hai mai departe. Uite — asta e cutia muzicală. Din ea răsună toată muzica locului ăsta.",
+        "Poți opri toată muzica, atunci nu se va mai auzi nimic, dar sunetele vor rămâne.",
+        "Egor a spus că poți adăuga propria ta melodie, iar apoi el va încerca s-o adauge. Pe viitor vei putea s-o alegi, ca să cânte exact ea.",
+        "Ce-i drept, Egor a spus că deocamdată nu știe care e melodia ta preferată, așa că am decis să las una standard...",
+        "E o parte cam plictisitoare, dar importantă — progresul.",
+        "Dacă vreodată intri de pe alt dispozitiv, progresul tău actual nu se va păstra de la sine. De aceea există codul ăsta — la introducerea lui, progresul tău revine chiar și pe un dispozitiv nou.",
+        "Exact așa — aici va trebui să introduci codul ca să-ți recuperezi progresul.",
+        "Iar butonul ăsta... eu nu l-aș apăsa, decât dacă vrei să pierzi tot progresul, bineînțeles.",
+        "Aici e păstrată toată informația despre site, dacă vrei să te uiți vreodată.",
+        "Aici avem poșta noastră. Poți să-i scrii ceva lui Egor, iar eu mă asigur că o citește. Și tot așa, aici vor apărea și răspunsurile lui.",
+        "Uite! Se pare că Egor ți-a scris ceva. Hai să citim.",
+        "Iar aici, cred, scrie despre mine — poți citi cândva mai târziu.",
+        "Poți apăsa pe butonul ăsta oricând ai nevoie de ajutorul meu, sau direct pe mine.",
+        "Iar acesta e jurnalul meu, aici îmi notez toate gândurile în fiecare zi.",
+        "Doar să nu-i spui lui Egor despre el — el nu știe de el, e un secret. Dar tu poți vedea ce las acolo.",
+        "Iar asta, aș zice, e cea mai interesantă parte a locului ăsta. Practic pentru asta a fost creat totul.",
+        "Sincer, nici eu nu știu încă ce e asta sau ce se află înăuntru. Dar Egor a spus că îți trebuie exact 4 chei ca să deschizi asta.",
+        "Din fericire, am ceva pentru tine...",
+        "O cheie... Am găsit-o de curând, cred că exact de ea e nevoie aici. Hai să încercăm să deschidem una dintre părți.",
+        "UAU, uite, parcă tocmai s-a deschis una dintre părți...",
+        "Sincer, nici eu nu știu ce se întâmplă dacă deschizi toate cele 4 părți. Cred că vei afla sigur imediat ce le deschizi pe toate.",
+        "Uite, au mai rămas 3 părți și mai ai nevoie de 3 chei. Din păcate, nu mai am alte chei acum, dar imediat ce găsesc una, ți-o aduc negreșit.",
+        "Poți deschide și închide acest puzzle, iar el va lua poziții diferite — îl poți așeza în colț sau în centru.",
+        "Mai există și un indicator aici, care arată câte chei ai acum — după cum vezi, momentan nu ai nicio cheie.",
+        "Asta e tot deocamdată, cred că ți-am arătat tot. Dacă ai nevoie de ajutorul meu, poți apăsa pe mine sau pe iconița mea.",
+        "Dacă vrei să te întorci vreodată aici, o să te aștept."
+    ]
+};
+
+// hintText — только у тех записей, где он реально есть (индексы совпадают
+// с индексами в introDialogueLines).
+window.dialogueHintTranslations = {
+    en: {
+        16: "tap the settings icon to continue",
+        17: "Tap the theme button",
+        21: "tap the music box",
+        25: "tap progress",
+        31: "tap on letters",
+        39: "To take the key from «имя», tap on them"
+    },
+    ro: {
+        16: "apasă pe iconița de setări ca să continui",
+        17: "Apasă pe butonul de teme",
+        21: "apasă pe cutia muzicală",
+        25: "apasă pe progres",
+        31: "apasă pe scrisori",
+        39: "Ca să iei cheia de la «имя», apasă pe el"
+    }
+};
+
+// choices[].label — только у диалога 8 (индекс 7).
+window.dialogueChoiceTranslations = {
+    en: { 7: ["Yes, I want to", "Not yet"] },
+    ro: { 7: ["Da, vreau", "Nu încă"] }
+};

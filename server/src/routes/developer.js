@@ -248,7 +248,7 @@ router.patch("/profile/:code/keys", async (req, res) => {
 
 // PATCH /developer/profile/:code/story — {dialogue_index} и/или
 // {intro_completed}. Диалог — плоский массив без именованных стадий (см.
-// data/dialogues.js), поэтому "откат"/"сброс этапа" на практике — это
+// data/dialogues/intro.js), поэтому "откат"/"сброс этапа" на практике — это
 // установка конкретного индекса; фронтенд сам присылает нужное значение
 // (например, dialogue_index - 1 для отката на шаг назад).
 router.patch("/profile/:code/story", async (req, res) => {

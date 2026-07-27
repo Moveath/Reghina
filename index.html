@@ -180,7 +180,10 @@
          (гарантия спецификации), так что все зависимости между файлами
          (например, i18n.js должен выполниться до settings.js) остаются
          рабочими без изменений — меняется только скорость загрузки. -->
-    <script src="data/dialogues.js" defer></script>
+    <!-- Общая папка всех диалогов собаки (вступительные, ежемесячные ключи
+         и любые будущие) — см. data/dialogues/. -->
+    <script src="data/dialogues/intro.js" defer></script>
+    <script src="data/dialogues/monthlyKey.js" defer></script>
     <script src="data/translations.js" defer></script>
     <script src="data/monthlyEvents.js" defer></script>
     <script src="data/gifts.js" defer></script>

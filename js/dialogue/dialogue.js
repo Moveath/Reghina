@@ -937,22 +937,9 @@ window.showLanguageConfirmDialogue = showLanguageConfirmDialogue;
 // после подтверждения — сообщает, что часть пазла открылась. Сам кусочек
 // реально открывается только ПОСЛЕ закрытия сцены (unlockPieceByIndex из
 // js/puzzle/puzzle.js) — чтобы открытие было видно, а не произошло тихо
-// где-то за диалогом.
+// где-то за диалогом. Сами реплики (monthlyKeyFoundLinesRu/
+// monthlyKeyOpenedLinesRu) и их переводы — в data/dialogues/monthlyKey.js.
 // ============================================================
-const monthlyKeyFoundLinesRu = [
-    "Кажется, сегодня я нашёл кое-что важное для тебя!",
-    "У меня для тебя кое-какая находка... интересно, что это?",
-    "Я всю ночь искал этот ключ и наконец-то нашёл его!",
-    "Похоже, кто-то оставил для тебя новый секретный ключ."
-];
-
-const monthlyKeyOpenedLinesRu = [
-    "Ура! Одна часть тайны стала открыта!",
-    "Смотри, ещё один кусочек собрался!",
-    "Кажется, мы стали ещё ближе к разгадке!",
-    "Новый ключ подошёл! Пазл открывает следующую часть!"
-];
-
 function getMonthlyKeyFoundLines(){
     const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
     const translated = window.monthlyKeyLineTranslations && window.monthlyKeyLineTranslations[lang];
