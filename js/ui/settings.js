@@ -498,6 +498,24 @@ function ensureAboutSiteModal(){
 
                 <div class="about-site-modal__divider"></div>
 
+                <h3 class="about-site-modal__heading">${t("about_modal_stats_heading")}</h3>
+                <div class="about-site-modal__stats">
+                    <div class="about-site-modal__stats-row">
+                        <span>${t("stats_loc_label")}</span>
+                        <span class="about-site-modal__stats-value">xxxx</span>
+                    </div>
+                    <div class="about-site-modal__stats-row">
+                        <span>${t("stats_days_label")}</span>
+                        <span class="about-site-modal__stats-value">xx</span>
+                    </div>
+                    <div class="about-site-modal__stats-row">
+                        <span>${t("stats_versions_label")}</span>
+                        <span class="about-site-modal__stats-value">xx</span>
+                    </div>
+                </div>
+
+                <div class="about-site-modal__divider"></div>
+
                 <p>${t("about_modal_thanks_p1")}</p>
                 <p>${t("about_modal_thanks_p2")}</p>
             </div>
