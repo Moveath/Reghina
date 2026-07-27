@@ -485,7 +485,6 @@ function ensureAboutSiteModal(){
                 <p>${t("about_modal_p2")}</p>
                 <p>${t("about_modal_p3")}</p>
                 <p>${helperText}</p>
-                <p>${t("about_modal_p4")}</p>
 
                 <div class="about-site-modal__divider"></div>
 
