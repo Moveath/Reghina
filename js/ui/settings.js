@@ -23,7 +23,7 @@ const progressActions = [
 ];
 
 const aboutSections = [
-    { icon: "ℹ️", label: t("about_site_info") },
+    { icon: "ℹ️", label: t("about_site_info"), id: "aboutSiteInfoOption" },
     { icon: "📜", label: t("about_creation_story") },
     { icon: "💡", label: t("about_project_idea") },
     { icon: "🕓", label: t("about_update_history") }
@@ -436,13 +436,103 @@ function renderAboutPanel(){
         <h3 class="settings-panel__title">${t("about_panel_title")}</h3>
         <ul class="settings-section-list">
             ${aboutSections.map(section => `
-                <li class="settings-section-item">
+                <li class="settings-section-item ${section.id ? "is-clickable" : ""}" ${section.id ? `id="${section.id}"` : ""}>
                     <span class="settings-section-icon" aria-hidden="true">${section.icon}</span>
                     <span>${section.label}</span>
                 </li>
             `).join("")}
         </ul>
     `;
+
+    const aboutSiteInfoOption = document.getElementById("aboutSiteInfoOption");
+    if(aboutSiteInfoOption){
+        aboutSiteInfoOption.addEventListener("click", (event) => {
+            event.stopPropagation();
+            openAboutSiteModal();
+        });
+    }
+}
+
+// Отдельное окно "Информация о сайте" — намеренно НЕ settings-panel
+// (выпадашка) и НЕ "бумажный" стиль писем, а самостоятельное модальное
+// окно поверх всего (см. openAboutSiteModal ниже), как и просили.
+const projectRepoUrl = "https://github.com/Moveath/Reghina";
+let aboutSiteModalElement = null;
+
+function ensureAboutSiteModal(){
+    if(aboutSiteModalElement) return aboutSiteModalElement;
+
+    let dogNameForModal = "";
+    try { dogNameForModal = (localStorage.getItem("dog_name") || "").trim(); } catch(e) {}
+    const helperText = t("about_modal_helper").replace("«имя»", dogNameForModal || t("character_fallback_label"));
+
+    const modal = document.createElement("div");
+    modal.id = "aboutSiteModal";
+    modal.className = "about-site-modal";
+    modal.innerHTML = `
+        <div class="about-site-modal__card" role="dialog" aria-modal="true" aria-labelledby="aboutSiteModalTitle">
+            <button type="button" class="about-site-modal__close" id="aboutSiteModalClose" aria-label="${t("about_modal_close_aria")}">&times;</button>
+            <div class="about-site-modal__scroll">
+                <h2 id="aboutSiteModalTitle" class="about-site-modal__greeting">${t("about_modal_greeting")}</h2>
+                <p>${t("about_modal_p1")}</p>
+                <p>${t("about_modal_p2")}</p>
+                <p>${t("about_modal_p3")}</p>
+                <p>${helperText}</p>
+                <p>${t("about_modal_p4")}</p>
+
+                <div class="about-site-modal__divider"></div>
+
+                <h3 class="about-site-modal__heading">${t("about_modal_video_heading")}</h3>
+                <p>${t("about_modal_video_intro")}</p>
+                <div class="about-site-modal__video-frame">
+                    <span class="about-site-modal__video-play" aria-hidden="true">▶</span>
+                    <span class="about-site-modal__video-label">${t("about_modal_video_placeholder")}</span>
+                </div>
+
+                <div class="about-site-modal__divider"></div>
+
+                <h3 class="about-site-modal__heading">${t("about_modal_code_heading")}</h3>
+                <a class="about-site-modal__code-link" href="${projectRepoUrl}" target="_blank" rel="noopener noreferrer">
+                    <span aria-hidden="true">💻</span> ${t("about_modal_code_link_label")}
+                </a>
+
+                <div class="about-site-modal__divider"></div>
+
+                <p>${t("about_modal_thanks_p1")}</p>
+                <p>${t("about_modal_thanks_p2")}</p>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.addEventListener("click", (event) => {
+        // Клик по самому фону (не по карточке) закрывает окно.
+        if(event.target === modal) closeAboutSiteModal();
+    });
+    modal.querySelector(".about-site-modal__card").addEventListener("click", (event) => event.stopPropagation());
+    document.getElementById("aboutSiteModalClose").addEventListener("click", (event) => {
+        event.stopPropagation();
+        closeAboutSiteModal();
+    });
+
+    aboutSiteModalElement = modal;
+    return modal;
+}
+
+function openAboutSiteModal(){
+    if(typeof closePanels === "function") closePanels();
+    ensureAboutSiteModal().classList.add("is-open");
+    document.addEventListener("keydown", handleAboutSiteModalEscape);
+}
+
+function closeAboutSiteModal(){
+    if(!aboutSiteModalElement) return;
+    aboutSiteModalElement.classList.remove("is-open");
+    document.removeEventListener("keydown", handleAboutSiteModalEscape);
+}
+
+function handleAboutSiteModalEscape(event){
+    if(event.key === "Escape") closeAboutSiteModal();
 }
 
 function renderProgressPanel(){
