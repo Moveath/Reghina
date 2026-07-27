@@ -1085,7 +1085,7 @@ function showDogRemark(text){
         <div class="intro-dialogue" role="dialog" aria-live="polite">
             <div class="intro-dialogue__bubble">
                 <p>${text}</p>
-                <span>нажми, чтобы закрыть</span>
+                <span>${t("dlg_click_to_close")}</span>
             </div>
         </div>
     `;
