@@ -71,19 +71,25 @@ const introDialogueLines = [
         text: "Ах да. Егор просил меня задать тебе один важный вопрос. Возможно, ты ещё не до конца понимаешь, что вообще происходит и зачем было создано это место. Но я точно знаю всё, что находится дальше, появилось здесь не случайно. Поэтому дальнейший путь зависит только от тебя. Я не буду тебя торопить и не стану убеждать. Но если тебе хоть немного интересно узнать, что будет дальше то можешь продолжить. Что скажешь? Хочешь продолжить?",
         emotion: "neutral",
         choices: [
-            { label: "Да, хочу", next:  9},
-            { label: "Пока нет", next: 8 }
+            { label: "Да, хочу", next: 9 },
+            // action вместо next — ветка "Пока нет" больше не идёт по общей
+            // линии диалогов, а обрабатывается отдельно (см. handleIntroDecline
+            // в js/dialogue/dialogue.js): это временная пауза истории, а не
+            // просто следующая реплика.
+            { label: "Пока нет", action: "declineIntro" }
         ]
     },
 
     /* ===== Диалог 9 (speech — грустная) =====
-       Ветка «Пока нет». Дальше не идём по основной линии —
-       переходим к прощальному диалогу-ответвлению в конце массива. */
+       Текст ветки "Пока нет" — больше не часть последовательного показа
+       (next никуда не ведёт), а переиспользуется напрямую через td(8) из
+       handleIntroDecline. Дальнейшая логика после отказа (пауза истории,
+       сцена возвращения, кнопка "Продолжить историю") — вся в dialogue.js,
+       не в этом массиве. */
     {
         type: "speech",
-        text: "Понимаю. Наверное, для тебя это действительно выглядит немного странно. В этом нет ничего плохого. Тогда я не стану тебя задерживать. Но если однажды тебе станет любопытно... Я всё ещё буду ждать здесь.",
-        emotion: "sad",
-        next: 47
+        text: "Понимаю.<br><br>Наверное, всё это выглядит немного неожиданно.<br><br>Ничего страшного.<br><br>Тогда пока не буду тебя задерживать.<br><br>Сайт никуда не исчезнет.<br><br>А если однажды тебе всё-таки станет любопытно узнать, что находится дальше, просто возвращайся.<br><br>Я постараюсь быть рядом.",
+        emotion: "sad"
     },
 
     /* ===== Диалог 10 (speech — веселье/счастливая) ===== */
@@ -445,17 +451,6 @@ const introDialogueLines = [
         highlightTarget: "dogNameButton",
         bubbleAtTop: true,
         isEnding: true
-    },
-
-    /* ===== Прощальный диалог-ответвление (после Диалога 9, ветка «Пока нет») =====
-       Не часть основной нумерованной линии — сюда переходят только через next:47
-       из Диалога 9. После клика здесь всё полностью замирает (см. freezeAfter). */
-    {
-        type: "speech",
-        text: "Если ты захочешь сюда вернуться, то я буду тебя здесь ждать.",
-        emotion: "sad",
-        keepOverlay: true,
-        freezeAfter: true
     }
 
 ];
@@ -473,7 +468,7 @@ window.dialogueTranslations = {
         "Hmm... I think she likes him...",
         "Huh?.. Sorry, I think I got a bit distracted. Sometimes I drift off into my own thoughts too much. So... where was I?",
         "Ah right. Egor asked me to ask you one important question. You probably don't fully understand yet what's going on or why this place was made. But I do know for sure that everything further along didn't appear here by accident. So what happens next is entirely up to you. I won't rush you, and I won't try to convince you. But if you're even a little curious to find out what comes next, you can continue. What do you say? Do you want to continue?",
-        "I understand. It probably does seem a bit strange to you. There's nothing wrong with that. Then I won't keep you. But if one day you get curious... I'll still be waiting here.",
+        "I understand.<br><br>I guess this all seems a little unexpected.<br><br>That's completely fine.<br><br>I won't keep you here, then.<br><br>The site isn't going anywhere.<br><br>And if one day you do get curious about what's further ahead, just come back.<br><br>I'll try to be around.",
         "Great. Then let's start a little journey.",
         "By the way... before we begin, I never actually introduced myself. There's just one problem. It seems Egor forgot to give me a name.",
         "How could he forget...",
@@ -522,7 +517,7 @@ window.dialogueTranslations = {
         "Hmm... Cred că îi place de el...",
         "A?.. Scuze, parcă m-am pierdut puțin cu gândul. Uneori mă pierd prea mult în propriile gânduri. Deci... unde rămăsesem?",
         "Ah, da. Egor m-a rugat să-ți pun o întrebare importantă. Poate că încă nu înțelegi pe deplin ce se întâmplă și de ce a fost creat locul ăsta. Dar știu sigur că tot ce urmează nu a apărut aici din întâmplare. Așa că drumul mai departe depinde doar de tine. N-o să te grăbesc și n-o să te conving. Dar dacă ești măcar puțin curioasă să afli ce urmează, poți continua. Ce zici? Vrei să continui?",
-        "Înțeleg. Probabil ți se pare puțin ciudat. Nu e nimic în neregulă cu asta. Atunci n-o să te mai rețin. Dar dacă într-o zi devii curioasă... o să te aștept tot aici.",
+        "Înțeleg.<br><br>Probabil că totul pare puțin neașteptat.<br><br>Nu-i nimic.<br><br>Atunci n-o să te mai rețin.<br><br>Site-ul nu dispare nicăieri.<br><br>Iar dacă într-o zi tot devii curioasă să afli ce urmează mai departe, pur și simplu revino.<br><br>Voi încerca să fiu prin preajmă.",
         "Super. Atunci hai să începem o mică călătorie.",
         "Apropo... înainte să începem, nu m-am prezentat de fapt. Doar că e o problemă. Se pare că Egor a uitat să-mi dea un nume.",
         "Cum a putut să uite...",

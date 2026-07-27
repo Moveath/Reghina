@@ -24,7 +24,7 @@
 
 #characterContainer.is-intro-scene{
     left:1.8vw;
-    bottom:-1.2vh;
+    bottom:-14vh;
     width:min(43vw, 560px);
     z-index:4500;
 }
@@ -272,7 +272,7 @@
 
     #characterContainer.is-intro-scene{
         left:2vw;
-        bottom:0;
+        bottom:-10vh;
         width:50vw;
     }
 

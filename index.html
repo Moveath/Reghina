@@ -143,6 +143,11 @@
     <button id="resetPuzzle" class="reset-puzzle-btn" type="button" hidden data-i18n="puzzle_reset_test">Сбросить тест</button>
     <div id="puzzleToast" class="puzzle-toast" role="status" aria-live="polite"></div>
 
+    <!-- Персистентная кнопка "Продолжить историю" — видна только пока
+         пользователь на паузе после выбора "Пока нет" в интро (см.
+         showContinueStoryButton/hideContinueStoryButton в js/dialogue/dialogue.js). -->
+    <button id="continueStoryButton" class="continue-story-btn" type="button" hidden data-i18n="continue_story_btn">Продолжить историю</button>
+
     <!-- Служебная тестовая панель ключей — скрыта, реальный способ получить
          ключ теперь через puzzleKeySystem.grantKey() из диалога собаки. -->
     <div class="key-test-panel" hidden>
