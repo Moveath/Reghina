@@ -25,8 +25,7 @@ const progressActions = [
 const aboutSections = [
     { icon: "ℹ️", label: t("about_site_info"), id: "aboutSiteInfoOption" },
     { icon: "📜", label: t("about_creation_story") },
-    { icon: "💡", label: t("about_project_idea") },
-    { icon: "🕓", label: t("about_update_history") }
+    { icon: "💡", label: t("about_project_idea"), id: "aboutProjectIdeaOption" }
 ];
 
 let themeSelectionMenuElement = null;
@@ -451,6 +450,14 @@ function renderAboutPanel(){
             openAboutSiteModal();
         });
     }
+
+    const aboutProjectIdeaOption = document.getElementById("aboutProjectIdeaOption");
+    if(aboutProjectIdeaOption){
+        aboutProjectIdeaOption.addEventListener("click", (event) => {
+            event.stopPropagation();
+            openProjectIdeaModal();
+        });
+    }
 }
 
 // Отдельное окно "Информация о сайте" — намеренно НЕ settings-panel
@@ -552,6 +559,65 @@ function closeAboutSiteModal(){
 
 function handleAboutSiteModalEscape(event){
     if(event.key === "Escape") closeAboutSiteModal();
+}
+
+// Отдельное окно "Идея проекта" — тот же визуальный стиль, что и
+// "О сайте" (переиспользуем класс about-site-modal), но свой контент и
+// свой элемент, чтобы оба окна были независимы друг от друга.
+let projectIdeaModalElement = null;
+
+function ensureProjectIdeaModal(){
+    if(projectIdeaModalElement) return projectIdeaModalElement;
+
+    const modal = document.createElement("div");
+    modal.id = "projectIdeaModal";
+    modal.className = "about-site-modal";
+    modal.innerHTML = `
+        <div class="about-site-modal__card" role="dialog" aria-modal="true" aria-labelledby="projectIdeaModalTitle">
+            <button type="button" class="about-site-modal__close" id="projectIdeaModalClose" aria-label="${t("about_modal_close_aria")}">&times;</button>
+            <div class="about-site-modal__scroll">
+                <h2 id="projectIdeaModalTitle" class="about-site-modal__greeting">${t("about_project_idea")}</h2>
+                <p>${t("idea_modal_p1")}</p>
+                <p>${t("idea_modal_p2")}</p>
+                <p>${t("idea_modal_p3")}</p>
+                <p>${t("idea_modal_p4")}</p>
+                <p>${t("idea_modal_p5")}</p>
+                <p>${t("idea_modal_p6")}</p>
+                <p>${t("idea_modal_p7")}</p>
+                <p>${t("idea_modal_p8")}</p>
+                <p>${t("idea_modal_p9")}</p>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.addEventListener("click", (event) => {
+        if(event.target === modal) closeProjectIdeaModal();
+    });
+    modal.querySelector(".about-site-modal__card").addEventListener("click", (event) => event.stopPropagation());
+    document.getElementById("projectIdeaModalClose").addEventListener("click", (event) => {
+        event.stopPropagation();
+        closeProjectIdeaModal();
+    });
+
+    projectIdeaModalElement = modal;
+    return modal;
+}
+
+function openProjectIdeaModal(){
+    if(typeof closePanels === "function") closePanels();
+    ensureProjectIdeaModal().classList.add("is-open");
+    document.addEventListener("keydown", handleProjectIdeaModalEscape);
+}
+
+function closeProjectIdeaModal(){
+    if(!projectIdeaModalElement) return;
+    projectIdeaModalElement.classList.remove("is-open");
+    document.removeEventListener("keydown", handleProjectIdeaModalEscape);
+}
+
+function handleProjectIdeaModalEscape(event){
+    if(event.key === "Escape") closeProjectIdeaModal();
 }
 
 function renderProgressPanel(){
