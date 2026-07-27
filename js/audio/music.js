@@ -333,6 +333,68 @@ function musicSetVolumePercent(percent){
     }
 }
 
+// Приветствие "Егор добавил ту музыку, которую ты хотела" — сюжетная
+// реплика (не тост), показывается один раз на первом визите ПОСЛЕ того,
+// как в MUSIC_TRACKS выше реально появился новый трек (Егор добавляет его
+// вручную и деплоит). Список треков статический (часть кода сайта), поэтому
+// если Регина уже открыла сайт, новый трек физически не может появиться у
+// неё прямо в текущей вкладке без перезагрузки — специально отслеживать
+// "она сейчас на сайте" не нужно, это и так исключено самой природой
+// деплоя. Сравниваем с id, сохранёнными при прошлом визите; если сохранённых
+// id ещё нет вообще (самый первый визит или до этой фичи) — просто
+// запоминаем текущий список молча, ничего не анонсируем.
+const knownMusicTrackIdsStorageKey = "reginaKnownMusicTrackIds";
+
+function loadKnownMusicTrackIds(){
+    try {
+        const raw = localStorage.getItem(knownMusicTrackIdsStorageKey);
+        return raw ? new Set(JSON.parse(raw)) : null;
+    } catch(e){ return null; }
+}
+
+function saveKnownMusicTrackIds(ids){
+    try { localStorage.setItem(knownMusicTrackIdsStorageKey, JSON.stringify([...ids])); } catch(e) {}
+}
+
+// Красная точка на иконке шкатулки — держится, пока Регина реально не
+// откроет виджет музыки (см. clearMusicNotificationBadge, вызывается из
+// toggleMusicPanel в js/ui/settings.js).
+function setMusicNotificationBadge(hasNew){
+    if(typeof musicBoxButton === "undefined" || !musicBoxButton) return;
+    musicBoxButton.classList.toggle("has-new-track", hasNew);
+}
+
+window.clearMusicNotificationBadge = () => setMusicNotificationBadge(false);
+
+// Вызывается один раз при загрузке страницы (см. js/ui/letters.js —
+// выстроено ПОСЛЕ проверки писем, чтобы при одновременном "новое письмо +
+// новая музыка" сначала полностью показалась и закрылась реплика про
+// письмо, а уже потом — про музыку, а не обе разом/наперегонки за
+// dogRemarkActive).
+window.checkMusicAddedGreeting = function checkMusicAddedGreeting(){
+    const introDone = typeof isIntroAlreadyCompleted === "function" ? isIntroAlreadyCompleted() : true;
+    if(!introDone) return;
+
+    const currentIds = new Set(MUSIC_TRACKS.map(track => track.id));
+    const known = loadKnownMusicTrackIds();
+
+    if(known === null){
+        saveKnownMusicTrackIds(currentIds);
+        setMusicNotificationBadge(false);
+        return;
+    }
+
+    const newTrackIds = [...currentIds].filter(id => !known.has(id));
+    saveKnownMusicTrackIds(currentIds);
+
+    if(newTrackIds.length === 0){
+        return;
+    }
+
+    setMusicNotificationBadge(true);
+    if(typeof showDogRemark === "function") showDogRemark(t("music_new_track_greeting"), "happy");
+};
+
 window.musicGetTracks = () => MUSIC_TRACKS.slice();
 window.musicGetCurrentTrackId = () => currentTrackId;
 window.musicGetVolumePercent = loadVolumePercent;

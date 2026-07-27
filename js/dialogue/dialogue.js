@@ -1077,13 +1077,23 @@ window.showMonthlyKeyDialogue = showMonthlyKeyDialogue;
 
 // Разовая реплика собаки вне сценария интро — используется письмами
 // (js/ui/letters.js): подтверждение "отнесла письмо" и оповещение о новом
-// письме от Егора. Тот же визуальный приём, что и в интро (собака
-// увеличивается, говорит из пузыря), но без веток выбора — просто
+// письме от Егора, а также музыкой (js/audio/music.js): "Егор добавил ту
+// музыку, которую ты хотела". Тот же визуальный приём, что и в интро
+// (собака увеличивается, говорит из пузыря), но без веток выбора — просто
 // закрывается сама через паузу или по клику. Пока идёт настоящее интро —
 // вообще не показывается, чтобы не мешать сценарию.
-function showDogRemark(text, emotion){
-    if(document.body.classList.contains("intro-active")) return;
-    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive) return;
+//
+// onClose — необязательный колбэк, вызывается ПОСЛЕ того, как сцена
+// полностью закрылась (не сразу по клику, а после fade-анимации) — нужен,
+// чтобы выстроить очередь из нескольких таких реплик подряд (например,
+// сначала про новое письмо, потом про новую музыку), а не гонять их
+// наперегонки за dogRemarkActive. Возвращает true, если реплика реально
+// показалась, false — если её перебила одна из проверок выше (тогда
+// onClose ни разу не вызовется, и вызывающий код должен сам решить, что
+// делать дальше).
+function showDogRemark(text, emotion, onClose){
+    if(document.body.classList.contains("intro-active")) return false;
+    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive) return false;
     dogRemarkActive = true;
     if(typeof window.musicDuck === "function") window.musicDuck();
 
@@ -1128,11 +1138,13 @@ function showDogRemark(text, emotion){
         setTimeout(() => {
             dialogueContainer.innerHTML = "";
             dialogueContainer.classList.remove("is-fading");
+            if(typeof onClose === "function") onClose();
         }, 850);
     }
 
     dialogueContainer.addEventListener("click", closeRemark);
     autoCloseTimer = setTimeout(closeRemark, 4500);
+    return true;
 }
 window.showDogRemark = showDogRemark;
 

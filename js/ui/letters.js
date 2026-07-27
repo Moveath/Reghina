@@ -468,8 +468,22 @@ async function loadInbox(){
             const hasUnannounced = unread.some(letter => !notified.has(letter.id));
             const introDone = typeof isIntroAlreadyCompleted === "function" ? isIntroAlreadyCompleted() : true;
 
+            // Если одновременно накопились и непрочитанные письма, и новая
+            // музыка (см. checkMusicAddedGreeting в js/audio/music.js) —
+            // сначала полностью показываем и закрываем реплику про письмо,
+            // и только потом, через onClose, проверяем музыку — а не гоняем
+            // обе реплики наперегонки за dogRemarkActive (тогда вторая молча
+            // терялась бы). Если письма показывать не нужно — музыку
+            // проверяем сразу же.
+            const checkMusicAfter = () => {
+                if(typeof window.checkMusicAddedGreeting === "function") window.checkMusicAddedGreeting();
+            };
+
             if(introDone && unread.length > 0 && hasUnannounced && typeof showDogRemark === "function"){
-                showDogRemark(buildWelcomeBackText(unread.length));
+                const started = showDogRemark(buildWelcomeBackText(unread.length), "happy", checkMusicAfter);
+                if(!started) checkMusicAfter();
+            } else {
+                checkMusicAfter();
             }
             saveNotifiedUnreadIds(new Set(unread.map(letter => letter.id)));
         } else {

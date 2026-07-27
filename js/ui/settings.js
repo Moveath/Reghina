@@ -940,7 +940,10 @@ function toggleMusicPanel(){
     const isOpen = musicPanel.classList.contains("is-open");
     if(isOpen && isIntroCloseLocked()) return;
     closePanels();
-    if(!isOpen) musicPanel.classList.add("is-open");
+    if(!isOpen){
+        musicPanel.classList.add("is-open");
+        if(typeof window.clearMusicNotificationBadge === "function") window.clearMusicNotificationBadge();
+    }
 }
 
 function toggleAboutPanel(){
