@@ -492,6 +492,7 @@ function ensureAboutSiteModal(){
                 <div class="about-site-modal__divider"></div>
 
                 <h3 class="about-site-modal__heading">${t("about_modal_code_heading")}</h3>
+                <p>${t("about_modal_code_intro")}</p>
                 <a class="about-site-modal__code-link" href="${projectRepoUrl}" target="_blank" rel="noopener noreferrer">
                     <span aria-hidden="true">💻</span> ${t("about_modal_code_link_label")}
                 </a>
