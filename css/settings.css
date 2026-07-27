@@ -428,7 +428,7 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
 .key-counter{
     position:fixed;
     left:50%;
-    top:74px;
+    top:44px;
     transform:translateX(-50%);
     padding:8px 14px;
     border:none;
@@ -499,7 +499,7 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
     }
 
     .key-counter{
-        top:64px;
+        top:36px;
         font-size:12px;
     }
 
