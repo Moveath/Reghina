@@ -2227,6 +2227,11 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     width:min(100%, 220px);
     aspect-ratio:1;
     object-fit:cover;
+    /* Картинки — портретные (уже, чем квадрат), голова и всё "над" ней
+       (например "?" у растерянной эмоции) всегда ближе к верху кадра —
+       центрированный кроп срезал бы именно это. Прижимаем к верху, вниз
+       можно спокойно терять лапы/хвост. */
+    object-position:top center;
     border-radius:20px;
     border:1px solid rgba(255,255,255,.16);
     box-shadow:0 14px 34px rgba(6,2,14,.45);
@@ -2274,6 +2279,7 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     width:76px;
     height:76px;
     object-fit:cover;
+    object-position:top center;
     border-radius:14px;
     border:1px solid rgba(255,255,255,.14);
 }
