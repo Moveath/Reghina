@@ -104,6 +104,7 @@ window.uiText = {
         character_about_fallback: "О персонаже",
         character_fallback_label: "персонаж",
         character_name_aria_prefix: "Имя: ",
+        diary_title_prefix: "Дневник ",
 
         dog_info_title: "🐾 О собаке",
         dog_info_name_label: "Имя:",
@@ -309,6 +310,7 @@ window.uiText = {
         character_about_fallback: "About the character",
         character_fallback_label: "character",
         character_name_aria_prefix: "Name: ",
+        diary_title_prefix: "Diary of ",
 
         dog_info_title: "🐾 About the dog",
         dog_info_name_label: "Name:",
@@ -514,6 +516,7 @@ window.uiText = {
         character_about_fallback: "Despre personaj",
         character_fallback_label: "personaj",
         character_name_aria_prefix: "Nume: ",
+        diary_title_prefix: "Jurnalul lui ",
 
         dog_info_title: "🐾 Despre câine",
         dog_info_name_label: "Nume:",

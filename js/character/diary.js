@@ -208,10 +208,36 @@ function renderDiaryPanel(){
         : `<p class="diary-empty">${t("diary_empty")}</p>`;
 
     diaryPanel.innerHTML = `
-        <h3 class="settings-panel__title">${t("static_diary_aria")}</h3>
+        <h3 class="settings-panel__title">${diaryTitleLabel()}</h3>
         <ul class="diary-entry-list">${listHtml}</ul>
     `;
 }
+
+// "Дневник {имя собаки}" — как и у кнопки "О <имя>" (character_about_prefix
+// в settings.js), просто префикс + сырое имя без склонения (имя свободное,
+// пользовательское, грамматически согласовать некуда). Пока имя ещё не
+// задано — используем общий фолбэк static_diary_aria ("Дневник проводника").
+function diaryTitleLabel(){
+    let name = "";
+    try { name = localStorage.getItem("dog_name") || ""; } catch(e) {}
+    return name && name.trim() ? `${t("diary_title_prefix")}${name.trim()}` : t("static_diary_aria");
+}
+
+// Обновляет подписи иконки/панели дневника новым именем собаки — вызывается
+// один раз при загрузке (см. низ файла) и из renameDog (js/dialogue/
+// dialogue.js) сразу после смены имени, чтобы не ждать перезагрузки.
+function updateDiaryLabel(){
+    const label = diaryTitleLabel();
+    if(diaryButton){
+        diaryButton.setAttribute("data-label", label);
+        diaryButton.setAttribute("aria-label", label);
+    }
+    if(diaryPanel){
+        diaryPanel.setAttribute("aria-label", label);
+        if(diaryPanel.classList.contains("is-open")) renderDiaryPanel();
+    }
+}
+window.updateDiaryLabel = updateDiaryLabel;
 
 function toggleDiaryPanel(){
     if(!diaryPanel) return;
@@ -235,3 +261,4 @@ if(diaryButton){
 maybeGenerateDiaryEntry();
 saveDiaryLastVisitAt(new Date(diaryNow()).toISOString());
 updateDiaryBadge();
+updateDiaryLabel();

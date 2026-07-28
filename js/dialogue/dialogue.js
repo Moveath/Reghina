@@ -845,6 +845,7 @@ function renameDog(newName){
     if(idleNameEl) idleNameEl.textContent = trimmed;
 
     if(typeof updateCharacterButtonLabel === "function") updateCharacterButtonLabel();
+    if(typeof window.updateDiaryLabel === "function") window.updateDiaryLabel();
 
     return true;
 }

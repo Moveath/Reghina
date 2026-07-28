@@ -86,7 +86,7 @@
     <div id="musicPanel" class="settings-panel music-panel" data-i18n="music_panel_title" data-i18n-attr="aria-label" aria-label="Музыкальная шкатулка"></div>
     <div id="aboutPanel" class="settings-panel about-panel" data-i18n="about_panel_title" data-i18n-attr="aria-label" aria-label="О проекте"></div>
     <div id="lettersPanel" class="settings-panel letters-panel" data-i18n="letters_panel_title" data-i18n-attr="aria-label" aria-label="Письма"></div>
-    <div id="diaryPanel" class="settings-panel diary-panel" data-i18n="static_diary_aria" data-i18n-attr="aria-label" aria-label="Дневник проводника"></div>
+    <div id="diaryPanel" class="settings-panel diary-panel" aria-label="Дневник проводника"></div>
     <div id="characterContainer"></div>
     <div id="dialogueContainer"></div>
     <div id="dogGuideMenu" class="dog-guide-menu"></div>
@@ -139,7 +139,10 @@
             <span class="character-icon__emoji">🐶</span>
             <span class="character-icon__label" data-i18n="character_fallback_label">персонаж</span>
         </button>
-        <button id="diaryButton" class="side-widget" type="button" data-i18n="static_diary_aria" data-i18n-attr="aria-label,data-label" aria-label="Дневник проводника" data-label="Дневник">📓</button>
+        <!-- Без data-i18n: подпись зависит от имени собаки (см. updateDiaryLabel
+             в js/character/diary.js) — applyStaticTranslations() перетирал бы
+             её обратно в статичный "Дневник проводника" при каждой загрузке. -->
+        <button id="diaryButton" class="side-widget" type="button" aria-label="Дневник проводника" data-label="Дневник">📓</button>
     </div>
 
     <div class="key-counter" id="keyCounter" type="button" aria-live="polite">🔑 0/1</div>
