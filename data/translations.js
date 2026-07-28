@@ -194,6 +194,13 @@ window.uiText = {
         dlg_language_hint: "Выбери один из языков",
         dlg_language_confirm_text: "Сменить язык на {lang}? Дальше я буду переводить для тебя всё именно на нём.",
 
+        dog_guide_nav_letters: "Письма",
+        dog_guide_nav_music: "Музыкальная шкатулка",
+        dog_guide_nav_history: "История создания",
+        dog_guide_nav_idea: "Идея проекта",
+        dog_guide_nav_about: "О сайте",
+        dog_guide_nav_doginfo: "О собаке",
+
         static_settings_open_aria: "Открыть настройки",
         static_settings_data_label: "Настройки",
         static_settings_menu_aria: "Меню настроек",
@@ -390,6 +397,13 @@ window.uiText = {
         dlg_language_hint: "Pick one of the languages",
         dlg_language_confirm_text: "Switch the language to {lang}? From now on I'll translate everything for you in it.",
 
+        dog_guide_nav_letters: "Letters",
+        dog_guide_nav_music: "Music box",
+        dog_guide_nav_history: "Story of creation",
+        dog_guide_nav_idea: "Project idea",
+        dog_guide_nav_about: "About the site",
+        dog_guide_nav_doginfo: "About the dog",
+
         static_settings_open_aria: "Open settings",
         static_settings_data_label: "Settings",
         static_settings_menu_aria: "Settings menu",
@@ -585,6 +599,13 @@ window.uiText = {
         dlg_theme_hint: "Alege una dintre teme",
         dlg_language_hint: "Alege una dintre limbi",
         dlg_language_confirm_text: "Schimb limba în {lang}? De acum înainte îți traduc totul în ea.",
+
+        dog_guide_nav_letters: "Scrisori",
+        dog_guide_nav_music: "Cutia muzicală",
+        dog_guide_nav_history: "Povestea creării",
+        dog_guide_nav_idea: "Ideea proiectului",
+        dog_guide_nav_about: "Despre site",
+        dog_guide_nav_doginfo: "Despre câine",
 
         static_settings_open_aria: "Deschide setările",
         static_settings_data_label: "Setări",

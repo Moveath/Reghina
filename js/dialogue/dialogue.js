@@ -1406,6 +1406,13 @@ let devClickResetTimer = null;
 // на #dialogueContainer, а тот гасит propagation ещё до bubble-фазы на document.
 document.addEventListener("click", (event) => {
     if(!dogCharacter) return;
+    // Само меню-проводник (см. js/character/dogGuide.js) всплывает совсем
+    // рядом с собакой и может визуально перекрывать её координатную зону —
+    // без этой проверки клик по кнопке раздела внутри меню засчитывался бы
+    // ещё и как "клик по собаке", закрывая меню раньше, чем срабатывал сам
+    // клик по кнопке (event.target здесь — реальный DOM-узел, а не то, что
+    // визуально выглядит "сверху", поэтому только явная проверка спасает).
+    if(event.target.closest("#dogGuideMenu")) return;
 
     const rect = dogCharacter.getBoundingClientRect();
     const withinDog = event.clientX >= rect.left && event.clientX <= rect.right &&
@@ -1423,12 +1430,36 @@ document.addEventListener("click", (event) => {
 
     if(devClickCount >= 5){
         devClickCount = 0;
+        clearTimeout(devClickResetTimer);
+        // Меню-проводник (см. js/character/dogGuide.js) могло уже открыться
+        // от первого клика этой же серии — пасхалка приоритетнее, закрываем
+        // его, чтобы два всплывающих окна не показывались одновременно.
+        if(typeof window.closeDogGuideMenu === "function") window.closeDogGuideMenu();
         // Не мешаем настоящему интро и другим активным сценам — просто
         // тихо игнорируем клики, пока они идут (showDogRemark и сама делает
         // часть этих проверок, но intro-active нужно проверить отдельно).
         if(document.body.classList.contains("intro-active")) return;
         event.stopPropagation();
         showDogRemark(pickRandomLine(getDogClickEasterEggLines()), "confused");
+        return;
+    }
+
+    // Обычный клик по собаке (не часть быстрой пасхалки выше) — открывает
+    // меню-проводник (см. js/character/dogGuide.js). Срабатывает сразу на
+    // первом клике серии, а не по истечении окна — иначе одиночный клик
+    // ощущался бы с задержкой. Клики 2–4 внутри той же быстрой серии ничего
+    // не делают (меню уже переключено первым кликом), а 5-й, если наберётся
+    // быстро, переигрывает всё веткой пасхалки выше.
+    //
+    // canOpenDogGuide() отдельно проверяет intro/resetConfirm/dogRemark и
+    // т.д. — ЕСЛИ сейчас что-то из этого активно (например, собака большая
+    // по центру во время самой пасхалки или другой реплики), не гасим клик
+    // здесь вообще, чтобы он спокойно долетел до обработчика, который как
+    // раз и закрывает ту сцену (иначе клик по собаке во время реплики
+    // переставал бы её закрывать).
+    if(devClickCount === 1 && typeof window.canOpenDogGuide === "function" && window.canOpenDogGuide()){
+        event.stopPropagation();
+        if(typeof window.toggleDogGuideMenu === "function") window.toggleDogGuideMenu();
     }
 }, true);
 

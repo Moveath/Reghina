@@ -273,6 +273,39 @@
     50%{ transform:translateY(var(--dog-emotion-offset,0%)) scale(1.03) translateY(-4px); }
 }
 
+/* Меню-проводник открыто (см. js/character/dogGuide.js) — лёгкое покачивание
+   + едва заметное "виляние хвостом" (rotate у всей картинки, поскольку
+   отдельного слоя с хвостом у неё нет — этого достаточно, чтобы читаться
+   как живое покачивание). transform здесь ПОЛНОСТЬЮ заменяет то, что даёт
+   .dog-character.is-intro (dogArrival/dogGreeting) — поэтому селектор
+   специфичнее (три класса) и объединяет оба движения в одном keyframe,
+   иначе второй animation в списке просто затёр бы transform первого. */
+.dog-character.is-intro.is-guide-active{
+    animation:dogGuideLively 2.4s ease-in-out infinite;
+}
+
+@keyframes dogGuideLively{
+    0%, 100%{ transform:translateY(var(--dog-emotion-offset,0%)) scale(1) rotate(0deg); }
+    25%{ transform:translateY(var(--dog-emotion-offset,0%)) scale(1.015) rotate(2.5deg); }
+    50%{ transform:translateY(calc(var(--dog-emotion-offset,0%) - 4px)) scale(1.03) rotate(0deg); }
+    75%{ transform:translateY(var(--dog-emotion-offset,0%)) scale(1.015) rotate(-2.5deg); }
+}
+
+/* Один "прыжок" — при открытии меню и при переключении на новый раздел.
+   Ещё специфичнее (четыре класса), чтобы на те ~650мс, пока играет,
+   полностью перебивать непрерывное покачивание выше — после того как JS
+   снимет is-guide-bounce, непрерывная анимация просто перезапустится. */
+.dog-character.is-intro.is-guide-active.is-guide-bounce{
+    animation:dogGuideBounce .6s cubic-bezier(.34,1.56,.64,1) 1;
+}
+
+@keyframes dogGuideBounce{
+    0%{ transform:translateY(var(--dog-emotion-offset,0%)) scale(1); }
+    35%{ transform:translateY(calc(var(--dog-emotion-offset,0%) - 14px)) scale(1.06); }
+    60%{ transform:translateY(calc(var(--dog-emotion-offset,0%) + 2px)) scale(.98); }
+    100%{ transform:translateY(var(--dog-emotion-offset,0%)) scale(1); }
+}
+
 @media (max-width: 640px){
     #characterContainer{
         left:8px;
