@@ -308,6 +308,17 @@
     box-sizing:border-box;
 }
 
+/* Сон (isDream) — облако с картинкой заметно выше обычного "облака мыслей"
+   (см. .thought-cloud__dream-image ниже), а кружки-пузырьки выровнены по
+   НИЖНЕМУ краю группы (align-items:flex-end — так они остаются у самого
+   облака, ближе к морде собаки, независимо от его высоты). Если оставить
+   тот же top, что и у короткого облака, из-за возросшей высоты нижний край
+   (а с ним и кружки) съезжает вниз, в область хвоста спящей собаки —
+   поднимаем всю группу выше, чтобы кружки остались на прежнем месте. */
+.intro-dialogue__thought--dream{
+    top:clamp(2vh, 4vh, 7vh);
+}
+
 /* Маленький кружок */
 .thought-dot--1{
     width:12px;
@@ -359,9 +370,9 @@
 .thought-cloud__dream-image{
     display:block;
     width:100%;
-    max-width:220px;
+    max-width:160px;
     height:auto;
-    margin:0 auto 14px;
+    margin:0 auto 10px;
 }
 
 .thought-cloud span{
@@ -554,8 +565,8 @@
     }
 
     .thought-cloud__dream-image{
-        max-width:170px;
-        margin-bottom:10px;
+        max-width:125px;
+        margin-bottom:8px;
     }
 }
 

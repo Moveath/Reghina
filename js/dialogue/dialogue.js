@@ -365,11 +365,19 @@ function renderIntroDialogue(){
     }
 
     if(line.showNotificationBadge){
+        // Разблокирует показ значка "непрочитано" на #lettersButton (см.
+        // introLetterBadgeGateOpen в js/ui/letters.js) — до этого момента
+        // даже РЕАЛЬНОЕ непрочитанное письмо (если оно уже лежит в инбоксе,
+        // например Егор написал заранее) не должно подсвечивать иконку:
+        // по сюжету письмо "приходит" именно здесь, не раньше (см. реплику
+        // 31 — там иконка уже видна и пульсирует, но ещё без значка).
+        window.introLetterBadgeUnlocked = true;
         const lettersBtn = document.getElementById("lettersButton");
         if(lettersBtn){
             lettersBtn.classList.add("has-unread");
             lettersBtn.dataset.count = "1";
         }
+        if(typeof updateUnreadBadge === "function") updateUnreadBadge();
     }
 
     // Центральный пазл переезжает из угла в центр экрана — используем уже
@@ -403,7 +411,7 @@ function renderIntroDialogue(){
             : "";
         dialogueContainer.innerHTML = `
             <div class="intro-dialogue" role="dialog" aria-live="polite">
-                <div class="intro-dialogue__thought">
+                <div class="intro-dialogue__thought${line.isDream ? " intro-dialogue__thought--dream" : ""}">
                     <div class="thought-dot thought-dot--1"></div>
                     <div class="thought-dot thought-dot--2"></div>
                     <div class="thought-cloud">

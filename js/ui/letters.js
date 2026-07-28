@@ -124,11 +124,24 @@ let knownInboxIds = null; // null = ещё ни разу не грузили (н
 let pollTimer = null;
 
 // Красный счётчик на иконке — реальное число непрочитанных из inboxCache.
+//
+// Во время интро иконка "Письма" сначала просто показывается/пульсирует
+// (реплика 31, highlightTarget), и только следующая реплика (32,
+// showNotificationBadge) по сюжету "приносит" письмо — до этого момента
+// значок непрочитанного держим скрытым, даже если в inboxCache уже реально
+// лежит непрочитанное (например, Регина заходит не в первый раз, или письмо
+// было отправлено заранее) — иначе значок вспыхивает на шаг раньше, чем
+// нужно по сценарию. window.introLetterBadgeUnlocked выставляется в
+// js/dialogue/dialogue.js ровно в момент реплики 32.
+function introLetterBadgeGateOpen(){
+    return !document.body.classList.contains("intro-active") || !!window.introLetterBadgeUnlocked;
+}
+
 function updateUnreadBadge(){
     if(!lettersButton) return;
     const unreadCount = inboxCache.filter(letter => letter.status !== "read").length;
 
-    if(unreadCount > 0){
+    if(unreadCount > 0 && introLetterBadgeGateOpen()){
         lettersButton.classList.add("has-unread");
         lettersButton.dataset.count = String(unreadCount);
     } else {
