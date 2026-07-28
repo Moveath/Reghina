@@ -285,11 +285,21 @@ async function restoreProgressFromCode(code){
 // требований), но только если интро уже пройдено (иначе это лезло бы прямо
 // поверх сценария знакомства с собакой и первого тестового ключа, который
 // открывает часть 1). testDate — необязательный override только для
-// dev-меню (см. dialogue.js); в обычной работе не передаётся вообще, и
-// сервер сам берёт настоящую дату. Решение "выдавать или нет" и "какой
-// месяц" целиком на сервере (server/src/routes/profile.js) — здесь только
-// показ найденного результата.
-async function checkMonthlyKey(testDate){
+// dev-меню (см. dialogue.js/devPanel.js); в обычной работе не передаётся
+// вообще, и сервер сам берёт настоящую дату. Решение "выдавать или нет" и
+// "какой месяц" целиком на сервере (server/src/routes/profile.js) — здесь
+// только показ найденного результата.
+//
+// onGranted — необязательный колбэк(piece_index), вызывается вместо
+// показа по умолчанию, если передан. Нужен js/character/returningGreeting.js,
+// чтобы показать ключ СО СВОИМ onClose (продолжить очередь приветствия
+// письма -> музыка -> обычная фраза только после того, как ключ полностью
+// закрылся) — без этого параметра showMonthlyKeyDialogue вызывался бы
+// ДВАЖДЫ (один раз отсюда без onClose, второй раз из returningGreeting.js
+// с onClose), и вторая, "правильная" сцена перезаписывала бы первую же
+// прямо посреди неё. Без onGranted (обычный визит без очереди, тесты из
+// devPanel.js) — прежнее поведение: показываем сами.
+async function checkMonthlyKey(testDate, onGranted){
     const code = getOwnerCode();
     if(!code) return;
 
@@ -306,8 +316,12 @@ async function checkMonthlyKey(testDate){
         if(!res.ok) return;
 
         const result = await res.json();
-        if(result.granted && typeof window.showMonthlyKeyDialogue === "function"){
-            window.showMonthlyKeyDialogue(result.piece_index);
+        if(result.granted){
+            if(typeof onGranted === "function"){
+                onGranted(result.piece_index);
+            } else if(typeof window.showMonthlyKeyDialogue === "function"){
+                window.showMonthlyKeyDialogue(result.piece_index);
+            }
         }
         return result;
     } catch(err){
@@ -418,6 +432,14 @@ const hadOwnerCodeBeforeStartup = Boolean(getOwnerCode());
 ensureOwnerCode().then(code => {
     if(!code) return;
     if(hadOwnerCodeBeforeStartup) reconcileWithServer();
-    checkMonthlyKey();
+    // Полная очередь приветствия (ключ -> письма -> музыка -> обычная
+    // фраза, см. js/character/returningGreeting.js) сама вызывает
+    // checkMonthlyKey() как первый шаг — отдельно его звать здесь больше не
+    // нужно. window.runReturningVisitGreeting может быть ещё не определена
+    // в момент ПАРСИНГА этого файла (грузится позже) — но к моменту, когда
+    // реально разрешится этот промис, все deferred-скрипты уже выполнились
+    // (тот же приём, что и раньше с checkMonthlyKey -> showMonthlyKeyDialogue).
+    if(typeof window.runReturningVisitGreeting === "function") window.runReturningVisitGreeting();
+    else checkMonthlyKey();
     sendHeartbeat(true);
 });

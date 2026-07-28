@@ -367,14 +367,14 @@ function setMusicNotificationBadge(hasNew){
 
 window.clearMusicNotificationBadge = () => setMusicNotificationBadge(false);
 
-// Вызывается один раз при загрузке страницы (см. js/ui/letters.js —
-// выстроено ПОСЛЕ проверки писем, чтобы при одновременном "новое письмо +
-// новая музыка" сначала полностью показалась и закрылась реплика про
-// письмо, а уже потом — про музыку, а не обе разом/наперегонки за
-// dogRemarkActive).
-window.checkMusicAddedGreeting = function checkMusicAddedGreeting(){
+// Вызывается из js/character/returningGreeting.js — шаг №3 в общей очереди
+// приветствия (ключ -> письма -> музыка -> обычная фраза), после того как
+// письма (шаг №2) уже полностью показались и закрылись. onDone(true) —
+// реплика реально показалась, onDone(false) — показывать было нечего.
+window.checkMusicAddedGreeting = function checkMusicAddedGreeting(onDone){
+    const done = typeof onDone === "function" ? onDone : () => {};
     const introDone = typeof isIntroAlreadyCompleted === "function" ? isIntroAlreadyCompleted() : true;
-    if(!introDone) return;
+    if(!introDone){ done(false); return; }
 
     const currentIds = new Set(MUSIC_TRACKS.map(track => track.id));
     const known = loadKnownMusicTrackIds();
@@ -382,6 +382,7 @@ window.checkMusicAddedGreeting = function checkMusicAddedGreeting(){
     if(known === null){
         saveKnownMusicTrackIds(currentIds);
         setMusicNotificationBadge(false);
+        done(false);
         return;
     }
 
@@ -389,11 +390,17 @@ window.checkMusicAddedGreeting = function checkMusicAddedGreeting(){
     saveKnownMusicTrackIds(currentIds);
 
     if(newTrackIds.length === 0){
+        done(false);
         return;
     }
 
     setMusicNotificationBadge(true);
-    if(typeof showDogRemark === "function") showDogRemark(t("music_new_track_greeting"), "happy");
+    if(typeof showDogRemark === "function"){
+        const started = showDogRemark(t("music_new_track_greeting"), "happy", () => done(true));
+        if(!started) done(false);
+    } else {
+        done(false);
+    }
 };
 
 window.musicGetTracks = () => MUSIC_TRACKS.slice();

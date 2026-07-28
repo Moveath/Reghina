@@ -1185,7 +1185,12 @@ function getDogClickEasterEggLines(){
 
 let monthlyKeySceneActive = false;
 
-function showMonthlyKeyDialogue(pieceIndex){
+// onClose — необязательный колбэк, вызывается ПОСЛЕ того, как вся сцена
+// целиком закрылась (обе стадии + реальное открытие кусочка, см.
+// finishMonthlyKeyDialogue) — нужен js/character/returningGreeting.js,
+// чтобы продолжить очередь приветствия (письма/музыка/обычная фраза)
+// только после того, как ключ полностью досмотрен, а не раньше.
+function showMonthlyKeyDialogue(pieceIndex, onClose){
     // Настоящее интро — приоритетнее, а вот ключ уже точно выдан на
     // сервере (checkMonthlyKey успел получить granted:true до этого
     // вызова), так что просто ждать следующей загрузки сайта нельзя —
@@ -1196,7 +1201,7 @@ function showMonthlyKeyDialogue(pieceIndex){
     // освободится.
     if(document.body.classList.contains("intro-active")) return;
     if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive || dogGuideSceneActive){
-        setTimeout(() => showMonthlyKeyDialogue(pieceIndex), 1500);
+        setTimeout(() => showMonthlyKeyDialogue(pieceIndex, onClose), 1500);
         return;
     }
     monthlyKeySceneActive = true;
@@ -1227,11 +1232,11 @@ function showMonthlyKeyDialogue(pieceIndex){
 
     document.getElementById("monthlyKeyFoundOk").addEventListener("click", (e) => {
         e.stopPropagation();
-        showMonthlyKeyOpenedStage(pieceIndex);
+        showMonthlyKeyOpenedStage(pieceIndex, onClose);
     });
 }
 
-function showMonthlyKeyOpenedStage(pieceIndex){
+function showMonthlyKeyOpenedStage(pieceIndex, onClose){
     const bubble = dialogueContainer.querySelector(".intro-dialogue__bubble");
     if(!bubble) return;
 
@@ -1244,11 +1249,11 @@ function showMonthlyKeyOpenedStage(pieceIndex){
 
     document.getElementById("monthlyKeyOpenedOk").addEventListener("click", (e) => {
         e.stopPropagation();
-        finishMonthlyKeyDialogue(pieceIndex);
+        finishMonthlyKeyDialogue(pieceIndex, onClose);
     });
 }
 
-function finishMonthlyKeyDialogue(pieceIndex){
+function finishMonthlyKeyDialogue(pieceIndex, onClose){
     monthlyKeySceneActive = false;
     if(typeof window.musicUnduck === "function") window.musicUnduck();
 
@@ -1262,6 +1267,7 @@ function finishMonthlyKeyDialogue(pieceIndex){
     setTimeout(() => {
         dialogueContainer.innerHTML = "";
         dialogueContainer.classList.remove("is-fading");
+        if(typeof onClose === "function") onClose();
     }, 850);
 
     if(typeof window.unlockPieceByIndex === "function"){

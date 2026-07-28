@@ -123,6 +123,31 @@ let inboxCache = [];
 let knownInboxIds = null; // null = ещё ни разу не грузили (не путать с "писем нет")
 let pollTimer = null;
 
+// Решение "показывать ли реплику про непрочитанное письмо" принимается
+// внутри самой первой loadInbox() (см. isInitialLoad ниже), но реально
+// ПОКАЗЫВАЕТСЯ только по команде js/character/returningGreeting.js — это
+// шаг №2 в общей очереди приветствия (ключ -> письма -> музыка -> обычная
+// фраза), и должен ждать своей очереди, а не выскакивать наперегонки с
+// ключом. resolveLetterGreetingReady разрешает letterGreetingReadyPromise
+// один раз, как только решение принято.
+let resolveLetterGreetingReady = null;
+const letterGreetingReadyPromise = new Promise(resolve => { resolveLetterGreetingReady = resolve; });
+
+// Вызывается из returningGreeting.js. onDone(true) — если реплика реально
+// показалась (и уже закрылась), onDone(false) — если показывать было
+// нечего или показ не удался (например, экран сейчас занят чем-то другим).
+window.checkLetterGreeting = function checkLetterGreeting(onDone){
+    const done = typeof onDone === "function" ? onDone : () => {};
+    letterGreetingReadyPromise.then(({ shouldShow, text }) => {
+        if(shouldShow && typeof showDogRemark === "function"){
+            const started = showDogRemark(text, "happy", () => done(true));
+            if(!started) done(false);
+        } else {
+            done(false);
+        }
+    });
+};
+
 // Красный счётчик на иконке — реальное число непрочитанных из inboxCache.
 //
 // Во время интро иконка "Письма" сначала просто показывается/пульсирует
@@ -473,33 +498,23 @@ async function loadInbox(){
 
         if(isInitialLoad){
             // Возвращение на сайт (или первое устройство/браузер видит уже
-            // существующую переписку) — сюжетная реплика с реальным числом
+            // существующую переписку) — реплика с реальным числом
             // непрочитанных, но только для тех, о ком ещё не рассказывали,
             // и только ПОСЛЕ интро (во время самого интро есть свой
-            // собственный шаг pauseForLetterRead — не дублируем его).
+            // собственный шаг pauseForLetterRead — не дублируем его). Сам
+            // ПОКАЗ реплики (и очередь письма -> музыка -> обычная фраза)
+            // управляется из js/character/returningGreeting.js — здесь
+            // только решаем, есть ли что показать, и передаём решение через
+            // letterGreetingReadyPromise (см. window.checkLetterGreeting
+            // выше), чтобы не показать её раньше ключа.
             const unread = fresh.filter(letter => letter.status !== "read");
             const notified = loadNotifiedUnreadIds();
             const hasUnannounced = unread.some(letter => !notified.has(letter.id));
             const introDone = typeof isIntroAlreadyCompleted === "function" ? isIntroAlreadyCompleted() : true;
+            const shouldShow = introDone && unread.length > 0 && hasUnannounced;
 
-            // Если одновременно накопились и непрочитанные письма, и новая
-            // музыка (см. checkMusicAddedGreeting в js/audio/music.js) —
-            // сначала полностью показываем и закрываем реплику про письмо,
-            // и только потом, через onClose, проверяем музыку — а не гоняем
-            // обе реплики наперегонки за dogRemarkActive (тогда вторая молча
-            // терялась бы). Если письма показывать не нужно — музыку
-            // проверяем сразу же.
-            const checkMusicAfter = () => {
-                if(typeof window.checkMusicAddedGreeting === "function") window.checkMusicAddedGreeting();
-            };
-
-            if(introDone && unread.length > 0 && hasUnannounced && typeof showDogRemark === "function"){
-                const started = showDogRemark(buildWelcomeBackText(unread.length), "happy", checkMusicAfter);
-                if(!started) checkMusicAfter();
-            } else {
-                checkMusicAfter();
-            }
             saveNotifiedUnreadIds(new Set(unread.map(letter => letter.id)));
+            resolveLetterGreetingReady({ shouldShow, text: shouldShow ? buildWelcomeBackText(unread.length) : null });
         } else {
             // Уже в активной сессии: новое письмо получает лёгкий тост, а
             // не сюжетную сцену — не мешаем тому, чем сейчас занята Регина.
@@ -532,6 +547,14 @@ async function loadInbox(){
         if(lettersView === "inbox"){
             const list = lettersPanel.querySelector(".letters-list");
             if(list) list.innerHTML = `<p class="letters-empty">${t("letters_load_error")}</p>`;
+        }
+        // Первая загрузка упала до того, как решение "показывать ли письмо"
+        // было принято — resolveLetterGreetingReady ещё ни разу не вызван, и
+        // window.checkLetterGreeting() иначе ждала бы её вечно, блокируя всю
+        // очередь приветствия (письма -> музыка -> обычная фраза) навсегда.
+        if(knownInboxIds === null && resolveLetterGreetingReady){
+            resolveLetterGreetingReady({ shouldShow: false, text: null });
+            resolveLetterGreetingReady = null;
         }
     }
 }
