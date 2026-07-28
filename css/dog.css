@@ -40,6 +40,17 @@
     z-index:5450;
 }
 
+/* Реакция на выбор раздела (см. handleDogGuideSection в js/character/
+   dogGuide.js) теперь тоже большая, как приветствие — но рядом почти
+   всегда открыт настоящий виджет раздела, а самые широкие модалки
+   (about-site/project-idea/dog-info, до 720px, центрированные) при полном
+   интро-размере (43vw) неизбежно наезжают собакой на их же текст с левого
+   края. Сужаем именно этот вариант — заметно крупнее маленького уголка,
+   но уже не долетает до текста в центре. */
+#characterContainer.is-intro-scene.is-guide-reaction-dog{
+    width:min(27vw, 380px);
+}
+
 /* Когда интро закончилось — имя исчезает */
 #characterContainer:not(.is-intro-scene) .character-nameplate{
     display:none;
