@@ -8,18 +8,18 @@ function getCurrentLine(){
 }
 
 const emotionMap = {
-    sleeping: "images/dog/sleeping.png",
-    sleepy:   "images/dog/sleepy.png",
-    happy:    "images/dog/happy.png",
-    // Отдельного thinking.png не существует — используем neutral, иначе
+    sleeping: "images/dog/sleeping.webp",
+    sleepy:   "images/dog/sleepy.webp",
+    happy:    "images/dog/happy.webp",
+    // Отдельного thinking.webp не существует — используем neutral, иначе
     // <img> ловит 404 и полностью пропадает (не просто не та эмоция, а
     // именно НЕВИДИМАЯ собака: сломанная картинка схлопывается по высоте).
-    thinking: "images/dog/neutral.png",
-    confused: "images/dog/confused.png",
-    neutral:  "images/dog/neutral.png",
-    sad:      "images/dog/sad.png",
-    excited:  "images/dog/excited.png",
-    withKey:  "images/dog/withkey.png"
+    thinking: "images/dog/neutral.webp",
+    confused: "images/dog/confused.webp",
+    neutral:  "images/dog/neutral.webp",
+    sad:      "images/dog/sad.webp",
+    excited:  "images/dog/excited.webp",
+    withKey:  "images/dog/withkey.webp"
 };
 
 const emotionClasses = {
@@ -106,7 +106,7 @@ function setDogEmotion(emotion){
         // img.className затирает весь список классов — сохраняем "is-highlighted",
         // если собака в этот момент как раз подсвечена (например, ждём клика по ней).
         const keepHighlighted = lastHighlightTarget === "dogCharacter" ? " is-highlighted" : "";
-        // dog-emotion-* — у картинок эмоций (images/dog/*.png) разный отступ
+        // dog-emotion-* — у картинок эмоций (images/dog/*.webp) разный отступ
         // прозрачного "воздуха" от верха кадра до головы, из-за этого собака
         // визуально "прыгала" по высоте при смене эмоции. Этот класс задаёт
         // компенсирующее смещение (см. --dog-emotion-offset в css/dog.css).

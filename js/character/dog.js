@@ -35,7 +35,7 @@ if(introAlreadyCompleted){
         <img
             id="dogCharacter"
             class="dog-character is-resting"
-            src="images/dog/neutral.png"
+            src="images/dog/neutral.webp"
             alt="Собака-проводник"
         >
         ${idleExtrasHtml}
@@ -47,7 +47,7 @@ if(introAlreadyCompleted){
         <img
             id="dogCharacter"
             class="dog-character is-intro is-sleeping dog-emotion-sleeping"
-            src="images/dog/sleeping.png"
+            src="images/dog/sleeping.webp"
             alt="Собака-проводник"
         >
         ${idleExtrasHtml}

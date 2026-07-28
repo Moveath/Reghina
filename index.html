@@ -20,9 +20,9 @@
     (function(){
         try {
             var THEME_IMAGES = {
-                pink:   "images/backgrounds/theme-pink.png",
-                purple: "images/backgrounds/theme-purple.png",
-                blue:   "images/backgrounds/theme-blue.png"
+                pink:   "images/backgrounds/theme-pink.webp",
+                purple: "images/backgrounds/theme-purple.webp",
+                blue:   "images/backgrounds/theme-blue.webp"
             };
             var theme = localStorage.getItem("reginaSelectedTheme") || "";
             var css = theme === "white"
@@ -49,11 +49,13 @@
             // качивается только в момент, когда до неё доходит setDogEmotion()
             // — старая картинка так и остаётся видна, пока грузится новая
             // (та самая "она на 5 шаге, а собака всё ещё выглядит как раньше").
-            // Картинки маленькие, преднагрузка всех дешёвая. "thinking" сюда
-            // не входит — такого файла нет, эмоция thinking указывает на
-            // тот же neutral.png (см. emotionMap в js/dialogue/dialogue.js).
+            // WebP вместо PNG (~150-320КБ вместо 2-3МБ каждая) — раньше
+            // именно эта преднагрузка была главной причиной долгой
+            // загрузки страницы. "thinking" сюда не входит — такого файла
+            // нет, эмоция thinking указывает на тот же neutral.webp (см.
+            // emotionMap в js/dialogue/dialogue.js).
             ["sleeping", "sleepy", "confused", "happy", "sad", "neutral", "withkey"].forEach(function(name){
-                preloadImage("images/dog/" + name + ".png");
+                preloadImage("images/dog/" + name + ".webp");
             });
         } catch(e){}
     })();

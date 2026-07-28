@@ -38,9 +38,9 @@ const selectedThemeStorageKey = "reginaSelectedTheme";
 // "white" — без картинки, просто сплошной белый цвет (референс в
 // images/backgrounds/theme-white.jpg был не нужен, попросили чистый белый).
 const themeOptions = [
-    { id: "pink",   label: t("theme_pink"),   image: "images/backgrounds/theme-pink.png" },
-    { id: "purple", label: t("theme_purple"), image: "images/backgrounds/theme-purple.png" },
-    { id: "blue",   label: t("theme_blue"),   image: "images/backgrounds/theme-blue.png" },
+    { id: "pink",   label: t("theme_pink"),   image: "images/backgrounds/theme-pink.webp" },
+    { id: "purple", label: t("theme_purple"), image: "images/backgrounds/theme-purple.webp" },
+    { id: "blue",   label: t("theme_blue"),   image: "images/backgrounds/theme-blue.webp" },
     { id: "white",  label: t("theme_white"),  color: "#ffffff" }
 ];
 const defaultThemeId = "pink";
@@ -676,7 +676,7 @@ function renderDogInfoModalContent(){
 
     scroll.innerHTML = `
         <div class="dog-info-modal__portrait">
-            <img src="images/dog/happy.png" alt="${displayName}">
+            <img src="images/dog/happy.webp" alt="${displayName}">
         </div>
         <h2 id="dogInfoModalTitle" class="about-site-modal__greeting">${t("dog_info_title")}</h2>
         <div class="dog-info-modal__facts">
@@ -697,7 +697,7 @@ function renderDogInfoModalContent(){
         <div class="dog-info-modal__emotions">
             ${dogInfoEmotions.map(e => `
                 <div class="dog-info-modal__emotion-card">
-                    <img class="dog-info-modal__emotion-img" src="images/dog/${e.file}.png" alt="">
+                    <img class="dog-info-modal__emotion-img" src="images/dog/${e.file}.webp" alt="">
                     <div class="dog-info-modal__emotion-name">${e.emoji} ${t(e.nameKey)}</div>
                     <p class="dog-info-modal__emotion-desc">${t(e.descKey)}</p>
                 </div>
