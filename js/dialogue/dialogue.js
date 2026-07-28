@@ -744,6 +744,11 @@ dialogueContainer.addEventListener("click", (e) => {
     if(introFrozen) return;
     if(resetConfirmActive) return;
     if(dogRemarkActive) return;
+    // Меню-проводник (см. js/character/dogGuide.js) тоже временно занимает
+    // dialogueContainer своей репликой — без этой проверки клик по нему
+    // читался бы как клик по НАСТОЯЩЕЙ реплике интро (getCurrentLine() ниже
+    // вернул бы что-то не связанное с меню) и мог сдвинуть dialogueIndex.
+    if(dogGuideSceneActive) return;
 
     // Не обрабатываем клик, если нажали на кнопку, инпут или внутри выбора
     if(e.target.closest(".choice-btn") || e.target.closest(".name-input-wrap")) return;
@@ -1181,7 +1186,7 @@ function showMonthlyKeyDialogue(pieceIndex){
     // не перебиваем её, а тихо ждём и пробуем ещё раз, пока экран не
     // освободится.
     if(document.body.classList.contains("intro-active")) return;
-    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive){
+    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive || dogGuideSceneActive){
         setTimeout(() => showMonthlyKeyDialogue(pieceIndex), 1500);
         return;
     }
@@ -1275,7 +1280,7 @@ window.showMonthlyKeyDialogue = showMonthlyKeyDialogue;
 // делать дальше).
 function showDogRemark(text, emotion, onClose){
     if(document.body.classList.contains("intro-active")) return false;
-    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive) return false;
+    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive || dogGuideSceneActive) return false;
     dogRemarkActive = true;
     if(typeof window.musicDuck === "function") window.musicDuck();
 

@@ -1,7 +1,18 @@
 /*
  * Меню-проводник: клик по собаке / её имени (#dogNameButton) / иконке
- * (#characterInfoButton) открывает небольшое всплывающее меню рядом с
- * собакой — случайная приветственная фраза + кнопки разделов сайта.
+ * (#characterInfoButton) запускает сцену — собака увеличивается по центру
+ * (как в интро) и говорит случайную фразу через обычный пузырь диалога
+ * (#dialogueContainer, тот же .intro-dialogue/.intro-dialogue__bubble, что
+ * и во всех остальных диалогах на сайте). Рядом ОТДЕЛЬНО открывается
+ * персистентное меню (#dogGuideMenu) со списком разделов.
+ *
+ * Два независимых состояния:
+ * - dogGuideMenuOpen — само меню (список разделов). Остаётся открытым,
+ *   пока Регина не закроет его сама (крестик или клик мимо) — не зависит
+ *   от собаки/диалога.
+ * - dogGuidePulseActive — собака + диалоговый пузырь. Показывается на
+ *   несколько секунд при каждом открытии меню и при каждом выборе
+ *   раздела, потом сама уходит (клик в любом месте или через 3-5 секунд).
  *
  * Клик по самой собаке ловится координатно в js/dialogue/dialogue.js (тот
  * же обработчик, что считает 5-клик-пасхалку) — у #characterContainer
@@ -10,10 +21,16 @@
  */
 
 const dogGuideMenuEl = document.getElementById("dogGuideMenu");
-let dogGuideOpen = false;
-let dogGuideAutoCloseTimer = null;
-let dogGuideBounceTimer = null;
-let dogGuideHideTimer = null;
+let dogGuideMenuOpen = false;
+let dogGuidePulseActive = false;
+// Читает js/dialogue/dialogue.js (guard в обработчике клика по
+// dialogueContainer и в showDogRemark/showMonthlyKeyDialogue) — файл
+// грузится раньше этого, но обращается к переменной только внутри функций,
+// вызываемых уже после того, как все скрипты выполнились.
+let dogGuideSceneActive = false;
+let dogGuidePulseTimer = null;
+let dogGuidePulseCleanupTimer = null;
+let dogGuideMenuCleanupTimer = null;
 
 const dogGuideNavSections = [
     { icon: "📨", labelKey: "dog_guide_nav_letters", action: "letters" },
@@ -62,9 +79,15 @@ function getDogGuideLettersLine(){
     return pickRandomLine(candidates);
 }
 
+function getSectionLine(action){
+    if(action === "letters") return getDogGuideLettersLine();
+    return pickRandomLine(getDogGuideSectionLines(action));
+}
+
 // Собака сейчас занята чем-то другим (интро, другая реплика, подтверждение
 // и т.д.) — меню-проводник в это время открывать нельзя, иначе всплывающие
-// сцены наложатся друг на друга.
+// сцены наложатся друг на друга (все они делят #dialogueContainer/
+// #characterContainer).
 function canOpenDogGuide(){
     if(!dogGuideMenuEl || !characterContainer || !dogCharacter) return false;
     if(document.body.classList.contains("intro-active")) return false;
@@ -77,11 +100,68 @@ function canOpenDogGuide(){
 }
 window.canOpenDogGuide = canOpenDogGuide;
 
-function renderDogGuideMenu(text){
-    dogGuideMenuEl.innerHTML = `
-        <div class="dog-guide-menu__bubble">
-            <p id="dogGuideMenuText">${text}</p>
+// ===== Собака + диалоговый пузырь (короткий "пульс", несколько секунд) =====
+
+function startDogGuidePulse(text){
+    if(dogGuidePulseTimer){ clearTimeout(dogGuidePulseTimer); dogGuidePulseTimer = null; }
+    if(dogGuidePulseCleanupTimer){ clearTimeout(dogGuidePulseCleanupTimer); dogGuidePulseCleanupTimer = null; }
+
+    dogGuidePulseActive = true;
+    dogGuideSceneActive = true;
+
+    characterContainer.classList.add("is-intro-scene");
+    setDogEmotion("happy");
+
+    // is-clear — без тумана (см. .intro-dialogue::before в dialogue.css):
+    // меню и открытые виджеты рядом должны оставаться хорошо видны, а не
+    // притемняться, как во время настоящих сюжетных сцен.
+    dialogueContainer.classList.remove("is-puzzle-reveal", "is-fading");
+    dialogueContainer.classList.add("is-active", "is-clear", "is-guide-scene");
+    dialogueContainer.innerHTML = `
+        <div class="intro-dialogue" role="dialog" aria-live="polite">
+            <div class="intro-dialogue__bubble">
+                <p>${text}</p>
+            </div>
         </div>
+    `;
+
+    dogGuidePulseTimer = setTimeout(endDogGuidePulse, 3000 + Math.random() * 2000); // 3–5 секунд
+}
+
+function endDogGuidePulse(){
+    if(!dogGuidePulseActive) return;
+    dogGuidePulseActive = false;
+    dogGuideSceneActive = false;
+    if(dogGuidePulseTimer){ clearTimeout(dogGuidePulseTimer); dogGuidePulseTimer = null; }
+
+    dialogueContainer.classList.add("is-fading");
+    dialogueContainer.classList.remove("is-active");
+    characterContainer.classList.remove("is-intro-scene");
+    resetDogToNeutral();
+
+    if(dogGuidePulseCleanupTimer) clearTimeout(dogGuidePulseCleanupTimer);
+    dogGuidePulseCleanupTimer = setTimeout(() => {
+        if(!dogGuidePulseActive){
+            dialogueContainer.innerHTML = "";
+            dialogueContainer.classList.remove("is-fading", "is-clear", "is-guide-scene");
+        }
+        dogGuidePulseCleanupTimer = null;
+    }, 850);
+}
+
+// Клик в любом месте (кроме самого меню разделов) досрочно убирает собаку
+// с диалогом — меню при этом остаётся открытым.
+dialogueContainer.addEventListener("click", (event) => {
+    if(!dogGuidePulseActive) return;
+    if(event.target.closest("#dogGuideMenu")) return;
+    endDogGuidePulse();
+});
+
+// ===== Персистентное меню разделов =====
+
+function renderDogGuideMenuCard(){
+    dogGuideMenuEl.innerHTML = `
+        <button type="button" class="dog-guide-menu__close" aria-label="${t("about_modal_close_aria")}">&times;</button>
         <ul class="dog-guide-menu__list">
             ${dogGuideNavSections.map(section => `
                 <li>
@@ -94,6 +174,11 @@ function renderDogGuideMenu(text){
         </ul>
     `;
 
+    dogGuideMenuEl.querySelector(".dog-guide-menu__close").addEventListener("click", (event) => {
+        event.stopPropagation();
+        closeDogGuideMenu();
+    });
+
     dogGuideMenuEl.querySelectorAll(".dog-guide-menu__btn").forEach(btn => {
         btn.addEventListener("click", (event) => {
             event.stopPropagation();
@@ -102,81 +187,49 @@ function renderDogGuideMenu(text){
     });
 }
 
-// Один "прыжок" — при открытии меню и при переключении на новый раздел.
-// Классы вешаем на саму картинку (#dogCharacter), а не на #characterContainer:
-// setDogEmotion() каждый раз ПОЛНОСТЬЮ перезаписывает img.className (см.
-// dialogue.js), поэтому is-guide-active/is-guide-bounce нужно добавлять
-// уже ПОСЛЕ того, как её 180мс-таймаут смены картинки отработает —
-// см. setTimeout ниже в openDogGuideMenu(). resetDogToNeutral() в конце
-// точно так же полностью заменяет className, поэтому отдельно убирать эти
-// классы при закрытии не нужно — они сами исчезают вместе со сбросом эмоции.
-function playDogGuideBounce(){
-    dogCharacter.classList.remove("is-guide-bounce");
-    void dogCharacter.offsetWidth; // форсируем reflow, чтобы анимация перезапустилась
-    dogCharacter.classList.add("is-guide-bounce");
-    if(dogGuideBounceTimer) clearTimeout(dogGuideBounceTimer);
-    dogGuideBounceTimer = setTimeout(() => {
-        dogCharacter.classList.remove("is-guide-bounce");
-        dogGuideBounceTimer = null;
-    }, 650);
-}
-
-function openDogGuideMenu(){
-    if(!canOpenDogGuide()) return;
-    if(dogGuideAutoCloseTimer){ clearTimeout(dogGuideAutoCloseTimer); dogGuideAutoCloseTimer = null; }
-    if(dogGuideHideTimer){ clearTimeout(dogGuideHideTimer); dogGuideHideTimer = null; }
-
-    dogGuideOpen = true;
-    setDogEmotion("happy");
-    // 200мс — чуть больше внутреннего 180мс-таймаута setDogEmotion, чтобы
-    // не попасть под её перезапись className.
-    setTimeout(() => {
-        if(!dogGuideOpen) return;
-        dogCharacter.classList.add("is-guide-active");
-        playDogGuideBounce();
-    }, 200);
-
-    renderDogGuideMenu(pickRandomLine(getDogGuideGreetingLines()));
+function openDogGuideMenuPanel(){
+    if(dogGuideMenuOpen) return;
+    if(dogGuideMenuCleanupTimer){ clearTimeout(dogGuideMenuCleanupTimer); dogGuideMenuCleanupTimer = null; }
+    dogGuideMenuOpen = true;
+    renderDogGuideMenuCard();
     void dogGuideMenuEl.offsetWidth; // форсируем reflow перед .is-open, чтобы transition точно сыграл
     dogGuideMenuEl.classList.add("is-open");
 }
 
+// Закрывает и меню, и (если ещё показана) собаку с диалогом — единая
+// точка выхода из всей сцены-проводника.
 function closeDogGuideMenu(){
-    if(!dogGuideOpen) return;
-    dogGuideOpen = false;
-    if(dogGuideAutoCloseTimer){ clearTimeout(dogGuideAutoCloseTimer); dogGuideAutoCloseTimer = null; }
-
-    dogGuideMenuEl.classList.remove("is-open");
-    resetDogToNeutral();
-
-    if(dogGuideHideTimer) clearTimeout(dogGuideHideTimer);
-    dogGuideHideTimer = setTimeout(() => {
-        if(!dogGuideOpen) dogGuideMenuEl.innerHTML = "";
-        dogGuideHideTimer = null;
-    }, 350);
+    if(dogGuideMenuOpen){
+        dogGuideMenuOpen = false;
+        dogGuideMenuEl.classList.remove("is-open");
+        if(dogGuideMenuCleanupTimer) clearTimeout(dogGuideMenuCleanupTimer);
+        dogGuideMenuCleanupTimer = setTimeout(() => {
+            if(!dogGuideMenuOpen) dogGuideMenuEl.innerHTML = "";
+            dogGuideMenuCleanupTimer = null;
+        }, 300);
+    }
+    endDogGuidePulse();
 }
 window.closeDogGuideMenu = closeDogGuideMenu;
 
-function toggleDogGuideMenu(){
-    if(dogGuideOpen) closeDogGuideMenu();
-    else openDogGuideMenu();
+// Клик по собаке/имени/иконке — точка входа. Меню открывается один раз и
+// дальше остаётся на месте; повторный вызов просто освежает реплику
+// собаки случайным приветствием.
+function triggerDogGuide(){
+    if(!canOpenDogGuide()) return;
+    openDogGuideMenuPanel();
+    startDogGuidePulse(pickRandomLine(getDogGuideGreetingLines()));
 }
-window.toggleDogGuideMenu = toggleDogGuideMenu;
+window.toggleDogGuideMenu = triggerDogGuide;
 
-// Плавная смена текста в уже открытом пузыре (переход к разделу) — короткий
-// fade вместо резкой замены.
-function swapDogGuideText(text){
-    const p = document.getElementById("dogGuideMenuText");
-    if(!p){
-        renderDogGuideMenu(text);
-        return;
-    }
-    p.classList.add("is-swapping");
-    setTimeout(() => {
-        p.textContent = text;
-        p.classList.remove("is-swapping");
-    }, 180);
-}
+// Клик мимо меню (и мимо кнопок-триггеров) закрывает его — как и остальные
+// всплывающие меню на сайте (темы/язык).
+document.addEventListener("click", (event) => {
+    if(!dogGuideMenuOpen) return;
+    if(event.target.closest("#dogGuideMenu")) return;
+    if(event.target.closest("#dogNameButton") || event.target.closest("#characterInfoButton")) return;
+    closeDogGuideMenu();
+});
 
 // Виджет "История создания" на сайте пока не существует (только строка-
 // заглушка в панели "О проекте", см. js/ui/settings.js) — до тех пор, пока
@@ -212,23 +265,13 @@ function openWidgetForSection(action){
     }
 }
 
-function getSectionLine(action){
-    if(action === "letters") return getDogGuideLettersLine();
-    return pickRandomLine(getDogGuideSectionLines(action));
-}
-
 function handleDogGuideSection(action){
     // Дневник (см. js/character/diary.js) сам слушает открытие разделов в
     // первоисточнике (toggleAboutPanel/openProjectIdeaModal/...), а не
     // здесь — иначе один и тот же клик засчитывался бы дважды (и отсюда,
     // и из самой функции открытия).
     openWidgetForSection(action);
-    swapDogGuideText(getSectionLine(action));
-    playDogGuideBounce();
-
-    if(dogGuideAutoCloseTimer) clearTimeout(dogGuideAutoCloseTimer);
-    const stayMs = 3000 + Math.random() * 2000; // 3–5 секунд рядом, как просили
-    dogGuideAutoCloseTimer = setTimeout(closeDogGuideMenu, stayMs);
+    startDogGuidePulse(getSectionLine(action));
 }
 
 // Кнопки-триггеры: имя персонажа и иконка — обычные <button>, вне
@@ -237,7 +280,7 @@ const dogGuideNameTrigger = document.getElementById("dogNameButton");
 if(dogGuideNameTrigger){
     dogGuideNameTrigger.addEventListener("click", (event) => {
         event.stopPropagation();
-        toggleDogGuideMenu();
+        triggerDogGuide();
     });
 }
 
@@ -245,16 +288,6 @@ const dogGuideIconTrigger = document.getElementById("characterInfoButton");
 if(dogGuideIconTrigger){
     dogGuideIconTrigger.addEventListener("click", (event) => {
         event.stopPropagation();
-        toggleDogGuideMenu();
+        triggerDogGuide();
     });
 }
-
-// Клик мимо меню (и мимо самих кнопок-триггеров, у них своя логика выше)
-// закрывает его раньше срока — как и остальные всплывающие меню на сайте
-// (темы/язык).
-document.addEventListener("click", (event) => {
-    if(!dogGuideOpen) return;
-    if(event.target.closest("#dogGuideMenu")) return;
-    if(event.target.closest("#dogNameButton") || event.target.closest("#characterInfoButton")) return;
-    closeDogGuideMenu();
-});

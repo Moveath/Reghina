@@ -73,6 +73,40 @@
     }
 }
 
+/* ============================================================
+   МЕНЮ-ПРОВОДНИК (см. js/character/dogGuide.js) — собака слева (обычная
+   is-intro-scene позиция), меню разделов у неё под боком (.dog-guide-menu,
+   см. css/settings.css), а сам пузырь реплики уезжает правее меню, чтобы
+   ничего не перекрывать — тот же приём, что и в режиме "пазл в центре"
+   выше (justify-content:flex-end/flex-start + свой padding), просто в
+   другую сторону.
+   ============================================================ */
+#dialogueContainer.is-guide-scene .intro-dialogue{
+    align-items:center;
+    justify-content:flex-start;
+    padding:0 0 0 min(66vw, 820px);
+}
+
+#dialogueContainer.is-guide-scene .intro-dialogue__bubble{
+    max-width:min(360px, 32vw, 90vw);
+}
+
+#dialogueContainer.is-guide-scene .intro-dialogue__bubble::after{
+    display:none;
+}
+
+@media (max-width: 900px){
+    #dialogueContainer.is-guide-scene .intro-dialogue{
+        align-items:flex-end;
+        justify-content:center;
+        padding:0 16px 15vh;
+    }
+
+    #dialogueContainer.is-guide-scene .intro-dialogue__bubble{
+        max-width:min(480px, 90vw);
+    }
+}
+
 /* Туманный затемняющий фон за диалогом.
    Пока собака говорит — фон в дымке (blur + затемнение),
    как будто ещё "не проявился". После диалога рассеивается. */
