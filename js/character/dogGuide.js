@@ -84,6 +84,16 @@ function getSectionLine(action){
     return pickRandomLine(getDogGuideSectionLines(action));
 }
 
+// Любой другой открытый виджет/панель/модалка (письма, музыка, настройки,
+// прогресс, дневник, "О проекте", "Идея проекта", "О сайте", "О собаке")
+// — помощь проводника в это время вызывать нельзя, только когда фон
+// "чистый". Иначе меню/реплика рисуются поверх уже открытого виджета и
+// перекрывают его содержимое (см. .settings-panel/.about-site-modal —
+// у всех панелей и модалок общий класс + is-open, см. index.html/settings.js).
+function isAnyWidgetOpen(){
+    return !!(document.querySelector(".settings-panel.is-open") || document.querySelector(".about-site-modal.is-open"));
+}
+
 // Собака сейчас занята чем-то другим (интро, другая реплика, подтверждение
 // и т.д.) — меню-проводник в это время открывать нельзя, иначе всплывающие
 // сцены наложатся друг на друга (все они делят #dialogueContainer/
@@ -96,6 +106,7 @@ function canOpenDogGuide(){
     if(dogRemarkActive) return false;
     if(typeof monthlyKeySceneActive !== "undefined" && monthlyKeySceneActive) return false;
     if(typeof languageConfirmActive !== "undefined" && languageConfirmActive) return false;
+    if(isAnyWidgetOpen()) return false;
     return true;
 }
 window.canOpenDogGuide = canOpenDogGuide;

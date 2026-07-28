@@ -114,21 +114,30 @@
 /* "Реакция на выбор раздела" (см. handleDogGuideSection в js/character/
    dogGuide.js) — собака НЕ увеличивается (обычная маленькая, в углу, как
    и вне интро), потому что в этот момент открывается настоящий виджет
-   раздела (letters-panel/about-site-modal/... — иногда во весь экран).
-   Пузырь ставим рядом с этим маленьким углом — там свободнее всего, что
-   бы ни открылось, но у некоторых виджетов (about-site/project-idea/
-   dog-info — до 720px шириной, почти на весь экран на небольших окнах)
-   свободного места всё равно может не остаться совсем — тогда пузырь
-   специально рисуется ПОВЕРХ (см. z-index ниже), чтобы остаться читаемым,
-   а не наполовину срезанным под виджетом. */
+   раздела (letters-panel/about-site-modal/... — иногда во весь экран,
+   до 720px). Раньше пузырь ставился прямо рядом с этим маленьким углом
+   (снизу-слева) и почти всегда перекрывал сам виджет, который только что
+   открылся. По тому же приёму, что уже используется в режиме "пазл в
+   центре" выше (is-puzzle-reveal — собака/меню слева, контент по центру,
+   пузырь уезжает вправо) уводим пузырь на правый край экрана — виджет
+   почти всегда открывается по центру, справа обычно свободнее всего.
+   Полностью избежать пересечения с самыми широкими модалками (about-site/
+   project-idea/dog-info) на небольших окнах всё равно нельзя — тогда
+   пузырь рисуется ПОВЕРХ (см. z-index ниже), чтобы остаться читаемым. */
 #dialogueContainer.is-guide-reaction .intro-dialogue{
-    align-items:flex-end;
-    justify-content:flex-start;
-    padding:0 0 26px 210px;
+    align-items:center;
+    justify-content:flex-end;
+    padding:0 3vw 0 0;
 }
 
 #dialogueContainer.is-guide-reaction .intro-dialogue__bubble{
-    max-width:min(320px, 40vw, 85vw);
+    max-width:min(340px, 34vw, 90vw);
+}
+
+/* Пузырь больше не стоит вплотную к собаке — хвостик, указывающий на
+   её морду, здесь смысла не имеет (как и в is-guide-scene/is-puzzle-reveal). */
+#dialogueContainer.is-guide-reaction .intro-dialogue__bubble::after{
+    display:none;
 }
 
 #dialogueContainer.is-guide-reaction,
@@ -139,13 +148,13 @@
 
 @media (max-width: 900px){
     #dialogueContainer.is-guide-reaction .intro-dialogue{
-        align-items:flex-end;
-        justify-content:flex-start;
-        padding:0 0 16px 130px;
+        align-items:flex-start;
+        justify-content:flex-end;
+        padding:16px 12px 0 0;
     }
 
     #dialogueContainer.is-guide-reaction .intro-dialogue__bubble{
-        max-width:min(220px, 55vw, 80vw);
+        max-width:min(260px, 60vw, 85vw);
     }
 }
 
@@ -239,6 +248,30 @@
     line-height:1.5;
     margin:0;
     word-wrap:break-word;
+
+    /* Некоторые реплики (например, длинный выбор в интро) на глаз слишком
+       длинные — без ограничения пузырь раздувается почти на весь экран.
+       Ограничиваем высоту САМОГО ТЕКСТА (не всего пузыря, чтобы кнопки
+       выбора/поле имени ниже оставались на месте и не уезжали со скроллом)
+       и даём проскроллить остаток — с тонким ползунком сбоку. */
+    max-height:min(42vh, 300px);
+    overflow-y:auto;
+    padding-right:10px;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(23,16,20,.35) transparent;
+}
+
+.intro-dialogue__bubble p::-webkit-scrollbar{
+    width:6px;
+}
+
+.intro-dialogue__bubble p::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.intro-dialogue__bubble p::-webkit-scrollbar-thumb{
+    background:rgba(23,16,20,.35);
+    border-radius:10px;
 }
 
 .intro-dialogue__bubble span{
@@ -490,6 +523,7 @@
 
     .intro-dialogue__bubble p{
         font-size:17px;
+        max-height:30vh;
     }
 
     /* Хвостик сверху пузыря, указывает вверх-влево */

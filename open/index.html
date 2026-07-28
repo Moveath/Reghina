@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Пока ещё рано 🐾</title>
+<style>
+    *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+    }
+
+    html, body{
+        height:100%;
+    }
+
+    body{
+        min-height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        padding:24px;
+
+        background:
+            radial-gradient(circle at top left, #8b5cf6 0%, transparent 45%),
+            radial-gradient(circle at bottom right, #a78bfa 0%, transparent 40%),
+            linear-gradient(150deg, #3a2154 0%, #241536 55%, #1a0f28 100%);
+
+        font-family:'Segoe UI', sans-serif;
+    }
+
+    .stub-card{
+        position:relative;
+        width:min(92vw, 460px);
+        box-sizing:border-box;
+        padding:44px 36px 38px;
+
+        background:#fffdfb;
+        border:4px solid #171014;
+        border-radius:32px;
+        box-shadow:0 30px 70px rgba(6,2,14,.45);
+
+        text-align:center;
+        color:#171014;
+
+        animation:cardIn .5s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .stub-card__icon{
+        font-size:56px;
+        line-height:1;
+        margin-bottom:14px;
+        animation:iconPulse 3.4s ease-in-out infinite;
+    }
+
+    .stub-card__title{
+        font-size:24px;
+        font-weight:800;
+        letter-spacing:.01em;
+        margin-bottom:18px;
+    }
+
+    .stub-card__text p{
+        font-size:16px;
+        font-weight:500;
+        line-height:1.6;
+        color:rgba(23,16,20,.75);
+    }
+
+    .stub-card__text p + p{
+        margin-top:10px;
+    }
+
+    @keyframes cardIn{
+        from{ opacity:0; transform:translateY(18px) scale(.96); }
+        to{ opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    @keyframes iconPulse{
+        0%, 100%{ transform:scale(1); }
+        50%{ transform:scale(1.08); }
+    }
+</style>
+</head>
+<body>
+    <div class="stub-card">
+        <div class="stub-card__icon" aria-hidden="true">🐾</div>
+        <h1 class="stub-card__title">Пока ещё рано 🐾</h1>
+        <div class="stub-card__text">
+            <p>Если ты здесь оказалась, значит почти добралась до конца пути.</p>
+            <p>Но пока это место остаётся закрытым.</p>
+            <p>Возвращайся позже.</p>
+        </div>
+    </div>
+</body>
+</html>
