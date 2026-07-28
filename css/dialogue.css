@@ -99,21 +99,6 @@
     display:none;
 }
 
-/* Некоторые разделы меню-проводника открывают полноэкранные модалки со
-   своим затемнением и z-index:5300 (about-site-modal/project-idea-modal/
-   dog-info-modal, см. settings.css) — без этого override собака с
-   репликой оказывалась бы у них под низом, невидимая все 3-5 секунд, пока
-   модалка открыта. Поднимаем поверх нужного z-index, а кликабельность
-   специально выключаем (pointer-events:none) — самому диалогу теперь не
-   на что реагировать (клик по фону её больше не закрывает, см.
-   js/character/dogGuide.js), а вот кнопки/скролл модалки под ней должны
-   спокойно работать, а не упираться в невидимый на вид, но перехватывающий
-   клики слой поверх. */
-#dialogueContainer.is-guide-scene{
-    z-index:5450;
-    pointer-events:none;
-}
-
 @media (max-width: 900px){
     #dialogueContainer.is-guide-scene .intro-dialogue{
         align-items:flex-end;
@@ -123,6 +108,44 @@
 
     #dialogueContainer.is-guide-scene .intro-dialogue__bubble{
         max-width:min(480px, 90vw);
+    }
+}
+
+/* "Реакция на выбор раздела" (см. handleDogGuideSection в js/character/
+   dogGuide.js) — собака НЕ увеличивается (обычная маленькая, в углу, как
+   и вне интро), потому что в этот момент открывается настоящий виджет
+   раздела (letters-panel/about-site-modal/... — иногда во весь экран).
+   Пузырь ставим рядом с этим маленьким углом — там свободнее всего, что
+   бы ни открылось, но у некоторых виджетов (about-site/project-idea/
+   dog-info — до 720px шириной, почти на весь экран на небольших окнах)
+   свободного места всё равно может не остаться совсем — тогда пузырь
+   специально рисуется ПОВЕРХ (см. z-index ниже), чтобы остаться читаемым,
+   а не наполовину срезанным под виджетом. */
+#dialogueContainer.is-guide-reaction .intro-dialogue{
+    align-items:flex-end;
+    justify-content:flex-start;
+    padding:0 0 26px 210px;
+}
+
+#dialogueContainer.is-guide-reaction .intro-dialogue__bubble{
+    max-width:min(320px, 40vw, 85vw);
+}
+
+#dialogueContainer.is-guide-reaction,
+#dialogueContainer.is-guide-scene{
+    z-index:5450;
+    pointer-events:none;
+}
+
+@media (max-width: 900px){
+    #dialogueContainer.is-guide-reaction .intro-dialogue{
+        align-items:flex-end;
+        justify-content:flex-start;
+        padding:0 0 16px 130px;
+    }
+
+    #dialogueContainer.is-guide-reaction .intro-dialogue__bubble{
+        max-width:min(220px, 55vw, 80vw);
     }
 }
 

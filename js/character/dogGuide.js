@@ -102,28 +102,43 @@ window.canOpenDogGuide = canOpenDogGuide;
 
 // ===== Собака + диалоговый пузырь =====
 //
-// На приветствии (сразу после открытия меню) собака остаётся молча стоять
-// со своей репликой — сама никуда не уходит. Уходит она только тогда,
-// когда: (а) закрывается само меню (крестик/клик мимо — см. closeDogGuideMenu),
-// или (б) Регина выбрала какой-то раздел — тогда через 3-5 секунд после
-// этого собака уходит сама (см. scheduleDogGuidePulseTimeout, вызывается
-// только из handleDogGuideSection, НЕ из triggerDogGuide).
+// Два разных вида этой сцены:
+//
+// - "Приветствие" (сразу после открытия меню, см. triggerDogGuide) — собака
+//   БОЛЬШАЯ по центру-слева (is-intro-scene), реплика справа от меню.
+//   Виджет-раздел в этот момент ещё не открыт, перекрывать нечего. Собака
+//   молча ждёт без ограничения по времени.
+//
+// - "Реакция на выбор" (см. handleDogGuideSection) — открывается настоящий
+//   виджет раздела (иногда широкий на весь экран), поэтому меню прячется
+//   (см. hideDogGuideMenuPanel), а собака остаётся МАЛЕНЬКОЙ в своём обычном
+//   углу — увеличивать её тут же означало бы почти гарантированно
+//   перекрыть только что открывшийся виджет. Реплика — небольшой пузырь
+//   рядом с этим маленьким углом (см. is-guide-reaction в dialogue.css).
+//   Уходит сама через 3-5 секунд (scheduleDogGuidePulseTimeout).
 
-function startDogGuidePulse(text){
+function startDogGuidePulse(text, big){
     if(dogGuidePulseTimer){ clearTimeout(dogGuidePulseTimer); dogGuidePulseTimer = null; }
     if(dogGuidePulseCleanupTimer){ clearTimeout(dogGuidePulseCleanupTimer); dogGuidePulseCleanupTimer = null; }
 
     dogGuidePulseActive = true;
     dogGuideSceneActive = true;
 
-    characterContainer.classList.add("is-intro-scene", "is-guide-dog");
+    // Явно выставляем оба варианта — иначе при переходе "приветствие" (big)
+    // → "реакция на выбор" (!big) собака оставалась бы большой, потому что
+    // add() без соответствующего remove() ничего не убирает сам по себе.
+    // is-guide-dog — z-index-приоритет НАД любым открытым виджетом (даже
+    // маленькая собака в углу иначе могла бы частично уйти под широкую
+    // модалку вроде "Идея проекта"/"О сайте"/"О собаке", см. dog.css).
+    characterContainer.classList.toggle("is-intro-scene", !!big);
+    characterContainer.classList.add("is-guide-dog");
     setDogEmotion("happy");
 
     // is-clear — без тумана (см. .intro-dialogue::before в dialogue.css):
     // меню и открытые виджеты рядом должны оставаться хорошо видны, а не
     // притемняться, как во время настоящих сюжетных сцен.
-    dialogueContainer.classList.remove("is-puzzle-reveal", "is-fading");
-    dialogueContainer.classList.add("is-active", "is-clear", "is-guide-scene");
+    dialogueContainer.classList.remove("is-puzzle-reveal", "is-fading", "is-guide-scene", "is-guide-reaction");
+    dialogueContainer.classList.add("is-active", "is-clear", big ? "is-guide-scene" : "is-guide-reaction");
     dialogueContainer.innerHTML = `
         <div class="intro-dialogue" role="dialog" aria-live="polite">
             <div class="intro-dialogue__bubble">
@@ -155,7 +170,7 @@ function endDogGuidePulse(){
     dogGuidePulseCleanupTimer = setTimeout(() => {
         if(!dogGuidePulseActive){
             dialogueContainer.innerHTML = "";
-            dialogueContainer.classList.remove("is-fading", "is-clear", "is-guide-scene");
+            dialogueContainer.classList.remove("is-fading", "is-clear", "is-guide-scene", "is-guide-reaction");
         }
         dogGuidePulseCleanupTimer = null;
     }, 850);
@@ -200,29 +215,34 @@ function openDogGuideMenuPanel(){
     dogGuideMenuEl.classList.add("is-open");
 }
 
+// Просто прячет карточку меню (без "переход в собаку с диалогом" —
+// используется, когда открывается виджет раздела: см. handleDogGuideSection).
+function hideDogGuideMenuPanel(){
+    if(!dogGuideMenuOpen) return;
+    dogGuideMenuOpen = false;
+    dogGuideMenuEl.classList.remove("is-open");
+    if(dogGuideMenuCleanupTimer) clearTimeout(dogGuideMenuCleanupTimer);
+    dogGuideMenuCleanupTimer = setTimeout(() => {
+        if(!dogGuideMenuOpen) dogGuideMenuEl.innerHTML = "";
+        dogGuideMenuCleanupTimer = null;
+    }, 300);
+}
+
 // Закрывает и меню, и (если ещё показана) собаку с диалогом — единая
-// точка выхода из всей сцены-проводника.
+// точка выхода из всей сцены-проводника (крестик/клик мимо).
 function closeDogGuideMenu(){
-    if(dogGuideMenuOpen){
-        dogGuideMenuOpen = false;
-        dogGuideMenuEl.classList.remove("is-open");
-        if(dogGuideMenuCleanupTimer) clearTimeout(dogGuideMenuCleanupTimer);
-        dogGuideMenuCleanupTimer = setTimeout(() => {
-            if(!dogGuideMenuOpen) dogGuideMenuEl.innerHTML = "";
-            dogGuideMenuCleanupTimer = null;
-        }, 300);
-    }
+    hideDogGuideMenuPanel();
     endDogGuidePulse();
 }
 window.closeDogGuideMenu = closeDogGuideMenu;
 
-// Клик по собаке/имени/иконке — точка входа. Меню открывается один раз и
-// дальше остаётся на месте; повторный вызов просто освежает реплику
-// собаки случайным приветствием.
+// Клик по собаке/имени — точка входа. Открывает меню разделов заново
+// (даже если до этого пряталось после выбора раздела) с новым случайным
+// приветствием.
 function triggerDogGuide(){
     if(!canOpenDogGuide()) return;
     openDogGuideMenuPanel();
-    startDogGuidePulse(pickRandomLine(getDogGuideGreetingLines()));
+    startDogGuidePulse(pickRandomLine(getDogGuideGreetingLines()), true);
 }
 window.toggleDogGuideMenu = triggerDogGuide;
 
@@ -288,7 +308,14 @@ function handleDogGuideSection(action){
     // здесь — иначе один и тот же клик засчитывался бы дважды (и отсюда,
     // и из самой функции открытия).
     openWidgetForSection(action);
-    startDogGuidePulse(getSectionLine(action));
+    // Прячем меню — сейчас откроется реальный виджет (иногда во весь
+    // экран), а меню по центру только перекрывало бы его содержимое.
+    // Чтобы выбрать другой раздел, нужно снова нажать на собаку/имя.
+    hideDogGuideMenuPanel();
+    // big=false — собака остаётся маленькой в своём углу (см. startDogGuidePulse),
+    // а не увеличивается по центру: увеличенная почти наверняка перекрыла
+    // бы только что открывшийся виджет.
+    startDogGuidePulse(getSectionLine(action), false);
     // Только теперь, после реального выбора, собака уходит сама через
     // 3-5 секунд — на самом приветствии (см. triggerDogGuide) она ждёт
     // без ограничения по времени.

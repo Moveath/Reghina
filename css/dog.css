@@ -33,8 +33,10 @@
    у которого свой полноэкранный виджет с затемнением и z-index:5300
    (about-site-modal/project-idea-modal/dog-info-modal, см. settings.css) —
    без этого override собака с репликой оказывалась бы у него под низом,
-   невидимой все 3-5 секунд, пока он открыт. */
-#characterContainer.is-intro-scene.is-guide-dog{
+   невидимой все 3-5 секунд, пока он открыт. is-guide-dog ставится в обоих
+   режимах сцены (и большая собака на приветствии, и маленькая в углу —
+   реакция на выбор раздела), поэтому селектор без .is-intro-scene. */
+#characterContainer.is-guide-dog{
     z-index:5450;
 }
 
