@@ -627,10 +627,10 @@ function handleProjectIdeaModalEscape(event){
 // одной сессии.
 const dogInfoEmotions = [
     { file: "sleeping", emoji: "😴", nameKey: "dog_info_emo_sleeping_name", descKey: "dog_info_emo_sleeping_desc" },
-    { file: "sleepy",   emoji: "😪", nameKey: "dog_info_emo_sleepy_name",   descKey: "dog_info_emo_sleepy_desc" },
-    { file: "confused", emoji: "🤔", nameKey: "dog_info_emo_confused_name", descKey: "dog_info_emo_confused_desc" },
+    { file: "sleepy",   emoji: "🥱", nameKey: "dog_info_emo_sleepy_name",   descKey: "dog_info_emo_sleepy_desc" },
+    { file: "confused", emoji: "😳", nameKey: "dog_info_emo_confused_name", descKey: "dog_info_emo_confused_desc" },
     { file: "happy",    emoji: "😊", nameKey: "dog_info_emo_happy_name",    descKey: "dog_info_emo_happy_desc" },
-    { file: "sad",      emoji: "😢", nameKey: "dog_info_emo_sad_name",      descKey: "dog_info_emo_sad_desc" },
+    { file: "sad",      emoji: "😔", nameKey: "dog_info_emo_sad_name",      descKey: "dog_info_emo_sad_desc" },
     { file: "excited",  emoji: "🎉", nameKey: "dog_info_emo_excited_name",  descKey: "dog_info_emo_excited_desc" },
     { file: "withkey",  emoji: "🔑", nameKey: "dog_info_emo_withkey_name",  descKey: "dog_info_emo_withkey_desc" },
     { file: "neutral",  emoji: "😌", nameKey: "dog_info_emo_neutral_name",  descKey: "dog_info_emo_neutral_desc" }
