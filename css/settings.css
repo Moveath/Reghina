@@ -1140,7 +1140,7 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
    ============================================================ */
 .dog-guide-menu{
     position:fixed;
-    left:34vw;
+    left:50%;
     top:50%;
     width:min(84vw, 260px);
     max-height:min(70vh, 480px);
@@ -1151,17 +1151,23 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
     border:1px solid rgba(255,255,255,.18);
     box-shadow:0 20px 50px rgba(0,0,0,.35);
     color:white;
-    z-index:4700;
+    /* Меню персистентное (остаётся открытым, пока сама не закроешь), а
+       разделы, которые оно открывает, тоже центрированы (letters-panel:
+       4950, about-site/project-idea/dog-info модалки: 5300) — без более
+       высокого z-index виджет-раздел визуально оказывался бы поверх и
+       блокировал клики по самому меню. Меню должно оставаться доступным
+       всегда, поверх чего угодно. */
+    z-index:5500;
     opacity:0;
     pointer-events:none;
-    transform:translateY(-50%) scale(.94);
+    transform:translate(-50%,-50%) scale(.94);
     transition:opacity .3s ease, transform .3s ease;
 }
 
 .dog-guide-menu.is-open{
     opacity:1;
     pointer-events:auto;
-    transform:translateY(-50%) scale(1);
+    transform:translate(-50%,-50%) scale(1);
 }
 
 .dog-guide-menu__close{

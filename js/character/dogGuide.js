@@ -100,7 +100,14 @@ function canOpenDogGuide(){
 }
 window.canOpenDogGuide = canOpenDogGuide;
 
-// ===== Собака + диалоговый пузырь (короткий "пульс", несколько секунд) =====
+// ===== Собака + диалоговый пузырь =====
+//
+// На приветствии (сразу после открытия меню) собака остаётся молча стоять
+// со своей репликой — сама никуда не уходит. Уходит она только тогда,
+// когда: (а) закрывается само меню (крестик/клик мимо — см. closeDogGuideMenu),
+// или (б) Регина выбрала какой-то раздел — тогда через 3-5 секунд после
+// этого собака уходит сама (см. scheduleDogGuidePulseTimeout, вызывается
+// только из handleDogGuideSection, НЕ из triggerDogGuide).
 
 function startDogGuidePulse(text){
     if(dogGuidePulseTimer){ clearTimeout(dogGuidePulseTimer); dogGuidePulseTimer = null; }
@@ -109,7 +116,7 @@ function startDogGuidePulse(text){
     dogGuidePulseActive = true;
     dogGuideSceneActive = true;
 
-    characterContainer.classList.add("is-intro-scene");
+    characterContainer.classList.add("is-intro-scene", "is-guide-dog");
     setDogEmotion("happy");
 
     // is-clear — без тумана (см. .intro-dialogue::before в dialogue.css):
@@ -124,7 +131,12 @@ function startDogGuidePulse(text){
             </div>
         </div>
     `;
+}
 
+// Вызывается только после выбора раздела — до этого (на приветствии)
+// собака ждёт без ограничения по времени.
+function scheduleDogGuidePulseTimeout(){
+    if(dogGuidePulseTimer) clearTimeout(dogGuidePulseTimer);
     dogGuidePulseTimer = setTimeout(endDogGuidePulse, 3000 + Math.random() * 2000); // 3–5 секунд
 }
 
@@ -136,7 +148,7 @@ function endDogGuidePulse(){
 
     dialogueContainer.classList.add("is-fading");
     dialogueContainer.classList.remove("is-active");
-    characterContainer.classList.remove("is-intro-scene");
+    characterContainer.classList.remove("is-intro-scene", "is-guide-dog");
     resetDogToNeutral();
 
     if(dogGuidePulseCleanupTimer) clearTimeout(dogGuidePulseCleanupTimer);
@@ -148,14 +160,6 @@ function endDogGuidePulse(){
         dogGuidePulseCleanupTimer = null;
     }, 850);
 }
-
-// Клик в любом месте (кроме самого меню разделов) досрочно убирает собаку
-// с диалогом — меню при этом остаётся открытым.
-dialogueContainer.addEventListener("click", (event) => {
-    if(!dogGuidePulseActive) return;
-    if(event.target.closest("#dogGuideMenu")) return;
-    endDogGuidePulse();
-});
 
 // ===== Персистентное меню разделов =====
 
@@ -222,12 +226,15 @@ function triggerDogGuide(){
 }
 window.toggleDogGuideMenu = triggerDogGuide;
 
-// Клик мимо меню (и мимо кнопок-триггеров) закрывает его — как и остальные
-// всплывающие меню на сайте (темы/язык).
+// Клик мимо меню (и мимо самой кнопки-имени, у неё своя логика выше)
+// закрывает его — как и остальные всплывающие меню на сайте (темы/язык).
+// #characterInfoButton сюда специально не входит — это отдельная кнопка
+// с собственным действием (открывает "О собаке" напрямую), клик по ней
+// должен закрывать меню-проводник как любой другой клик "в сторону".
 document.addEventListener("click", (event) => {
     if(!dogGuideMenuOpen) return;
     if(event.target.closest("#dogGuideMenu")) return;
-    if(event.target.closest("#dogNameButton") || event.target.closest("#characterInfoButton")) return;
+    if(event.target.closest("#dogNameButton")) return;
     closeDogGuideMenu();
 });
 
@@ -239,8 +246,18 @@ document.addEventListener("click", (event) => {
 function openWidgetForSection(action){
     switch(action){
         case "letters": {
+            // Открытие содержимого письма-виджета (папки "Входящие"/"Исходящие")
+            // рендерится ФУНКЦИЕЙ renderFoldersView() из js/ui/letters.js —
+            // toggleLettersPanel() сам по себе только переключает CSS-класс
+            // is-open и ничего не рисует. У самой иконки #lettersButton есть
+            // свой обработчик, который делает оба шага вместе (initLettersWidget
+            // в letters.js) — здесь повторяю ровно ту же пару вызовов, а не
+            // просто toggleLettersPanel(), иначе панель открывалась бы пустой.
             const panel = document.getElementById("lettersPanel");
-            if(panel && !panel.classList.contains("is-open") && typeof toggleLettersPanel === "function") toggleLettersPanel();
+            if(panel && !panel.classList.contains("is-open")){
+                if(typeof renderFoldersView === "function") renderFoldersView();
+                if(typeof toggleLettersPanel === "function") toggleLettersPanel();
+            }
             break;
         }
         case "music": {
@@ -272,21 +289,19 @@ function handleDogGuideSection(action){
     // и из самой функции открытия).
     openWidgetForSection(action);
     startDogGuidePulse(getSectionLine(action));
+    // Только теперь, после реального выбора, собака уходит сама через
+    // 3-5 секунд — на самом приветствии (см. triggerDogGuide) она ждёт
+    // без ограничения по времени.
+    scheduleDogGuidePulseTimeout();
 }
 
-// Кнопки-триггеры: имя персонажа и иконка — обычные <button>, вне
-// #characterContainer, кликаются как обычно.
+// Кнопка-имя (#dogNameButton) — открывает МЕНЮ-ПРОВОДНИК (список разделов).
+// Иконка (#characterInfoButton) — отдельный виджет, открывает "О собаке"
+// напрямую (см. openDogInfoModal в js/ui/settings.js) — это два разных
+// виджета с разными задачами, не одно и то же меню.
 const dogGuideNameTrigger = document.getElementById("dogNameButton");
 if(dogGuideNameTrigger){
     dogGuideNameTrigger.addEventListener("click", (event) => {
-        event.stopPropagation();
-        triggerDogGuide();
-    });
-}
-
-const dogGuideIconTrigger = document.getElementById("characterInfoButton");
-if(dogGuideIconTrigger){
-    dogGuideIconTrigger.addEventListener("click", (event) => {
         event.stopPropagation();
         triggerDogGuide();
     });

@@ -84,7 +84,11 @@
 #dialogueContainer.is-guide-scene .intro-dialogue{
     align-items:center;
     justify-content:flex-start;
-    padding:0 0 0 min(66vw, 820px);
+    /* Меню-проводник (.dog-guide-menu) стоит по центру экрана, максимум
+       260px шириной (130px до центра в каждую сторону) — считаем отступ
+       от того же центра, а не в vw, чтобы разрыв между меню и пузырём не
+       "плавал" и не схлопывался на разной ширине экрана. */
+    padding:0 0 0 calc(50% + 160px);
 }
 
 #dialogueContainer.is-guide-scene .intro-dialogue__bubble{
@@ -93,6 +97,21 @@
 
 #dialogueContainer.is-guide-scene .intro-dialogue__bubble::after{
     display:none;
+}
+
+/* Некоторые разделы меню-проводника открывают полноэкранные модалки со
+   своим затемнением и z-index:5300 (about-site-modal/project-idea-modal/
+   dog-info-modal, см. settings.css) — без этого override собака с
+   репликой оказывалась бы у них под низом, невидимая все 3-5 секунд, пока
+   модалка открыта. Поднимаем поверх нужного z-index, а кликабельность
+   специально выключаем (pointer-events:none) — самому диалогу теперь не
+   на что реагировать (клик по фону её больше не закрывает, см.
+   js/character/dogGuide.js), а вот кнопки/скролл модалки под ней должны
+   спокойно работать, а не упираться в невидимый на вид, но перехватывающий
+   клики слой поверх. */
+#dialogueContainer.is-guide-scene{
+    z-index:5450;
+    pointer-events:none;
 }
 
 @media (max-width: 900px){

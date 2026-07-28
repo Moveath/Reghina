@@ -29,6 +29,15 @@
     z-index:4500;
 }
 
+/* Меню-проводник (см. js/character/dogGuide.js) может открыть раздел,
+   у которого свой полноэкранный виджет с затемнением и z-index:5300
+   (about-site-modal/project-idea-modal/dog-info-modal, см. settings.css) —
+   без этого override собака с репликой оказывалась бы у него под низом,
+   невидимой все 3-5 секунд, пока он открыт. */
+#characterContainer.is-intro-scene.is-guide-dog{
+    z-index:5450;
+}
+
 /* Когда интро закончилось — имя исчезает */
 #characterContainer:not(.is-intro-scene) .character-nameplate{
     display:none;

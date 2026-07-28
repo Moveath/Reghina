@@ -1010,9 +1010,15 @@ if(musicBoxButton && musicPanel){
     });
 }
 
-// characterInfoButton (иконка 🐾) и dogNameButton (имя) теперь открывают
-// меню-проводник (см. js/character/dogGuide.js), а не «О собаке» напрямую —
-// сама «О собаке» стала одним из пунктов этого меню.
+// characterInfoButton (иконка 🐾, подпись "О <имя>") открывает "О собаке"
+// напрямую — отдельный виджет от меню-проводника (см. js/character/
+// dogGuide.js), которое открывается кнопкой с именем (#dogNameButton).
+if(characterInfoButton){
+    characterInfoButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openDogInfoModal();
+    });
+}
 
 // Открытие иконки/рендер содержимого «Писем» — в js/ui/letters.js
 // (initLettersWidget), он вызывает toggleLettersPanel() отсюда.
