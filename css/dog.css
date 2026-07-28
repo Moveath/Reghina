@@ -211,14 +211,14 @@
 .dog-character.dog-emotion-withKey{ --dog-emotion-offset:4%; }
 .dog-character.dog-emotion-sleeping{ --dog-emotion-offset:-18%; }
 
-/* Только самый первый момент интро (сон) — просили сдвинуть именно эту
-   позу чуть ниже/к центру экрана, но НЕ трогать позицию контейнера
+/* Только самый первый момент интро (сон) — просили выровнять именно эту
+   позу вертикально по центру экрана, но НЕ трогать позицию контейнера
    целиком (табличка "КАНЕ-КОРСО" и все остальные позы должны остаться
    как были). --dog-emotion-offset выше отвечает за выравнивание МЕЖДУ
    эмоциями по высоте — этот override специфичнее и относится только к
    сну внутри самой интро-сцены. */
 #characterContainer.is-intro-scene .dog-character.dog-emotion-sleeping{
-    --dog-emotion-offset:22%;
+    --dog-emotion-offset:-4%;
 }
 
 /* Подсветка собаки, когда по ней нужно кликнуть (например, чтобы взять ключ).
@@ -282,7 +282,7 @@
 
     #characterContainer.is-intro-scene{
         left:2vw;
-        bottom:-10vh;
+        bottom:0;
         width:50vw;
     }
 
