@@ -1,23 +1,7 @@
 const dialogueContainer = document.getElementById("dialogueContainer");
 const dogCharacter = document.getElementById("dogCharacter");
-const continueStoryButton = document.getElementById("continueStoryButton");
 let dialogueIndex = 0;
 let dogName = ""; // имя, которое придумает пользователь
-
-function showContinueStoryButton(){
-    if(continueStoryButton) continueStoryButton.hidden = false;
-}
-
-function hideContinueStoryButton(){
-    if(continueStoryButton) continueStoryButton.hidden = true;
-}
-
-if(continueStoryButton){
-    continueStoryButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        resumeIntroFromDecline();
-    });
-}
 
 function getCurrentLine(){
     return introDialogueLines[dialogueIndex];
@@ -620,27 +604,37 @@ function finishIntroDialogue(){
 
 // ============================================================
 // Ветка "Пока нет" (Диалог 8) — отказ теперь ВРЕМЕННАЯ ПАУЗА истории, а не
-// сброс. Три сцены:
-//   1. handleIntroDecline() — сразу после выбора "Пока нет": прощальный
-//      текст (переиспользует td(8)), после чего — обычный сайт с кнопкой
-//      "Продолжить историю".
+// сброс, но пока пауза активна, сайт ПОЛНОСТЬЮ заблокирован — точно так
+// же, как во время любой другой сцены интро (тот же тёмный оверлей, тот
+// же большой вид собаки, тот же перехват всех кликов через is-active).
+// Единственное доступное действие — кнопка "Продолжить историю" внутри
+// самого пузыря; клик мимо неё ничего не делает.
+//   1. handleIntroDecline() — сразу после выбора "Пока нет": показывает
+//      showIntroPausedScene() (прощальный текст + кнопка).
 //   2. showIntroReturnGreeting() — при следующем НОВОМ визите (не
 //      обновлении страницы, см. wasDeclineSceneShownThisSession), пока
 //      intro_declined ещё true: "я не был уверен, что ты вернёшься" с
-//      двумя кнопками.
-//   3. resumeIntroFromDecline() — по кнопке "Продолжить путь" (из сцены 2
-//      или по нажатию персистентной кнопки "Продолжить историю" в любой
-//      момент): снимает intro_declined и продолжает сюжет с того же места,
-//      куда вела бы "Да, хочу" в исходном выборе — НЕ с начала интро.
+//      двумя кнопками — "Продолжить путь" или снова "Пока нет"
+//      (последнее тоже ведёт в showIntroPausedScene(), не отпускает сайт).
+//   3. showIntroPausedScene() — сама "замороженная" сцена ожидания,
+//      показывается и сразу после первого отказа, и при каждой повторной
+//      загрузке страницы, пока пользователь не нажмёт кнопку внутри неё.
+//   4. resumeIntroFromDecline() — по кнопке "Продолжить путь"/"Продолжить
+//      историю": снимает intro_declined и продолжает сюжет с того же
+//      места, куда вела бы "Да, хочу" в исходном выборе — НЕ с начала.
 // ============================================================
 
 function handleIntroDecline(){
     setIntroDeclined(true);
     markDeclineSceneShownThisSession();
-    // Тот же общий флаг, что у подтверждений сброса/восстановления/языка —
-    // не даёт общему "клик где угодно — продолжить диалог" слушателю ниже
-    // вмешаться, пока dialogueIndex всё ещё указывает на старый Диалог 8
-    // (choice), а не на актуальную сцену.
+    showIntroPausedScene();
+}
+
+// "Замороженная" сцена ожидания — прощальный текст и единственная кнопка
+// "Продолжить историю" в том же пузыре. Overlay/is-active/is-intro-scene
+// остаются включёнными (как в любой другой сцене интро), поэтому клик
+// куда угодно, кроме самой кнопки, ничего не делает — ровно как просили.
+function showIntroPausedScene(){
     resetConfirmActive = true;
 
     characterContainer.classList.add("is-intro-scene");
@@ -648,46 +642,24 @@ function handleIntroDecline(){
 
     dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
     dialogueContainer.classList.add("is-active");
+    document.body.classList.add("intro-active");
     showIntroOverlay();
 
     dialogueContainer.innerHTML = `
         <div class="intro-dialogue" role="dialog" aria-live="polite">
-            <div class="intro-dialogue__bubble">
+            <div class="intro-dialogue__bubble intro-dialogue__bubble--interactive">
                 <p>${td(8)}</p>
-                <span>${t("dlg_click_anywhere_footer")}</span>
+                <div class="choice-buttons">
+                    <button id="introPausedContinue" class="choice-btn choice-btn--0" type="button">${t("continue_story_btn")}</button>
+                </div>
             </div>
         </div>
     `;
 
-    dialogueContainer.addEventListener("click", finishIntroDeclineFarewell, { once: true });
-}
-
-function finishIntroDeclineFarewell(){
-    resetConfirmActive = false;
-    document.body.classList.remove("intro-active");
-    if(typeof closePanels === "function") closePanels();
-    if(typeof closeThemeMenu === "function") closeThemeMenu();
-    if(typeof closeLanguageMenu === "function") closeLanguageMenu();
-    clearAllPrompts();
-    hideIntroOverlay();
-
-    dialogueContainer.classList.add("is-fading");
-    dialogueContainer.classList.remove("is-active");
-
-    characterContainer.classList.remove("is-intro-scene");
-    resetDogToNeutral();
-
-    const nameplate = document.querySelector(".character-nameplate");
-    if(nameplate) nameplate.remove();
-
-    resumePuzzleAnimations();
-
-    setTimeout(() => {
-        dialogueContainer.innerHTML = "";
-        dialogueContainer.classList.remove("is-fading");
-    }, 850);
-
-    showContinueStoryButton();
+    document.getElementById("introPausedContinue").addEventListener("click", (e) => {
+        e.stopPropagation();
+        resumeIntroFromDecline();
+    });
 }
 
 // Сцена возвращения — показывается один раз за визит (не за обновление
@@ -702,6 +674,7 @@ function showIntroReturnGreeting(){
 
     dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
     dialogueContainer.classList.add("is-active");
+    document.body.classList.add("intro-active");
     showIntroOverlay();
 
     dialogueContainer.innerHTML = `
@@ -722,44 +695,30 @@ function showIntroReturnGreeting(){
     });
     document.getElementById("introReturnDecline").addEventListener("click", (e) => {
         e.stopPropagation();
-        dismissIntroReturnGreeting();
+        // "Пока нет" здесь тоже ведёт в замороженную сцену ожидания, а не
+        // отпускает на обычный сайт — та же логика, что и после первого
+        // отказа (см. showIntroPausedScene).
+        showIntroPausedScene();
     });
 }
 
-// "Пока нет" в сцене возвращения — остаёмся в обычном режиме сайта,
-// intro_declined остаётся true, кнопка "Продолжить историю" никуда не
-// девается (см. requirement 3: заметная возможность вернуться в любой
-// момент, без повторных вопросов при каждой загрузке).
-function dismissIntroReturnGreeting(){
-    resetConfirmActive = false;
-    hideIntroOverlay();
-    dialogueContainer.classList.add("is-fading");
-    dialogueContainer.classList.remove("is-active");
-
-    characterContainer.classList.remove("is-intro-scene");
-    resetDogToNeutral();
-
-    setTimeout(() => {
-        dialogueContainer.innerHTML = "";
-        dialogueContainer.classList.remove("is-fading");
-    }, 850);
-
-    showContinueStoryButton();
-}
-
-// "Продолжить путь" — из сцены возвращения ИЛИ по клику на персистентную
-// кнопку "Продолжить историю" в любой другой момент. Не начинаем интро
-// заново — переходим ровно туда же, куда вела бы "Да, хочу" в исходном
-// выборе (индекс 9, Диалог 10).
+// "Продолжить путь"/"Продолжить историю" — из сцены возвращения ИЛИ из
+// самой сцены ожидания. Не начинаем интро заново — переходим ровно туда
+// же, куда вела бы "Да, хочу" в исходном выборе (индекс 9, Диалог 10).
 function resumeIntroFromDecline(){
-    resetConfirmActive = false;
     setIntroDeclined(false);
-    hideContinueStoryButton();
+    // Снимаем блокировку общего click-anywhere-обработчика — сюжет снова
+    // идёт по обычным диалогам, а не стоит в одной из сцен ожидания.
+    resetConfirmActive = false;
 
-    hideIntroOverlay();
+    // Уже должно быть включено (мы были в одной из сцен ожидания), но на
+    // всякий случай выставляем явно — без этого собака показалась бы
+    // маленькой в углу вместо крупного вида интро.
+    characterContainer.classList.add("is-intro-scene");
     document.body.classList.add("intro-active");
     dialogueContainer.classList.remove("is-fading", "is-clear", "is-puzzle-reveal");
     dialogueContainer.classList.add("is-active");
+    showIntroOverlay();
 
     goToDialogue(9);
 
@@ -1369,19 +1328,17 @@ window.showDogRemark = showDogRemark;
 // Старт интро
 if(isIntroDeclined() && !isIntroAlreadyCompleted()){
     // Ветка "Пока нет" (см. handleIntroDecline выше): НЕ начинаем интро с
-    // начала и НЕ показываем сам выбор Да/Нет заново. Обычный вид сайта +
-    // персистентная кнопка "Продолжить историю" — а если это НОВЫЙ визит
-    // (не просто обновление страницы), ещё и сцена возвращения один раз.
+    // начала и НЕ показываем сам выбор Да/Нет заново, но сайт остаётся
+    // заблокированным, как и во время самого отказа — сцена возвращения
+    // (новый визит) или та же сцена ожидания (просто обновление страницы),
+    // а не обычный вид сайта.
     dogName = loadDogName();
-    characterContainer.classList.remove("is-intro-scene");
-    resetDogToNeutral();
-    const nameplate = document.querySelector(".character-nameplate");
-    if(nameplate) nameplate.remove();
     if(typeof window.musicStartReturningVisit === "function") window.musicStartReturningVisit();
-    showContinueStoryButton();
 
     if(!wasDeclineSceneShownThisSession()){
         showIntroReturnGreeting();
+    } else {
+        showIntroPausedScene();
     }
 } else if(isIntroAlreadyCompleted()){
     // Уже проходила интро раньше — сразу обычный вид сайта, без сцены.
