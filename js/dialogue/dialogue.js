@@ -40,6 +40,11 @@ let awaitingPuzzleUnlock = false;
 let awaitingLetterRead = false;
 let resetConfirmActive = false;
 let dogRemarkActive = false;
+// Пока собака ещё едет из угла в большое центральное положение (см.
+// showDogRemark) — игнорируем клики по закрытию реплики, иначе случайный
+// быстрый клик сразу после 5-клика-пасхалки закрывает сцену раньше, чем
+// собака вообще успела появиться по центру.
+let dogArrivalLock = false;
 
 function ensureIntroOverlay(){
     if(introOverlayElement) return introOverlayElement;
@@ -1282,6 +1287,23 @@ function showDogRemark(text, emotion, onClose){
     characterContainer.classList.add("is-intro-scene");
     setDogEmotion(emotion || "happy");
 
+    // Собака едет из угла в центр те же 1.25s, что заданы в transition
+    // #characterContainer (см. css/dog.css) — блокируем закрытие сцены до
+    // конца этого переезда, иначе случайный лишний клик (например, 6-й при
+    // наборе 5-клика-пасхалки) закрывает реплику раньше, чем собака вообще
+    // успела появиться по центру.
+    dogArrivalLock = true;
+    function onDogArrived(ev){
+        if(ev.target !== characterContainer) return;
+        clearDogArrivalLock();
+    }
+    function clearDogArrivalLock(){
+        dogArrivalLock = false;
+        characterContainer.removeEventListener("transitionend", onDogArrived);
+    }
+    characterContainer.addEventListener("transitionend", onDogArrived);
+    setTimeout(clearDogArrivalLock, 1300); // подстраховка, если transitionend не сработает
+
     dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
     dialogueContainer.classList.add("is-active");
     showIntroOverlay();
@@ -1300,6 +1322,7 @@ function showDogRemark(text, emotion, onClose){
     function closeRemark(ev){
         if(ev) ev.stopPropagation();
         if(!dogRemarkActive) return;
+        if(dogArrivalLock) return;
         dogRemarkActive = false;
         if(typeof window.musicUnduck === "function") window.musicUnduck();
 
@@ -1391,7 +1414,12 @@ document.addEventListener("click", (event) => {
 
     devClickCount += 1;
     if(devClickResetTimer) clearTimeout(devClickResetTimer);
-    devClickResetTimer = setTimeout(() => { devClickCount = 0; }, 1500);
+    // Короткое окно между кликами (а не общий таймер на всю пасхалку) —
+    // считаются только реально быстрые клики подряд. Это важно, чтобы
+    // не путать пасхалку с одиночным кликом по собаке (отдельная функция,
+    // не про эту пасхалку) — тот клик просто не наберёт 5 в срок и счётчик
+    // сам сбросится.
+    devClickResetTimer = setTimeout(() => { devClickCount = 0; }, 400);
 
     if(devClickCount >= 5){
         devClickCount = 0;
