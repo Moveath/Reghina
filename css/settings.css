@@ -1226,6 +1226,54 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
     }
 }
 
+/* ============================================================
+   ДНЕВНИК ПРОВОДНИКА (#diaryPanel, см. js/character/diary.js) —
+   обычный .settings-panel (см. базовый стиль выше), здесь только
+   содержимое: список записей.
+   ============================================================ */
+.diary-entry-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    gap:10px;
+    max-height:min(60vh, 420px);
+    overflow-y:auto;
+}
+
+.diary-entry{
+    padding:12px 14px;
+    border-radius:12px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.1);
+}
+
+.diary-entry__header{
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.02em;
+}
+
+.diary-entry__date{
+    margin-top:2px;
+    font-size:11.5px;
+    opacity:.6;
+}
+
+.diary-entry__text{
+    margin:8px 0 0;
+    font-size:13px;
+    line-height:1.45;
+}
+
+.diary-empty{
+    margin:0;
+    padding:8px 2px;
+    font-size:13px;
+    opacity:.7;
+    text-align:center;
+}
+
 body:has(.settings-panel.is-open) .intro-settings-hint,
 body:has(.progress-panel.is-open) .intro-settings-hint {
     opacity: 0 !important;

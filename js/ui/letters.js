@@ -390,6 +390,7 @@ function renderInboxView(){
                     const current = inboxCache.find(l => l.id === id);
                     if(current) current.status = "read";
                     updateUnreadBadge();
+                    if(typeof window.diaryTrackActivity === "function") window.diaryTrackActivity("letter_read");
                 } catch(err){
                     console.error("[letters] Не удалось отметить письмо прочитанным:", err.message);
                 }

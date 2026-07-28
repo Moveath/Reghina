@@ -301,6 +301,7 @@ function musicStartReturningVisit(){
 
 // Ручной выбор трека из виджета "Список музыки".
 function musicSelectTrack(trackId){
+    if(typeof window.diaryTrackActivity === "function") window.diaryTrackActivity("music_played");
     return switchTrack(trackId, userVolumeFraction(), { persist: true });
 }
 

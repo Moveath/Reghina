@@ -548,6 +548,7 @@ function openAboutSiteModal(){
     if(typeof closePanels === "function") closePanels();
     ensureAboutSiteModal().classList.add("is-open");
     document.addEventListener("keydown", handleAboutSiteModalEscape);
+    if(typeof window.diaryTrackActivity === "function") window.diaryTrackActivity("section_explored");
 }
 
 function closeAboutSiteModal(){
@@ -607,6 +608,7 @@ function openProjectIdeaModal(){
     if(typeof closePanels === "function") closePanels();
     ensureProjectIdeaModal().classList.add("is-open");
     document.addEventListener("keydown", handleProjectIdeaModalEscape);
+    if(typeof window.diaryTrackActivity === "function") window.diaryTrackActivity("section_explored");
 }
 
 function closeProjectIdeaModal(){
@@ -768,6 +770,7 @@ function openDogInfoModal(){
     ensureDogInfoModal().classList.add("is-open");
     renderDogInfoModalContent();
     document.addEventListener("keydown", handleDogInfoModalEscape);
+    if(typeof window.diaryTrackActivity === "function") window.diaryTrackActivity("section_explored");
 }
 
 function closeDogInfoModal(){
@@ -884,6 +887,11 @@ function closePanels(){
     if(musicPanel) musicPanel.classList.remove("is-open");
     if(aboutPanel) aboutPanel.classList.remove("is-open");
     if(lettersPanel) lettersPanel.classList.remove("is-open");
+    // diaryPanel объявлен в js/character/diary.js (грузится позже) — тот же
+    // приём, что и с characterContainer/dogCharacter между файлами: к
+    // моменту реального вызова closePanels() (уже после клика пользователя)
+    // скрипт точно выполнен.
+    if(diaryPanel) diaryPanel.classList.remove("is-open");
     // Иначе меню темы/языка остаётся открытым и торчит поверх/под тем, что
     // открывается следующим — это отдельные position:fixed элементы вне
     // settingsPanel, закрытие самой панели их не задевает без явного вызова.
@@ -951,7 +959,10 @@ function toggleAboutPanel(){
     const isOpen = aboutPanel.classList.contains("is-open");
     if(isOpen && isIntroCloseLocked()) return;
     closePanels();
-    if(!isOpen) aboutPanel.classList.add("is-open");
+    if(!isOpen){
+        aboutPanel.classList.add("is-open");
+        if(typeof window.diaryTrackActivity === "function") window.diaryTrackActivity("section_explored");
+    }
 }
 
 // Открытие/закрытие самой панели — рендер содержимого (папки/списки/форма)

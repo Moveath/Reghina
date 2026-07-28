@@ -84,6 +84,7 @@ const puzzleKeySystem = (() => {
         isKeySelected = false;
         updateKeyInterface();
         showMessage(t("keys_obtained"));
+        if(typeof window.diaryTrackActivity === "function") window.diaryTrackActivity("key_found");
         return true;
     }
 

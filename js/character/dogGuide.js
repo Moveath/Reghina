@@ -218,8 +218,10 @@ function getSectionLine(action){
 }
 
 function handleDogGuideSection(action){
-    if(typeof window.diaryTrackActivity === "function") window.diaryTrackActivity("section_explored", action);
-
+    // Дневник (см. js/character/diary.js) сам слушает открытие разделов в
+    // первоисточнике (toggleAboutPanel/openProjectIdeaModal/...), а не
+    // здесь — иначе один и тот же клик засчитывался бы дважды (и отсюда,
+    // и из самой функции открытия).
     openWidgetForSection(action);
     swapDogGuideText(getSectionLine(action));
     playDogGuideBounce();
