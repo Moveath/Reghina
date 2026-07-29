@@ -768,3 +768,16 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("keyup", (event) => {
     if(devPanelModifierCodes.includes(event.code)) devPanelComboArmed = true;
 });
+
+// ===== Запасной вход: ?devpanel=1 в адресной строке =====
+// Сочетание клавиш ненадёжно само по себе — Windows нередко перехватывает
+// именно такие сочетания модификаторов (Ctrl+Shift/Alt+Shift) как СВОЙ
+// системный хоткей переключения раскладки клавиатуры, особенно если
+// установлено несколько языков ввода (кириллица + латиница) — тогда нажатие
+// вообще не долетает до страницы, город переключился, а панель не открылась,
+// и со стороны это выглядит как "ничего не происходит". URL-параметр не
+// зависит от клавиатуры/раскладки/фокуса вообще — открой
+// https://reginasite.com/?devpanel=1, панель появится сама при загрузке.
+if(new URLSearchParams(location.search).has("devpanel")){
+    openDeveloperPanel();
+}
