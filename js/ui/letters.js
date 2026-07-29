@@ -331,9 +331,6 @@ function renderFoldersView(){
     lettersPanel.querySelector('[data-folder="inbox"]').addEventListener("click", (event) => {
         event.stopPropagation();
         renderInboxView();
-        // Звук "письмо" — один раз при каждом открытии входящих, но только
-        // если там реально есть что показать на экране.
-        if(inboxCache.length > 0 && typeof window.playSfx === "function") window.playSfx("letter");
         loadInbox();
     });
 }
@@ -414,6 +411,11 @@ function renderInboxView(){
             if(!letter) return;
 
             openLetterReadModal(letter);
+            // Звук письма — именно в момент, когда открывается само письмо
+            // (любое, не только непрочитанное), а не когда открывают папку
+            // "Входящие" — та уже даёт обычный звук виджета (клик по кнопке
+            // папки), дублировать здесь нечего.
+            if(typeof window.playSfx === "function") window.playSfx("letter");
 
             if(letter.status !== "read"){
                 item.classList.remove("letter-item--unread");

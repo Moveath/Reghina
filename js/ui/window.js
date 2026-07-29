@@ -64,6 +64,7 @@ container.addEventListener("click", () => {
     minimized = false;
     applyContainerState({ minimized: false });
     saveContainerState({ minimized: false });
+    if(typeof window.playSfx === "function") window.playSfx("click");
 });
 
 restoreContainerState();

@@ -163,11 +163,18 @@ function unlockPieceByIndex(index){
 }
 window.unlockPieceByIndex = unlockPieceByIndex;
 
+// Звук на клик по кусочку зависит от его текущего состояния — ровно один
+// звук на клик, никогда не накладывается на другой: уже открытый кусочек
+// получает обычный звук виджета, а всё ещё закрытый (по любой причине —
+// нет ключа вообще или ключ есть, но не в руке) — звук закрытого замка.
+// Само открытие (клик по "Открыть" в подтверждении) — отдельная пара звуков
+// открытия замка/части, см. unlockPiece ниже.
 function handlePieceClick(piece){
     if(container.classList.contains("minimized")) return;
 
     if(piece.classList.contains("unlocked")){
         showPuzzleToast(t("puzzle_already_open"));
+        if(typeof window.playSfx === "function") window.playSfx("click");
         return;
     }
 
@@ -176,11 +183,13 @@ function handlePieceClick(piece){
     if(!puzzleKeySystem.hasKey()){
         shakeLockedPiece(piece);
         showLockedMessage();
+        if(typeof window.playSfx === "function") window.playSfx("lockClosed");
         return;
     }
 
     if(!puzzleKeySystem.isKeyInHand()){
         showPuzzleToast(t("puzzle_take_key_first"));
+        if(typeof window.playSfx === "function") window.playSfx("lockClosed");
         return;
     }
 

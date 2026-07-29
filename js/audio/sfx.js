@@ -6,9 +6,11 @@ const SFX_FILES = {
     click: "audio/sfx-click.mp3",
     keyPickup: "audio/sfx-key-pickup.mp3",
     lockOpen: "audio/sfx-lock-open.mp3",
+    lockClosed: "audio/sfx-lock-closed.mp3",
     pieceOpen: "audio/sfx-piece-open.mp3",
     letter: "audio/sfx-letter.mp3",
-    dogSnore: "audio/sfx-dog-snore.mp3"
+    dogSnore: "audio/sfx-dog-snore.mp3",
+    dogBark: "audio/sfx-dog-bark.mp3"
 };
 
 const sfxVolumeStorageKey = "reginaSfxVolume";
@@ -142,18 +144,27 @@ window.sfxGetVolumePercent = loadSfxVolumePercent;
 // Список того, что считается "виджетом" — почти все кликабельные элементы
 // сайта оформлены как <button>, поэтому один общий селектор кроет
 // подавляющее большинство случаев; отдельно добавлены неполные исключения
-// (li-пункты настроек/прогресса, письма в списке). Кусочки пазла и
-// выдача/подбор ключа исключены явно — у них уже есть свои собственные звуки
-// (открытие замка/части, подбор ключа), дублировать клик поверх них не нужно.
+// (li-пункты настроек/прогресса).
+//
+// [data-piece] (кусочки пазла) и .letter-item (письма в списке) сюда
+// намеренно НЕ входят — у них результат клика зависит от состояния
+// (открыт/закрыт кусочек, какое письмо открыли), поэтому решение "какой
+// звук проигрывать" принимается точечно прямо в их собственных обработчиках
+// (js/puzzle/puzzle.js, js/ui/letters.js), а не здесь общим правилом — так
+// каждый клик даёт РОВНО один звук, без наложения генерик-клика поверх
+// более специфичного (подбор ключа, открытие/закрытый замок, звук письма).
 const SFX_CLICK_SELECTOR = [
     "button",
     "a[href]",
     "[role='button']",
     ".settings-section-item.is-clickable",
-    ".progress-action-item.is-clickable",
-    ".letter-item"
+    ".progress-action-item.is-clickable"
 ].join(", ");
-const SFX_CLICK_EXCLUDE_SELECTOR = "[data-piece], .key-counter, .inventory-key";
+// #confirmKeyUse — единственная кнопка, которую всё равно приходится
+// исключать явно: это самый обычный <button>, но клик по ней ВСЕГДА
+// синхронно запускает звук открытия замка (см. requestKeyUse/unlockPiece в
+// puzzle.js), так что генерик-клик здесь неизбежно наложился бы поверх.
+const SFX_CLICK_EXCLUDE_SELECTOR = "#confirmKeyUse";
 
 document.addEventListener("click", (event) => {
     const target = event.target;
@@ -168,12 +179,23 @@ document.addEventListener("click", (event) => {
     // Собака почти всё время pointer-events:none (см. dog.css) — клик по её
     // области "проваливается" на то, что визуально ниже, поэтому ловим его
     // по координатам, как и пасхалка "5 кликов по собаке" в dialogue.js.
+    //
+    // Гав — отдельный самостоятельный звук, ТОЛЬКО когда кликают по маленькой
+    // собаке в углу (открывает меню-проводник помощи), без генерик-клика
+    // поверх него. Во время интро (и любых других "крупных" сцен собаки —
+    // характерный класс is-intro-scene) гав не звучит вообще, но обычный
+    // клик-по-виджету там ещё уместен (см. characterContainer выше по файлу
+    // — доступен как обычный глобальный биндинг, объявлен в js/character/
+    // dog.js).
     const dog = document.getElementById("dogCharacter");
     if(dog){
         const rect = dog.getBoundingClientRect();
-        if(event.clientX >= rect.left && event.clientX <= rect.right &&
-           event.clientY >= rect.top && event.clientY <= rect.bottom){
-            playSfx("click");
+        const withinDog = event.clientX >= rect.left && event.clientX <= rect.right &&
+                           event.clientY >= rect.top && event.clientY <= rect.bottom;
+        if(withinDog){
+            const isCornerIdleDog = typeof characterContainer !== "undefined" && characterContainer &&
+                !characterContainer.classList.contains("is-intro-scene");
+            playSfx(isCornerIdleDog ? "dogBark" : "click");
         }
     }
 }, true);

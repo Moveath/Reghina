@@ -97,14 +97,20 @@ const puzzleKeySystem = (() => {
         return true;
     }
 
+    // Звук на клик по виджету ключа тоже зависит от результата — ровно один
+    // звук за клик: реальный подбор ключа в руку получает свой отдельный
+    // звук, а остальные исходы (ключа ещё нет / кладём обратно) — обычный
+    // звук виджета, чтобы они не звучали одновременно с подбором.
     function selectKey(event){
         if(keyCount === 0){
             showMessage(t("keys_get_first"));
+            if(typeof window.playSfx === "function") window.playSfx("click");
             return;
         }
 
         if(isKeySelected){
             putKeyBack();
+            if(typeof window.playSfx === "function") window.playSfx("click");
             return;
         }
 
