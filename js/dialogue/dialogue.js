@@ -44,8 +44,8 @@ let resetConfirmActive = false;
 let dogRemarkActive = false;
 // Пока собака ещё едет из угла в большое центральное положение (см.
 // showDogRemark) — игнорируем клики по закрытию реплики, иначе случайный
-// быстрый клик сразу после 5-клика-пасхалки закрывает сцену раньше, чем
-// собака вообще успела появиться по центру.
+// быстрый клик сразу после пасхалки "долгое нажатие на собаку" закрывает
+// сцену раньше, чем собака вообще успела появиться по центру.
 let dogArrivalLock = false;
 
 function ensureIntroOverlay(){
@@ -1195,7 +1195,7 @@ function pickRandomLine(list){
     return list[Math.floor(Math.random() * list.length)];
 }
 
-// Фразы пасхалки "5 кликов по собаке" (data/dialogues/easterEgg.js).
+// Фразы пасхалки "долгое нажатие на собаку" (data/dialogues/easterEgg.js).
 function getDogClickEasterEggLines(){
     const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
     const translated = window.dogClickEasterEggLineTranslations && window.dogClickEasterEggLineTranslations[lang];
@@ -1463,8 +1463,8 @@ function showDogRemark(text, emotion, onClose){
 
     // Собака едет из угла в центр те же 1.25s, что заданы в transition
     // #characterContainer (см. css/dog.css) — блокируем закрытие сцены до
-    // конца этого переезда, иначе случайный лишний клик (например, 6-й при
-    // наборе 5-клика-пасхалки) закрывает реплику раньше, чем собака вообще
+    // конца этого переезда, иначе случайный лишний клик сразу после
+    // срабатывания пасхалки закрывает реплику раньше, чем собака вообще
     // успела появиться по центру.
     dogArrivalLock = true;
     function onDogArrived(ev){
@@ -1565,90 +1565,111 @@ if(isIntroDeclined() && !isIntroAlreadyCompleted()){
     }
 }
 
-// ===== Пасхалка: 5 быстрых кликов по собаке подряд — она отвечает случайной
-// фразой (см. data/dialogues/easterEgg.js). Developer Panel теперь
-// открывается отдельной комбинацией клавиш (см. js/dev/devPanel.js), а не
-// этим жестом — иначе они бы конфликтовали. =====
-let devClickCount = 0;
-let devClickResetTimer = null;
-// Координаты собаки, зафиксированные в момент ПЕРВОГО клика серии — см.
-// комментарий ниже, зачем это нужно (иначе пасхалка физически не набиралась
-// бы: первый же клик открывает меню-проводник и уносит собаку в центр).
-let devClickRect = null;
+// ===== Пасхалка: долгое нажатие на собаку (~2 секунды, "погладить", а не
+// потыкать) — она отвечает случайной фразой (см. data/dialogues/
+// easterEgg.js — там же есть реплика-подсказка про "гладь, а не тыкай").
+// Обычный короткий клик по-прежнему открывает меню-проводник (см.
+// js/character/dogGuide.js) — эти два жеста должны чётко различаться, не
+// мешая друг другу. Developer Panel открывается отдельной комбинацией
+// клавиш (см. js/dev/devPanel.js), с этим жестом не связана. =====
+const DOG_PET_HOLD_MS = 2000;
 
-// Считаем клики по ОБЛАСТИ собаки через координаты, а не через слушатель
+let dogPetHoldTimer = null;
+let dogPetHoldTriggered = false;
+// Координаты собаки, зафиксированные в момент начала нажатия — используются
+// и для отслеживания "увели ли палец/курсор с собаки" во время удержания
+// (см. pointermove ниже), и как защита на случай, если собаку унесёт в
+// центр каким-то параллельным событием прямо во время удержания.
+let dogPetHoldRect = null;
+
+function isPointOnDog(clientX, clientY){
+    if(!dogCharacter) return false;
+    const rect = dogPetHoldRect || dogCharacter.getBoundingClientRect();
+    return clientX >= rect.left && clientX <= rect.right &&
+           clientY >= rect.top && clientY <= rect.bottom;
+}
+
+function cancelDogPetHold(){
+    if(dogPetHoldTimer){ clearTimeout(dogPetHoldTimer); dogPetHoldTimer = null; }
+    dogPetHoldRect = null;
+}
+
+function triggerDogPetEasterEgg(){
+    dogPetHoldTimer = null;
+    // Не мешаем настоящему интро — тихо игнорируем удержание, пока оно идёт,
+    // и НЕ трогаем dogPetHoldTriggered, чтобы следующий за этим клик остался
+    // полностью прозрачным для остальных обработчиков (например, продвижения
+    // самого интро по клику).
+    if(document.body.classList.contains("intro-active")) return;
+    dogPetHoldTriggered = true;
+    // Меню-проводник могло быть уже открыто с прошлого визита — пасхалка
+    // приоритетнее, закрываем его, чтобы два всплывающих окна не показывались
+    // одновременно.
+    if(typeof window.closeDogGuideMenu === "function") window.closeDogGuideMenu();
+    showDogRemark(pickRandomLine(getDogClickEasterEggLines()), "happy");
+}
+
+// Ловим удержание по ОБЛАСТИ собаки через координаты, а не через слушатель
 // на самой картинке: у неё намеренно pointer-events:none большую часть
 // времени (см. dog.css), иначе она перехватывала бы клики по иконкам
 // чата/уведомлений, которые визуально оказываются под ней во время интро.
-// Слушаем именно в capture-фазе: иначе клик по этой же области "проваливается"
-// на #dialogueContainer, а тот гасит propagation ещё до bubble-фазы на document.
-document.addEventListener("click", (event) => {
+// pointerdown/pointerup вместо mousedown/mouseup — единая обработка мыши и
+// тача. Слушаем именно в capture-фазе: иначе событие по этой же области
+// "проваливается" на #dialogueContainer, а тот гасит propagation ещё до
+// bubble-фазы на document.
+document.addEventListener("pointerdown", (event) => {
     if(!dogCharacter) return;
-    // Само меню-проводник (см. js/character/dogGuide.js) всплывает совсем
-    // рядом с собакой и может визуально перекрывать её координатную зону —
-    // без этой проверки клик по кнопке раздела внутри меню засчитывался бы
-    // ещё и как "клик по собаке", закрывая меню раньше, чем срабатывал сам
-    // клик по кнопке (event.target здесь — реальный DOM-узел, а не то, что
-    // визуально выглядит "сверху", поэтому только явная проверка спасает).
+    if(event.button !== 0) return;
+    // Само меню-проводник может визуально перекрывать координатную зону
+    // собаки — без этой проверки нажатие на кнопку раздела внутри меню
+    // засчитывалось бы ещё и как начало удержания собаки.
     if(event.target.closest("#dogGuideMenu")) return;
 
-    // Первый клик серии (devClickCount === 0, счётчик ещё не сброшен
-    // таймером ниже) сразу же открывает меню-проводник (см. конец обработчика)
-    // — а вместе с ним собака увеличивается и переезжает в центр экрана
-    // (triggerDogGuide/startDogGuidePulse в js/character/dogGuide.js). Если
-    // для КАЖДОГО клика заново брать текущий getBoundingClientRect(), клики
-    // 2-5 (которые Регина физически делает в то же место экрана, что и
-    // первый) будут промахиваться мимо уже переехавшей собаки, и пасхалка
-    // никогда не наберёт 5. Поэтому зона проверяется по координатам,
-    // зафиксированным на первом клике серии, и переиспользуется, пока серия
-    // не оборвалась (окно между кликами — 400мс, см. ниже).
-    const rect = devClickCount > 0 && devClickRect ? devClickRect : dogCharacter.getBoundingClientRect();
+    dogPetHoldRect = dogCharacter.getBoundingClientRect();
+    if(!isPointOnDog(event.clientX, event.clientY)){ dogPetHoldRect = null; return; }
+
+    dogPetHoldTriggered = false;
+    if(dogPetHoldTimer) clearTimeout(dogPetHoldTimer);
+    dogPetHoldTimer = setTimeout(triggerDogPetEasterEgg, DOG_PET_HOLD_MS);
+}, true);
+
+// Увели палец/курсор с собаки, ещё не досчитав до срабатывания — это уже не
+// "погладить", а случайное движение, отменяем.
+document.addEventListener("pointermove", (event) => {
+    if(!dogPetHoldTimer) return;
+    if(!isPointOnDog(event.clientX, event.clientY)) cancelDogPetHold();
+}, true);
+
+document.addEventListener("pointerup", cancelDogPetHold, true);
+document.addEventListener("pointercancel", cancelDogPetHold, true);
+
+document.addEventListener("click", (event) => {
+    if(!dogCharacter) return;
+    if(event.target.closest("#dogGuideMenu")) return;
+
+    // Долгое нажатие только что сработало — браузер всё равно выстрелит
+    // "click" сразу за pointerup/mouseup, но открывать меню-проводник поверх
+    // уже показанной реплики-реакции не нужно (иначе они наложились бы друг
+    // на друга).
+    if(dogPetHoldTriggered){
+        dogPetHoldTriggered = false;
+        event.stopPropagation();
+        return;
+    }
+
+    const rect = dogCharacter.getBoundingClientRect();
     const withinDog = event.clientX >= rect.left && event.clientX <= rect.right &&
                        event.clientY >= rect.top && event.clientY <= rect.bottom;
     if(!withinDog) return;
 
-    if(devClickCount === 0) devClickRect = rect;
-
-    devClickCount += 1;
-    if(devClickResetTimer) clearTimeout(devClickResetTimer);
-    // Короткое окно между кликами (а не общий таймер на всю пасхалку) —
-    // считаются только реально быстрые клики подряд. Это важно, чтобы
-    // не путать пасхалку с одиночным кликом по собаке (отдельная функция,
-    // не про эту пасхалку) — тот клик просто не наберёт 5 в срок и счётчик
-    // сам сбросится.
-    devClickResetTimer = setTimeout(() => { devClickCount = 0; devClickRect = null; }, 400);
-
-    if(devClickCount >= 5){
-        devClickCount = 0;
-        devClickRect = null;
-        clearTimeout(devClickResetTimer);
-        // Меню-проводник (см. js/character/dogGuide.js) могло уже открыться
-        // от первого клика этой же серии — пасхалка приоритетнее, закрываем
-        // его, чтобы два всплывающих окна не показывались одновременно.
-        if(typeof window.closeDogGuideMenu === "function") window.closeDogGuideMenu();
-        // Не мешаем настоящему интро и другим активным сценам — просто
-        // тихо игнорируем клики, пока они идут (showDogRemark и сама делает
-        // часть этих проверок, но intro-active нужно проверить отдельно).
-        if(document.body.classList.contains("intro-active")) return;
-        event.stopPropagation();
-        showDogRemark(pickRandomLine(getDogClickEasterEggLines()), "confused");
-        return;
-    }
-
-    // Обычный клик по собаке (не часть быстрой пасхалки выше) — открывает
-    // меню-проводник (см. js/character/dogGuide.js). Срабатывает сразу на
-    // первом клике серии, а не по истечении окна — иначе одиночный клик
-    // ощущался бы с задержкой. Клики 2–4 внутри той же быстрой серии ничего
-    // не делают (меню уже переключено первым кликом), а 5-й, если наберётся
-    // быстро, переигрывает всё веткой пасхалки выше.
-    //
-    // canOpenDogGuide() отдельно проверяет intro/resetConfirm/dogRemark и
-    // т.д. — ЕСЛИ сейчас что-то из этого активно (например, собака большая
-    // по центру во время самой пасхалки или другой реплики), не гасим клик
-    // здесь вообще, чтобы он спокойно долетел до обработчика, который как
-    // раз и закрывает ту сцену (иначе клик по собаке во время реплики
-    // переставал бы её закрывать).
-    if(devClickCount === 1 && typeof window.canOpenDogGuide === "function" && window.canOpenDogGuide()){
+    // Обычный (короткий) клик по собаке — открывает меню-проводник (см.
+    // js/character/dogGuide.js). canOpenDogGuide() отдельно проверяет intro/
+    // resetConfirm/dogRemark и т.д. — ЕСЛИ сейчас что-то из этого активно
+    // (например, собака большая по центру во время самой пасхалки или другой
+    // реплики), не гасим клик здесь вообще, чтобы он спокойно долетел до
+    // обработчика, который как раз и закрывает ту сцену (иначе клик по
+    // собаке во время реплики переставал бы её закрывать).
+    if(typeof window.canOpenDogGuide === "function" && window.canOpenDogGuide()){
         event.stopPropagation();
         if(typeof window.toggleDogGuideMenu === "function") window.toggleDogGuideMenu();
     }

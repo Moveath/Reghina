@@ -1,7 +1,8 @@
 // Скрытая Developer Panel. Открывается зажатием Ctrl+Shift+Alt (без буквы,
-// см. слушатель keydown внизу файла) — раньше это были 5 кликов по собаке,
-// но этот жест теперь занят пасхалкой (см. data/dialogues/easterEgg.js и
-// js/dialogue/dialogue.js). Сама панель не показывает и не меняет ничего без
+// см. слушатель keydown внизу файла) — раньше здесь были 5 кликов по собаке,
+// тот жест потом отдали пасхалке (см. data/dialogues/easterEgg.js и
+// js/dialogue/dialogue.js — сейчас у неё уже другой, свой собственный жест).
+// Сама панель не показывает и не меняет ничего без
 // верного DEVELOPER_SECRET — случайное срабатывание комбинации само по себе
 // безопасно. Использует API_BASE_URL/getOwnerCode/checkMonthlyKey/
 // reconcileWithServer/resetAllProgress из уже загруженных storage.js и

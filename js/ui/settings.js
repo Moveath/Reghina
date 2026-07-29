@@ -634,7 +634,6 @@ function ensureProjectIdeaModal(){
                 <p>${t("idea_modal_p6")}</p>
                 <p>${t("idea_modal_p7")}</p>
                 <p>${t("idea_modal_p8")}</p>
-                <p>${t("idea_modal_p9")}</p>
             </div>
         </div>
     `;
