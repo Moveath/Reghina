@@ -13,6 +13,14 @@ const SFX_FILES = {
     dogBark: "audio/sfx-dog-bark.mp3"
 };
 
+// Сам файл письма записан заметно тише остальных эффектов — на общем
+// ползунке звуков её почти не слышно. Не трогаем сам файл (в отличие от
+// клика/ключа/замка он не переиспользуется больше нигде), а просто
+// усиливаем именно этот звук поверх общей громкости — см. playSfx.
+const SFX_VOLUME_MULTIPLIERS = {
+    letter: 1.8
+};
+
 const sfxVolumeStorageKey = "reginaSfxVolume";
 const DEFAULT_SFX_VOLUME_PERCENT = 55;
 
@@ -42,7 +50,7 @@ function playSfx(name){
     const fraction = sfxVolumeFraction();
     if(fraction <= 0) return null;
     const audio = new Audio(file);
-    audio.volume = fraction;
+    audio.volume = Math.min(1, fraction * (SFX_VOLUME_MULTIPLIERS[name] || 1));
     audio.play().catch(() => {});
     return audio;
 }
