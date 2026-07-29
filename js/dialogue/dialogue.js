@@ -1274,6 +1274,42 @@ function showSupernaturalNameEasterEgg(afterward){
     dialogueContainer.addEventListener("click", dismiss);
 }
 
+// ===== Пасхалка: скрытая клавиатурная последовательность (см.
+// data/dialogues/supernatural.js) — работает только ПОСЛЕ завершения интро,
+// без какого-либо поля ввода: печатать можно в любом месте сайта. Обычный
+// "Konami-код"-паттерн — копим печатаемые символы в бегущем буфере
+// ограниченной длины, при совпадении конца буфера с одним из слов
+// показываем обычную (как для писем/музыки/переименования) реплику через
+// showDogRemark и сразу же очищаем буфер. =====
+const SUPERNATURAL_TYPED_BUFFER_MAX_LENGTH = 24;
+let supernaturalTypedBuffer = "";
+
+function getSupernaturalTypedWordLines(){
+    const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
+    const translated = window.supernaturalTypedWordLineTranslations && window.supernaturalTypedWordLineTranslations[lang];
+    return translated || supernaturalTypedWordLinesRu;
+}
+
+document.addEventListener("keydown", (event) => {
+    if(typeof isIntroAlreadyCompleted !== "function" || !isIntroAlreadyCompleted()) return;
+    // Только реально печатаемые одиночные символы (буквы/цифры) — так
+    // event.key исключает служебные клавиши (Shift, Enter, стрелки и т.д.,
+    // у них имена длиннее одного символа).
+    if(!event.key || event.key.length !== 1) return;
+
+    supernaturalTypedBuffer = (supernaturalTypedBuffer + event.key.toLowerCase()).slice(-SUPERNATURAL_TYPED_BUFFER_MAX_LENGTH);
+
+    const matched = Array.isArray(SUPERNATURAL_TYPED_WORDS) &&
+        SUPERNATURAL_TYPED_WORDS.some(word => supernaturalTypedBuffer.endsWith(word));
+
+    if(matched){
+        supernaturalTypedBuffer = "";
+        if(typeof showDogRemark === "function"){
+            showDogRemark(pickRandomLine(getSupernaturalTypedWordLines()), "thinking");
+        }
+    }
+});
+
 let monthlyKeySceneActive = false;
 
 // onClose — необязательный колбэк, вызывается ПОСЛЕ того, как вся сцена

@@ -56,3 +56,50 @@ window.supernaturalDogNameLineTranslations = {
         "🐶 O alegere foarte supranaturală"
     ]
 };
+
+/*
+ * Вторая пасхалка того же семейства: скрытая клавиатурная последовательность
+ * (без поля ввода — печатать можно в любом месте сайта), работает ТОЛЬКО
+ * после завершения интро (см. supernaturalTypedBuffer/isIntroAlreadyCompleted
+ * в js/dialogue/dialogue.js). Слова сравниваются регистронезависимо —
+ * кириллица и латиница вперемешку, как их и печатают в реальности при разных
+ * раскладках клавиатуры.
+ */
+const SUPERNATURAL_TYPED_WORDS = [
+    "67", "impala", "импала", "baby", "chevy", "chevrolet"
+];
+window.SUPERNATURAL_TYPED_WORDS = SUPERNATURAL_TYPED_WORDS;
+
+const supernaturalTypedWordLinesRu = [
+    "🐶 Подожди... Ты тоже знаешь про Impala?",
+    "🐶 67. Очень хорошее число.",
+    "🐶 Мне кажется, где-то неподалёку должен стоять чёрный Chevrolet.",
+    "🐶 Некоторые машины становятся легендами.",
+    "🐶 Если увидишь старую Impala, обязательно позови меня.",
+    "🐶 Интересное слово. Почему-то оно кажется мне очень знакомым.",
+    "🐶 Кажется, я только что вспомнил одну очень длинную дорогу.",
+    "🐶 Иногда машина может стать частью истории."
+];
+
+window.supernaturalTypedWordLineTranslations = {
+    en: [
+        "🐶 Wait... You know about the Impala too?",
+        "🐶 67. A very good number.",
+        "🐶 I feel like there should be a black Chevrolet parked somewhere nearby.",
+        "🐶 Some cars become legends.",
+        "🐶 If you ever see an old Impala, make sure to call me over.",
+        "🐶 Interesting word. For some reason it feels very familiar.",
+        "🐶 I think I just remembered one very long road.",
+        "🐶 Sometimes a car can become part of a story."
+    ],
+    ro: [
+        "🐶 Stai... Și tu știi despre Impala?",
+        "🐶 67. Un număr foarte bun.",
+        "🐶 Am impresia că pe undeva pe-aproape ar trebui să fie parcat un Chevrolet negru.",
+        "🐶 Unele mașini devin legende.",
+        "🐶 Dacă vezi vreodată o Impala veche, sună-mă neapărat.",
+        "🐶 Cuvânt interesant. Din nu știu ce motiv mi se pare foarte cunoscut.",
+        "🐶 Parcă tocmai mi-am amintit de un drum foarte lung.",
+        "🐶 Uneori o mașină poate deveni parte dintr-o poveste."
+    ]
+};
