@@ -2029,7 +2029,7 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
    скроллится, а крестик должен оставаться на месте. */
 .letter-read-wrap{
     position:relative;
-    width:min(92vw, 560px);
+    width:min(92vw, 680px);
     transform:translateY(14px) scale(.96);
     transition:transform .3s cubic-bezier(.22,1,.36,1);
 }
@@ -2053,6 +2053,22 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     max-height:85vh;
     overflow-y:auto;
     filter:drop-shadow(0 26px 50px rgba(0,0,0,.5));
+
+    /* Тонкий скроллбар вместо широкого системного (см. тот же приём в
+       .about-site-modal__scroll/.music-track-list) — на длинных письмах
+       широкий системный скроллбар зрительно наезжал на восковую печать
+       у нижнего края. */
+    scrollbar-width:thin;
+    scrollbar-color:rgba(42,24,8,.35) transparent;
+}
+
+.letter-read-paper::-webkit-scrollbar{
+    width:6px;
+}
+
+.letter-read-paper::-webkit-scrollbar-thumb{
+    background:rgba(42,24,8,.35);
+    border-radius:3px;
 }
 
 .letter-read-paper__cap{
@@ -2062,15 +2078,20 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     background-size:100% 100%;
 }
 
+/* На самих картинках рваный край занимает только верхнюю (в нижнем крае —
+   нижнюю) часть, а остальное — просто ровная текстура бумаги без деталей.
+   Пропорция уменьшена вдвое относительно оригинального фото: рваный край
+   виден точно так же (сжимается вместе со всей картинкой), а лишнего
+   пустого поля сверху/снизу перед текстом становится в 2 раза меньше. */
 .letter-read-paper__cap--top{
-    aspect-ratio:990/300;
+    aspect-ratio:990/150;
     background-image:url('../images/items/paper-top.webp');
     margin-bottom:-1px;
 }
 
 .letter-read-paper__cap--bottom{
     position:relative;
-    aspect-ratio:990/320;
+    aspect-ratio:990/160;
     background-image:url('../images/items/paper-bottom.webp');
     margin-top:-1px;
 }
@@ -2098,7 +2119,7 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     background-image:url('../images/items/paper-middle.webp');
     background-repeat:repeat-y;
     background-size:100% auto;
-    padding:20px 56px 28px;
+    padding:20px 56px 40px;
     color:#2a1808;
 }
 
@@ -2141,7 +2162,7 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
 
 @media (max-width: 640px){
     .letter-read-wrap{
-        width:min(94vw, 420px);
+        width:min(94vw, 460px);
     }
 }
 
