@@ -1,5 +1,5 @@
-// Скрытая Developer Panel. Открывается комбинацией клавиш Ctrl+Alt+Shift+D
-// (см. слушатель keydown внизу файла) — раньше это были 5 кликов по собаке,
+// Скрытая Developer Panel. Открывается зажатием Ctrl+Shift+Alt (без буквы,
+// см. слушатель keydown внизу файла) — раньше это были 5 кликов по собаке,
 // но этот жест теперь занят пасхалкой (см. data/dialogues/easterEgg.js и
 // js/dialogue/dialogue.js). Сама панель не показывает и не меняет ничего без
 // верного DEVELOPER_SECRET — случайное срабатывание комбинации само по себе
@@ -741,21 +741,30 @@ function stopAccelMode(){
     devAccelCode = null;
 }
 
-// ===== Скрытый доступ: Ctrl+Alt+Shift+D =====
-// Три модификатора разом — практически нулевой шанс случайно совпасть с
-// системным или браузерным сочетанием клавиш, поэтому preventDefault здесь
-// безопасен.
+// ===== Скрытый доступ: просто Ctrl+Shift+Alt (без отдельной буквы) =====
+// Три модификатора разом, без буквы — практически нулевой шанс случайно
+// совпасть с системным или браузерным сочетанием клавиш, поэтому
+// preventDefault здесь безопасен.
 //
-// event.code (физическая клавиша "KeyD"), а не event.key ("d") — на
-// нелатинских раскладках (например, русской) event.key отдаёт совсем
-// другой символ для той же физической клавиши, да и Ctrl+Alt на таких
-// раскладках сам по себе интерпретируется ОС как AltGr, из-за чего браузер
-// не всегда видит ctrlKey и altKey как два отдельных нажатых модификатора.
-// event.code не зависит от раскладки и языка ввода, поэтому надёжен в
-// обоих случаях.
+// Срабатывает на keydown ТОЙ клавиши, что замыкает тройку (неважно, в каком
+// порядке зажаты Ctrl/Shift/Alt) — devPanelComboArmed не даёт сработать
+// повторно, пока все три так и остаются зажатыми, и снова "взводится" по
+// keyup любого из модификаторов. event.code, а не event.key — модификаторы
+// не зависят от раскладки, но code всё равно надёжнее (см. историю: раньше
+// тут же требовалась буква "D", и event.key ловил другой символ на русской
+// раскладке).
+let devPanelComboArmed = true;
+const devPanelModifierCodes = ["ControlLeft", "ControlRight", "AltLeft", "AltRight", "ShiftLeft", "ShiftRight"];
+
 document.addEventListener("keydown", (event) => {
-    if(event.ctrlKey && event.altKey && event.shiftKey && event.code === "KeyD"){
+    if(!devPanelComboArmed) return;
+    if(event.ctrlKey && event.altKey && event.shiftKey && devPanelModifierCodes.includes(event.code)){
         event.preventDefault();
+        devPanelComboArmed = false;
         openDeveloperPanel();
     }
+});
+
+document.addEventListener("keyup", (event) => {
+    if(devPanelModifierCodes.includes(event.code)) devPanelComboArmed = true;
 });
