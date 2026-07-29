@@ -1571,6 +1571,10 @@ if(isIntroDeclined() && !isIntroAlreadyCompleted()){
 // этим жестом — иначе они бы конфликтовали. =====
 let devClickCount = 0;
 let devClickResetTimer = null;
+// Координаты собаки, зафиксированные в момент ПЕРВОГО клика серии — см.
+// комментарий ниже, зачем это нужно (иначе пасхалка физически не набиралась
+// бы: первый же клик открывает меню-проводник и уносит собаку в центр).
+let devClickRect = null;
 
 // Считаем клики по ОБЛАСТИ собаки через координаты, а не через слушатель
 // на самой картинке: у неё намеренно pointer-events:none большую часть
@@ -1588,10 +1592,22 @@ document.addEventListener("click", (event) => {
     // визуально выглядит "сверху", поэтому только явная проверка спасает).
     if(event.target.closest("#dogGuideMenu")) return;
 
-    const rect = dogCharacter.getBoundingClientRect();
+    // Первый клик серии (devClickCount === 0, счётчик ещё не сброшен
+    // таймером ниже) сразу же открывает меню-проводник (см. конец обработчика)
+    // — а вместе с ним собака увеличивается и переезжает в центр экрана
+    // (triggerDogGuide/startDogGuidePulse в js/character/dogGuide.js). Если
+    // для КАЖДОГО клика заново брать текущий getBoundingClientRect(), клики
+    // 2-5 (которые Регина физически делает в то же место экрана, что и
+    // первый) будут промахиваться мимо уже переехавшей собаки, и пасхалка
+    // никогда не наберёт 5. Поэтому зона проверяется по координатам,
+    // зафиксированным на первом клике серии, и переиспользуется, пока серия
+    // не оборвалась (окно между кликами — 400мс, см. ниже).
+    const rect = devClickCount > 0 && devClickRect ? devClickRect : dogCharacter.getBoundingClientRect();
     const withinDog = event.clientX >= rect.left && event.clientX <= rect.right &&
                        event.clientY >= rect.top && event.clientY <= rect.bottom;
     if(!withinDog) return;
+
+    if(devClickCount === 0) devClickRect = rect;
 
     devClickCount += 1;
     if(devClickResetTimer) clearTimeout(devClickResetTimer);
@@ -1600,10 +1616,11 @@ document.addEventListener("click", (event) => {
     // не путать пасхалку с одиночным кликом по собаке (отдельная функция,
     // не про эту пасхалку) — тот клик просто не наберёт 5 в срок и счётчик
     // сам сбросится.
-    devClickResetTimer = setTimeout(() => { devClickCount = 0; }, 400);
+    devClickResetTimer = setTimeout(() => { devClickCount = 0; devClickRect = null; }, 400);
 
     if(devClickCount >= 5){
         devClickCount = 0;
+        devClickRect = null;
         clearTimeout(devClickResetTimer);
         // Меню-проводник (см. js/character/dogGuide.js) могло уже открыться
         // от первого клика этой же серии — пасхалка приоритетнее, закрываем
