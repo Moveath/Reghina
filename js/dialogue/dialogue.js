@@ -601,6 +601,7 @@ function finishIntroDialogue(){
     document.body.classList.remove("intro-active");
     if(typeof window.musicFinishIntroCinematic === "function") window.musicFinishIntroCinematic();
     if(typeof closePanels === "function") closePanels();
+    if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
     clearAllPrompts();
@@ -994,6 +995,7 @@ function showResetConfirmDialogue(){
     if(typeof window.musicDuck === "function") window.musicDuck();
 
     if(typeof closePanels === "function") closePanels();
+    if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
 
@@ -1061,6 +1063,7 @@ function showRestoreConfirmDialogue(code){
     if(typeof window.musicDuck === "function") window.musicDuck();
 
     if(typeof closePanels === "function") closePanels();
+    if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
 
@@ -1140,6 +1143,7 @@ function showLanguageConfirmDialogue(lang){
     if(typeof window.musicDuck === "function") window.musicDuck();
 
     if(typeof closePanels === "function") closePanels();
+    if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
 
@@ -1335,6 +1339,7 @@ function showMonthlyKeyDialogue(pieceIndex, onClose){
     if(typeof window.musicDuck === "function") window.musicDuck();
 
     if(typeof closePanels === "function") closePanels();
+    if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
 
@@ -1462,6 +1467,7 @@ function showBirthdayEventDialogue(isExactDay, pieceIndex, onClose){
     if(typeof window.musicDuck === "function") window.musicDuck();
 
     if(typeof closePanels === "function") closePanels();
+    if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
 
@@ -1563,8 +1569,13 @@ function showDogRemark(text, emotion, onClose){
 
     // Реплика — полноэкранная сцена, под ней не должно оставаться открытых
     // панелей (например, виджета "Письма" после отправки) — иначе они
-    // просвечивают/перекрываются с пузырём реплики.
+    // просвечивают/перекрываются с пузырём реплики. closeAllAboutModals —
+    // отдельно, потому что "О сайте"/"Идея проекта"/"О собаке" не входят в
+    // closePanels() (см. js/ui/settings.js): без неё, например, пасхалка при
+    // переименовании собаки через "О собаке" рисовалась бы ПОД всё ещё
+    // открытой модалкой и была бы не видна, хотя формально уже сработала.
     if(typeof closePanels === "function") closePanels();
+    if(typeof closeAllAboutModals === "function") closeAllAboutModals();
 
     characterContainer.classList.add("is-intro-scene");
     setDogEmotion(emotion || "happy");

@@ -947,6 +947,18 @@ function closePanels(){
     closeLanguageMenu();
 }
 
+// "О сайте"/"Идея проекта"/"О собаке" — отдельное семейство модалок
+// (.about-site-modal), не входящее в closePanels() выше. showDogRemark
+// (js/dialogue/dialogue.js) вызывает эту функцию отдельно перед показом
+// реплики — иначе, например, пасхалка при переименовании собаки через
+// "О собаке" отрисовывалась бы ПОД всё ещё открытой модалкой и была бы
+// не видна, хотя формально уже сработала.
+function closeAllAboutModals(){
+    if(typeof closeAboutSiteModal === "function") closeAboutSiteModal();
+    if(typeof closeProjectIdeaModal === "function") closeProjectIdeaModal();
+    if(typeof closeDogInfoModal === "function") closeDogInfoModal();
+}
+
 function updateCharacterButtonLabel(){
     let name = "";
     try {
