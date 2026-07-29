@@ -235,17 +235,34 @@ function toggleLanguageMenu(){
 }
 window.closeLanguageMenu = closeLanguageMenu;
 
+// Иконка ползунка звуков — 🔇 на нуле, иначе 🔊. Отдельная от музыкальной
+// (🎵/🔇) специально: это два независимых механизма (см. sfxSetVolumePercent
+// в js/audio/sfx.js), не должны визуально сливаться в одно и то же.
+function sfxVolumeIconFor(percent){
+    return percent === 0 ? "🔇" : "🔊";
+}
+
 function renderSettingsPanel(){
     if(!settingsPanel) return;
+
+    const sfxVolumePercent = typeof window.sfxGetVolumePercent === "function" ? window.sfxGetVolumePercent() : 55;
 
     settingsPanel.innerHTML = `
         <h3 class="settings-panel__title">${t("settings_panel_title")}</h3>
         <ul class="settings-section-list">
             ${settingsSections.map(section => `
-                <li class="settings-section-item" ${section.id ? `id="${section.id}"` : ""}>
+                <li class="settings-section-item is-clickable" ${section.id ? `id="${section.id}"` : ""}>
                     <span class="settings-section-icon" aria-hidden="true">${section.icon}</span>
                     <span>${section.label}</span>
                 </li>
+                ${section.id === "soundsOption" ? `
+                <li class="music-volume-section" id="sfxVolumeSection">
+                    <div class="music-volume-row">
+                        <span class="music-volume-icon" id="sfxVolumeIcon" aria-hidden="true">${sfxVolumeIconFor(sfxVolumePercent)}</span>
+                        <input type="range" min="0" max="100" step="1" id="sfxVolumeSlider" class="music-volume-slider" value="${sfxVolumePercent}">
+                        <span class="music-volume-value" id="sfxVolumeValue">${sfxVolumePercent}%</span>
+                    </div>
+                </li>` : ""}
             `).join("")}
         </ul>
     `;
@@ -265,7 +282,39 @@ function renderSettingsPanel(){
             toggleLanguageMenu();
         });
     }
+
+    const soundsOption = document.getElementById("soundsOption");
+    const sfxVolumeSection = document.getElementById("sfxVolumeSection");
+    if(soundsOption && sfxVolumeSection){
+        soundsOption.addEventListener("click", (event) => {
+            event.stopPropagation();
+            sfxVolumeSection.classList.toggle("is-open");
+        });
+    }
+
+    const sfxVolumeSlider = document.getElementById("sfxVolumeSlider");
+    if(sfxVolumeSlider){
+        sfxVolumeSlider.addEventListener("click", (event) => event.stopPropagation());
+        sfxVolumeSlider.addEventListener("input", () => {
+            if(typeof window.sfxSetVolumePercent === "function"){
+                window.sfxSetVolumePercent(Number(sfxVolumeSlider.value));
+            }
+        });
+    }
 }
+
+// Обновление иконки/значения ползунка звуков на месте — тот же приём, что
+// window.onMusicVolumeChanged выше по файлу (settingsPanel рендерится один
+// раз при загрузке, элементы стабильны).
+window.onSfxVolumeChanged = function(percent){
+    const icon = sfxVolumeIconFor(percent);
+    const iconEl = document.getElementById("sfxVolumeIcon");
+    const sliderEl = document.getElementById("sfxVolumeSlider");
+    const valueEl = document.getElementById("sfxVolumeValue");
+    if(iconEl) iconEl.textContent = icon;
+    if(sliderEl && Number(sliderEl.value) !== percent) sliderEl.value = percent;
+    if(valueEl) valueEl.textContent = `${percent}%`;
+};
 
 // Иконка на самой кнопке-шкатулке (top-actions) и иконка внутри виджета
 // громкости — обе отражают состояние "звук выключен" (громкость 0),

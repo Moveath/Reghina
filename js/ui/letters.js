@@ -331,6 +331,9 @@ function renderFoldersView(){
     lettersPanel.querySelector('[data-folder="inbox"]').addEventListener("click", (event) => {
         event.stopPropagation();
         renderInboxView();
+        // Звук "письмо" — один раз при каждом открытии входящих, но только
+        // если там реально есть что показать на экране.
+        if(inboxCache.length > 0 && typeof window.playSfx === "function") window.playSfx("letter");
         loadInbox();
     });
 }

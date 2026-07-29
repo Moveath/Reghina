@@ -33,6 +33,8 @@ const emotionClasses = {
 };
 
 let emotionTimeout = null;
+let dogSnoreStartTimer = null;
+const DOG_SNORE_START_DELAY_MS = 800;
 let introOverlayElement = null;
 let settingsHintElement = null;
 let introFrozen = false;
@@ -287,6 +289,21 @@ function hideSettingsPrompt(){
 
 function renderIntroDialogue(){
     const line = getCurrentLine();
+
+    // Храп спящей собаки — крутится только пока идёт самая первая (сонная)
+    // реплика, коротким циклом, с небольшой задержкой после загрузки, чтобы
+    // не звучать раньше, чем страница реально прогрузилась. Обрывается сразу
+    // же (не дожидаясь этого рендера), как только она просыпается — см.
+    // isDream-ветку в обработчике клика ниже.
+    if(line.isDream){
+        if(typeof window.startDogSnoreLoop === "function"){
+            clearTimeout(dogSnoreStartTimer);
+            dogSnoreStartTimer = setTimeout(() => window.startDogSnoreLoop(), DOG_SNORE_START_DELAY_MS);
+        }
+    } else {
+        clearTimeout(dogSnoreStartTimer);
+        if(typeof window.stopDogSnoreLoop === "function") window.stopDogSnoreLoop();
+    }
 
     // Сохраняем текущий шаг — если она освежит страницу посреди интро
     // (даже Ctrl+F5), продолжим ровно с этого места, а не с начала.
@@ -796,6 +813,8 @@ dialogueContainer.addEventListener("click", (e) => {
     // (Диалог 1), музыки быть не должно — только со 2-го диалога.
     if(line.isDream){
         wakeUpDog();
+        clearTimeout(dogSnoreStartTimer);
+        if(typeof window.stopDogSnoreLoop === "function") window.stopDogSnoreLoop();
         if(typeof window.musicStartIntroCinematic === "function") window.musicStartIntroCinematic();
     }
 

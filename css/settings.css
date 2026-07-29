@@ -460,12 +460,14 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
     font-weight:500;
 }
 
-.progress-action-item.is-clickable{
+.progress-action-item.is-clickable,
+.settings-section-item.is-clickable{
     cursor:pointer;
     transition:background .2s ease, transform .15s ease;
 }
 
-.progress-action-item.is-clickable:hover{
+.progress-action-item.is-clickable:hover,
+.settings-section-item.is-clickable:hover{
     background:rgba(255,255,255,.16);
     transform:translateY(-1px);
 }

@@ -112,6 +112,7 @@ const puzzleKeySystem = (() => {
         updateKeyInterface();
         if(event) moveHeldKey(event);
         showMessage(t("keys_in_hand"));
+        if(typeof window.playSfx === "function") window.playSfx("keyPickup");
     }
 
     function openConfirmation(onConfirm){

@@ -78,19 +78,29 @@ function shakeLockedPiece(piece){
     piece.classList.add("shake");
 }
 
+// Открытие кусочка — теперь ждёт настоящий звук открывающегося замка (см.
+// sfxPlayLockOpen в js/audio/sfx.js), а не фиксированные 700мс: сама
+// анимация замка растягивается под длительность звука (с учётом
+// замедления), картинка кусочка появляется ровно в момент, когда звук
+// закончился, и сразу следом — отдельный звук открытия части.
 function unlockPiece(piece){
     if(container.classList.contains("minimized")) return;
     if(piece.classList.contains("unlocked") || piece.classList.contains("unlocking")) return;
 
     piece.classList.add("unlocking");
+    const lockWrap = piece.querySelector(".lock-wrap");
+    if(lockWrap && typeof window.sfxLockOpenDurationS === "number"){
+        lockWrap.style.animationDuration = `${window.sfxLockOpenDurationS}s`;
+    }
 
-    setTimeout(() => {
+    const reveal = () => {
         piece.classList.remove("locked", "unlocking");
         piece.classList.add("open", "unlocked");
         piece.replaceChildren();
         updatePuzzleProgress();
         saveUnlockedPieces();
         showPuzzleToast(t("puzzle_opened"));
+        if(typeof window.playSfx === "function") window.playSfx("pieceOpen");
 
         // Сообщаем интро (если оно как раз ждёт этого момента) — см. dialogue.js.
         if(typeof window.notifyPuzzlePieceUnlocked === "function"){
@@ -100,7 +110,13 @@ function unlockPiece(piece){
         if(pieces.every(item => item.classList.contains("unlocked"))){
             setTimeout(() => showPuzzleToast(t("puzzle_all_opened")), 1200);
         }
-    }, 700);
+    };
+
+    if(typeof window.sfxPlayLockOpen === "function"){
+        window.sfxPlayLockOpen(reveal);
+    } else {
+        setTimeout(reveal, 700);
+    }
 }
 
 // Открытие конкретного кусочка по индексу, в обход ключа-в-руке —
@@ -118,19 +134,30 @@ function unlockPieceByIndex(index){
     if(typeof saveContainerState === "function") saveContainerState({ minimized: false });
 
     piece.classList.add("unlocking");
+    const lockWrap = piece.querySelector(".lock-wrap");
+    if(lockWrap && typeof window.sfxLockOpenDurationS === "number"){
+        lockWrap.style.animationDuration = `${window.sfxLockOpenDurationS}s`;
+    }
 
-    setTimeout(() => {
+    const reveal = () => {
         piece.classList.remove("locked", "unlocking");
         piece.classList.add("open", "unlocked");
         piece.replaceChildren();
         updatePuzzleProgress();
         saveUnlockedPieces();
         showPuzzleToast(t("puzzle_opened"));
+        if(typeof window.playSfx === "function") window.playSfx("pieceOpen");
 
         if(pieces.every(item => item.classList.contains("unlocked"))){
             setTimeout(() => showPuzzleToast(t("puzzle_all_opened")), 1200);
         }
-    }, 700);
+    };
+
+    if(typeof window.sfxPlayLockOpen === "function"){
+        window.sfxPlayLockOpen(reveal);
+    } else {
+        setTimeout(reveal, 700);
+    }
 
     return true;
 }
