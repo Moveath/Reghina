@@ -1296,6 +1296,141 @@ function finishMonthlyKeyDialogue(pieceIndex, onClose){
 
 window.showMonthlyKeyDialogue = showMonthlyKeyDialogue;
 
+// ============================================================
+// Особое событие ко дню рождения — см. js/character/birthdayEvent.js
+// (проверка даты/часового пояса, флаг "уже видели в этом году") и
+// data/dialogues/birthday.js (сами реплики). Структурно — почти копия
+// сцены ежемесячного ключа выше (те же guard-флаги, тот же showIntroOverlay/
+// musicDuck/closePanels), но со своим текстом, БЕЗ is-key-found (не
+// показываем "собаку с ключом" — по этому дню отдельно попросили) и с
+// подарком, который появляется рядом с собакой вместо обычной сцены.
+// pieceIndex здесь ровно тот же ежемесячный ключ (см. window.checkBirthdayEvent
+// в birthdayEvent.js — оно переиспользует checkMonthlyKey целиком, просто
+// подменяя, КАК показать уже выданный сервером ключ), поэтому в конце
+// вызывается тот же unlockPieceByIndex, что и у обычного ежемесячного ключа.
+// ============================================================
+
+function getBirthdayEventLines(stage){
+    const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
+    const translated = window.birthdayEventLineTranslations && window.birthdayEventLineTranslations[lang];
+    return (translated && translated[stage]) || birthdayEventLinesRu[stage];
+}
+
+let birthdayEventSceneActive = false;
+
+function ensureBirthdayGiftBox(){
+    let box = document.getElementById("birthdayGiftBox");
+    if(!box){
+        box = document.createElement("img");
+        box.id = "birthdayGiftBox";
+        box.className = "birthday-gift-box";
+        box.src = "images/items/gift-box.webp";
+        box.alt = "";
+        characterContainer.appendChild(box);
+    }
+    return box;
+}
+
+function showBirthdayGiftBox(){
+    const box = ensureBirthdayGiftBox();
+    requestAnimationFrame(() => box.classList.add("is-visible"));
+}
+
+function hideBirthdayGiftBox(){
+    const box = document.getElementById("birthdayGiftBox");
+    if(box) box.remove();
+}
+
+// isExactDay — true 1 октября (сценарий №1), false при заходе позже, пока
+// событие этого года ещё не просмотрено (сценарий №2) — влияет только на
+// вступительный текст, дальше сценарий полностью одинаковый.
+function showBirthdayEventDialogue(isExactDay, pieceIndex, onClose){
+    if(document.body.classList.contains("intro-active")) return;
+    if(resetConfirmActive || dogRemarkActive || monthlyKeySceneActive || dogGuideSceneActive || birthdayEventSceneActive){
+        setTimeout(() => showBirthdayEventDialogue(isExactDay, pieceIndex, onClose), 1500);
+        return;
+    }
+    birthdayEventSceneActive = true;
+    if(typeof window.musicDuck === "function") window.musicDuck();
+
+    if(typeof closePanels === "function") closePanels();
+    if(typeof closeThemeMenu === "function") closeThemeMenu();
+    if(typeof closeLanguageMenu === "function") closeLanguageMenu();
+
+    // Намеренно без is-key-found — это не обычная сцена "собака нашла
+    // ключ", у дня рождения свой отдельный образ (см. is-birthday-mode в
+    // js/character/birthdayEvent.js), и эмоция тут счастливая, а не excited.
+    characterContainer.classList.add("is-intro-scene", "is-birthday-scene");
+    setDogEmotion("happy");
+
+    dialogueContainer.classList.remove("is-puzzle-reveal", "is-clear", "is-fading");
+    dialogueContainer.classList.add("is-active");
+    showIntroOverlay();
+
+    const lines = getBirthdayEventLines(isExactDay ? "onDay" : "later");
+
+    dialogueContainer.innerHTML = `
+        <div class="intro-dialogue" role="dialog" aria-live="polite">
+            <div class="intro-dialogue__bubble intro-dialogue__bubble--interactive birthday-event-bubble">
+                ${lines.map(line => `<p>${line}</p>`).join("")}
+                <div class="choice-buttons">
+                    <button id="birthdayOpenGift" class="choice-btn choice-btn--0" type="button">${t("dlg_birthday_open_gift")}</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    showBirthdayGiftBox();
+
+    document.getElementById("birthdayOpenGift").addEventListener("click", (e) => {
+        e.stopPropagation();
+        if(typeof window.playSfx === "function") window.playSfx("keyPickup");
+        showBirthdayWowStage(pieceIndex, onClose);
+    });
+}
+
+function showBirthdayWowStage(pieceIndex, onClose){
+    const bubble = dialogueContainer.querySelector(".intro-dialogue__bubble");
+    if(!bubble) return;
+
+    hideBirthdayGiftBox();
+
+    const lines = getBirthdayEventLines("wow");
+    bubble.innerHTML = `
+        <span class="birthday-key-icon" aria-hidden="true">🔑</span>
+        ${lines.map(line => `<p>${line}</p>`).join("")}
+    `;
+
+    // "Автоматически запускается" по требованию — без кнопки, просто
+    // достаточно времени прочитать реплику перед тем, как часть откроется.
+    setTimeout(() => finishBirthdayEventDialogue(pieceIndex, onClose), 3000);
+}
+
+function finishBirthdayEventDialogue(pieceIndex, onClose){
+    birthdayEventSceneActive = false;
+    if(typeof window.musicUnduck === "function") window.musicUnduck();
+
+    hideIntroOverlay();
+    dialogueContainer.classList.add("is-fading");
+    dialogueContainer.classList.remove("is-active");
+
+    characterContainer.classList.remove("is-intro-scene", "is-birthday-scene");
+    resetDogToNeutral();
+    hideBirthdayGiftBox();
+
+    setTimeout(() => {
+        dialogueContainer.innerHTML = "";
+        dialogueContainer.classList.remove("is-fading");
+        if(typeof onClose === "function") onClose();
+    }, 850);
+
+    if(typeof window.unlockPieceByIndex === "function"){
+        window.unlockPieceByIndex(pieceIndex);
+    }
+}
+
+window.showBirthdayEventDialogue = showBirthdayEventDialogue;
+
 // Разовая реплика собаки вне сценария интро — используется письмами
 // (js/ui/letters.js): подтверждение "отнесла письмо" и оповещение о новом
 // письме от Егора, а также музыкой (js/audio/music.js): "Егор добавил ту

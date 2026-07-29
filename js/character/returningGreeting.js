@@ -3,14 +3,20 @@
  * очередь с чётким приоритетом, чтобы события никогда не показывались
  * наперегонки друг с другом или в неправильном порядке:
  *
- *   1. Новый ключ (checkMonthlyKey, см. js/storage/storage.js) —
+ *   1. Событие ко дню рождения (window.checkBirthdayEvent, см.
+ *      js/character/birthdayEvent.js) — 1 октября (или первый визит после,
+ *      если событие в этом году ещё не видели). Занимает то же место в
+ *      очереди, что и обычный ежемесячный ключ (см. п.2) — это тот же самый
+ *      ключ, просто показанный по-другому, поэтому если сработал день
+ *      рождения, обычный ключ в этот же визит уже не проверяется.
+ *   2. Новый ключ (checkMonthlyKey, см. js/storage/storage.js) —
  *      специальный сценарий (2 стадии + открытие кусочка пазла, см.
  *      showMonthlyKeyDialogue в js/dialogue/dialogue.js).
- *   2. Новое письмо (window.checkLetterGreeting, см. js/ui/letters.js).
- *   3. Новая музыка (window.checkMusicAddedGreeting, см. js/audio/music.js).
- *   4. (задел на будущее — другие важные события можно вставить сюда же,
+ *   3. Новое письмо (window.checkLetterGreeting, см. js/ui/letters.js).
+ *   4. Новая музыка (window.checkMusicAddedGreeting, см. js/audio/music.js).
+ *   5. (задел на будущее — другие важные события можно вставить сюда же,
  *      между музыкой и обычной фразой, тем же приёмом: onDone(shown)).
- *   5. Если ничего из 1-4 не показалось — одна случайная обычная
+ *   6. Если ничего из 1-5 не показалось — одна случайная обычная
  *      приветственная фраза (5% шанс — редкая, см. data/dialogues/
  *      greeting.js).
  *
@@ -73,12 +79,7 @@ function returningGreetingCheckLetters(anyEventShown){
     }
 }
 
-async function runReturningVisitGreeting(){
-    // Только для возвращающихся визитов — при самой интро (первый визит)
-    // очередь ключ/письма/музыка/фраза не имеет смысла, у интро свой
-    // собственный сценарий.
-    if(typeof isIntroAlreadyCompleted !== "function" || !isIntroAlreadyCompleted()) return;
-
+async function returningGreetingCheckMonthlyKey(){
     if(typeof window.checkMonthlyKey !== "function"){
         returningGreetingCheckLetters(false);
         return;
@@ -103,6 +104,31 @@ async function runReturningVisitGreeting(){
     } catch(e) { /* ниже уйдём в обычную очередь */ }
 
     if(!granted) returningGreetingCheckLetters(false);
+}
+
+async function runReturningVisitGreeting(){
+    // Только для возвращающихся визитов — при самой интро (первый визит)
+    // очередь ключ/письма/музыка/фраза не имеет смысла, у интро свой
+    // собственный сценарий.
+    if(typeof isIntroAlreadyCompleted !== "function" || !isIntroAlreadyCompleted()) return;
+
+    // День рождения — тот же ключ, что и обычный ежемесячный, просто с
+    // другим сценарием показа (см. js/character/birthdayEvent.js). Если он
+    // сработал — очередь письма/музыка/фраза продолжается уже из его
+    // собственного onDone, обычный ежемесячный ключ в этот визит не трогаем
+    // (это был бы тот же самый ключ второй раз).
+    if(typeof window.checkBirthdayEvent === "function"){
+        window.checkBirthdayEvent((shown) => {
+            if(shown){
+                returningGreetingCheckLetters(true);
+            } else {
+                returningGreetingCheckMonthlyKey();
+            }
+        });
+        return;
+    }
+
+    returningGreetingCheckMonthlyKey();
 }
 
 window.runReturningVisitGreeting = runReturningVisitGreeting;

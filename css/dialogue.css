@@ -404,6 +404,26 @@
     cursor:default;
 }
 
+/* Событие ко дню рождения — несколько коротких реплик в одном пузыре
+   подряд (не по одной, как в интро), margin:0 у обычных .bubble p слепил
+   бы их в одну сплошную стену текста. */
+.birthday-event-bubble p{
+    margin-bottom:10px;
+}
+
+.birthday-event-bubble p:last-of-type{
+    margin-bottom:0;
+}
+
+.birthday-key-icon{
+    display:block;
+    text-align:center;
+    font-size:34px;
+    line-height:1;
+    margin-bottom:8px;
+    animation:keyAppear .5s cubic-bezier(.22,1,.36,1) both;
+}
+
 /* Кнопки выбора */
 .choice-buttons{
     display:flex;
