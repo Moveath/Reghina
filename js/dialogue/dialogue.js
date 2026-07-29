@@ -499,6 +499,15 @@ function renderIntroDialogue(){
             dogName = name;
             saveDogName(name);
             updateNameplate(name);
+
+            // Пасхалка "Сверхъестественное" (см. data/dialogues/
+            // supernatural.js) — если имя совпало, сначала одна реплика-
+            // намёк, а уже после клика по ней — обычное продолжение интро.
+            if(isSupernaturalDogName(name)){
+                showSupernaturalNameEasterEgg(() => goToDialogue(13));
+                return;
+            }
+
             goToDialogue(13); // диалог 14 (индекс 13) — "имя? Мне нравится"
         }
 
@@ -866,6 +875,15 @@ function renameDog(newName){
     if(typeof updateCharacterButtonLabel === "function") updateCharacterButtonLabel();
     if(typeof window.updateDiaryLabel === "function") window.updateDiaryLabel();
 
+    // Пасхалка "Сверхъестественное" (см. showSupernaturalNameEasterEgg выше
+    // для случая первого выбора имени внутри интро) — здесь переименование
+    // происходит уже ПОСЛЕ интро, поэтому вместо самодельного пузыря просто
+    // переиспользуем обычный одноразовый showDogRemark (та же логика, что и
+    // для новых писем/музыки), он сам разберётся с очередями других сцен.
+    if(isSupernaturalDogName(trimmed)){
+        showDogRemark(pickRandomLine(getSupernaturalDogNameLines()), "thinking");
+    }
+
     return true;
 }
 window.renameDog = renameDog;
@@ -1200,6 +1218,60 @@ function getDogClickEasterEggLines(){
     const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
     const translated = window.dogClickEasterEggLineTranslations && window.dogClickEasterEggLineTranslations[lang];
     return translated || dogClickEasterEggLinesRu;
+}
+
+// ===== Пасхалка: имя собаки из "Сверхъестественного" (см. data/dialogues/
+// supernatural.js) — регистронезависимо и с схлопыванием лишних пробелов,
+// без "нечёткого" совпадения: список уже сам по себе перечисляет все
+// распространённые варианты написания и сокращения. =====
+function normalizeSupernaturalDogName(name){
+    return (name || "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function isSupernaturalDogName(name){
+    return Array.isArray(SUPERNATURAL_DOG_NAMES) && SUPERNATURAL_DOG_NAMES.includes(normalizeSupernaturalDogName(name));
+}
+
+function getSupernaturalDogNameLines(){
+    const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
+    const translated = window.supernaturalDogNameLineTranslations && window.supernaturalDogNameLineTranslations[lang];
+    return translated || supernaturalDogNameLinesRu;
+}
+
+// Показывает одноразовую реплику-пасхалку ПРЯМО в момент подтверждения
+// имени во время интро (не отдельная сцена и не сюжетная ветка — просто
+// одна фраза поверх того же пузыря, что и обычные реплики интро). Дальше
+// либо клик, либо dialogueIndex, обычным способом продолжают интро.
+//
+// dialogueIndex (сама переменная) сознательно НЕ трогаем, пока реплика на
+// экране — getCurrentLine() должен по-прежнему возвращать шаг ввода имени
+// (type: "name_input"), иначе обработчик клика по dialogueContainer чуть
+// выше по файлу (читает getCurrentLine()) среагировал бы на тот же клик,
+// которым пасхалку закрывают, и сдвинул бы диалог ещё на шаг вперёд.
+// В хранилище при этом сразу пишем итоговый шаг (13) — если случайно
+// перезагрузить страницу прямо во время показа этой реплики, сайт продолжит
+// с диалога 14, а не переспросит имя заново.
+function showSupernaturalNameEasterEgg(afterward){
+    const text = pickRandomLine(getSupernaturalDogNameLines());
+
+    setDogEmotion("thinking");
+    dialogueContainer.innerHTML = `
+        <div class="intro-dialogue" role="dialog" aria-live="polite">
+            <div class="intro-dialogue__bubble">
+                <p>${text}</p>
+                <span>${t("dlg_click_anywhere")}</span>
+            </div>
+        </div>
+    `;
+
+    saveDialogueIndex(13);
+
+    function dismiss(event){
+        event.stopPropagation();
+        dialogueContainer.removeEventListener("click", dismiss);
+        afterward();
+    }
+    dialogueContainer.addEventListener("click", dismiss);
 }
 
 let monthlyKeySceneActive = false;
