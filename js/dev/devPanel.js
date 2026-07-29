@@ -745,8 +745,16 @@ function stopAccelMode(){
 // Три модификатора разом — практически нулевой шанс случайно совпасть с
 // системным или браузерным сочетанием клавиш, поэтому preventDefault здесь
 // безопасен.
+//
+// event.code (физическая клавиша "KeyD"), а не event.key ("d") — на
+// нелатинских раскладках (например, русской) event.key отдаёт совсем
+// другой символ для той же физической клавиши, да и Ctrl+Alt на таких
+// раскладках сам по себе интерпретируется ОС как AltGr, из-за чего браузер
+// не всегда видит ctrlKey и altKey как два отдельных нажатых модификатора.
+// event.code не зависит от раскладки и языка ввода, поэтому надёжен в
+// обоих случаях.
 document.addEventListener("keydown", (event) => {
-    if(event.ctrlKey && event.altKey && event.shiftKey && event.key.toLowerCase() === "d"){
+    if(event.ctrlKey && event.altKey && event.shiftKey && event.code === "KeyD"){
         event.preventDefault();
         openDeveloperPanel();
     }
