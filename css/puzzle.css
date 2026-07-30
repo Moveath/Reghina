@@ -1,6 +1,6 @@
 .container{
-    width:min(75vw,550px);
-    height:min(75vw,550px);
+    width:var(--puzzle-size);
+    height:var(--puzzle-size);
 
     position:fixed;
     will-change:transform, left, top, right, bottom, width, height;
@@ -352,7 +352,7 @@
 .reset-puzzle-btn{
     position:fixed;
     left:50%;
-    top:calc(50% + min(37.5vw, 275px) + 24px);
+    top:calc(50% + var(--puzzle-half) + 24px);
 
     transform:translateX(-50%);
 
@@ -393,8 +393,13 @@
 
     position:fixed;
 
-    left:calc(50% + 250px);
-    top:calc(50% - 250px);
+    /* -25px от угла контейнера — кнопка чуть заходит на скруглённый угол
+       пазла, а не висит строго снаружи (тот же отступ, что был раньше при
+       фиксированном 550px-контейнере: 275 - 25 = 250). Считаем от
+       --puzzle-half, а не от статичного числа, чтобы отступ оставался
+       верным на любом размере экрана, а не только на самом большом. */
+    left:calc(50% + var(--puzzle-half) - 25px);
+    top:calc(50% - var(--puzzle-half) + 25px);
 
     width:42px;
     height:42px;

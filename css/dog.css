@@ -25,7 +25,7 @@
 #characterContainer.is-intro-scene{
     left:1.8vw;
     bottom:-1.2vh;
-    width:min(43vw, 560px);
+    width:var(--intro-dog-width);
     z-index:4500;
 }
 
@@ -48,7 +48,7 @@
    края. Сужаем именно этот вариант — заметно крупнее маленького уголка,
    но уже не долетает до текста в центре. */
 #characterContainer.is-intro-scene.is-guide-reaction-dog{
-    width:min(27vw, 380px);
+    width:min(27vw, 52vh, 380px);
 }
 
 /* Когда интро закончилось — имя исчезает */

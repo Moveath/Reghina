@@ -36,7 +36,7 @@
      *               - 40px (пузырь заходит ближе к собаке / чуть перекрывает)
      * padding-top уменьшен → пузырь выше, ближе к голове.
      */
-    padding:clamp(13vh, 19vh, 24vh) 0 0 calc(4vw + min(43vw, 560px) - 70px);
+    padding:clamp(13vh, 19vh, 24vh) 0 0 calc(4vw + var(--intro-dog-width) - 70px);
 
     box-sizing:border-box;
 }
@@ -303,7 +303,7 @@
     z-index:1;
 
     /* Те же отступы, что у пузыря речи, но выше (top меньше) */
-    left:calc(4vw + min(43vw, 560px) - 70px);
+    left:calc(4vw + var(--intro-dog-width) - 70px);
     top:clamp(8vh, 11vh, 15vh);
     box-sizing:border-box;
 }
@@ -508,7 +508,7 @@
    ============================================================ */
 @media (max-width: 1024px){
     .intro-dialogue{
-        padding:clamp(16vh, 22vh, 28vh) 0 0 calc(4vw + 43vw + 10px);
+        padding:clamp(16vh, 22vh, 28vh) 0 0 calc(4vw + var(--intro-dog-width) + 10px);
     }
 
     .intro-dialogue__bubble{
