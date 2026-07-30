@@ -24,7 +24,7 @@ const progressActions = [
 
 const aboutSections = [
     { icon: "ℹ️", label: t("about_site_info"), id: "aboutSiteInfoOption" },
-    { icon: "📜", label: t("about_creation_story") },
+    { icon: "📜", label: t("about_creation_story"), id: "creationStoryOption" },
     { icon: "💡", label: t("about_project_idea"), id: "aboutProjectIdeaOption" }
 ];
 
@@ -508,6 +508,14 @@ function renderAboutPanel(){
             openProjectIdeaModal();
         });
     }
+
+    const creationStoryOption = document.getElementById("creationStoryOption");
+    if(creationStoryOption){
+        creationStoryOption.addEventListener("click", (event) => {
+            event.stopPropagation();
+            openCreationStoryModal();
+        });
+    }
 }
 
 // Отдельное окно "Информация о сайте" — намеренно НЕ settings-panel
@@ -668,6 +676,109 @@ function closeProjectIdeaModal(){
 
 function handleProjectIdeaModalEscape(event){
     if(event.key === "Escape") closeProjectIdeaModal();
+}
+
+// Отдельное окно "История создания" — тот же визуальный стиль
+// about-site-modal, но текст перемежается скриншотами разработки (папка
+// images/project) с датами-подписями. Даты — реальные дни разработки
+// (июль 2026), локализуются через toLocaleDateString с тем же
+// dateLocaleByLanguage, что уже используют даты писем в js/ui/letters.js
+// (классический <script defer>, доступен по имени без импорта) — так не
+// нужно заводить отдельные переводные ключи под каждое число.
+let creationStoryModalElement = null;
+
+const creationStoryPhotoGroups = [
+    [{ file: "story-2.webp", day: 13 }],
+    [{ file: "story-5.webp", day: 15 }, { file: "story-7.webp", day: 16 }],
+    [{ file: "story-16.webp", day: 21 }, { file: "story-18.webp", day: 21 }],
+    [{ file: "story-12.webp", day: 20 }, { file: "story-21.webp", day: 27 }],
+    [{ file: "story-19.webp", day: 26 }, { file: "story-20.webp", day: 26 }],
+    [{ file: "story-26.webp", day: 30 }, { file: "story-27.webp", day: 30 }]
+];
+
+function formatCreationStoryDate(day){
+    const lang = typeof getSelectedLanguage === "function" ? getSelectedLanguage() : "ru";
+    const locale = (typeof dateLocaleByLanguage !== "undefined" && dateLocaleByLanguage[lang]) || "ru-RU";
+    return new Date(2026, 6, day).toLocaleDateString(locale, { day: "numeric", month: "long" });
+}
+
+function creationStoryPhotoGroupHtml(photos){
+    return `
+        <div class="creation-story-modal__photos">
+            ${photos.map(photo => `
+                <figure class="creation-story-modal__photo">
+                    <img src="images/project/${photo.file}" alt="" loading="lazy">
+                    <figcaption>${formatCreationStoryDate(photo.day)}</figcaption>
+                </figure>
+            `).join("")}
+        </div>
+    `;
+}
+
+function ensureCreationStoryModal(){
+    if(creationStoryModalElement) return creationStoryModalElement;
+
+    const [protoGroup, dogGroup, lettersGroup, styleGroup, domainGroup, nowGroup] = creationStoryPhotoGroups;
+
+    const modal = document.createElement("div");
+    modal.id = "creationStoryModal";
+    modal.className = "about-site-modal";
+    modal.innerHTML = `
+        <div class="about-site-modal__card" role="dialog" aria-modal="true" aria-labelledby="creationStoryModalTitle">
+            <button type="button" class="about-site-modal__close" id="creationStoryModalClose" aria-label="${t("about_modal_close_aria")}">&times;</button>
+            <div class="about-site-modal__scroll">
+                <h2 id="creationStoryModalTitle" class="about-site-modal__greeting">${t("creation_story_title")}</h2>
+                <p>${t("creation_story_p1")}</p>
+                <p>${t("creation_story_p2")}</p>
+                ${creationStoryPhotoGroupHtml(protoGroup)}
+                <p>${t("creation_story_p3")}</p>
+                ${creationStoryPhotoGroupHtml(dogGroup)}
+                <p>${t("creation_story_p4")}</p>
+                ${creationStoryPhotoGroupHtml(lettersGroup)}
+                <p>${t("creation_story_p5")}</p>
+                ${creationStoryPhotoGroupHtml(styleGroup)}
+                <p>${t("creation_story_p6")}</p>
+                ${creationStoryPhotoGroupHtml(domainGroup)}
+
+                <div class="about-site-modal__divider"></div>
+
+                <h3 class="about-site-modal__heading">${t("creation_story_heading_now")}</h3>
+                <p>${t("creation_story_p7")}</p>
+                ${creationStoryPhotoGroupHtml(nowGroup)}
+                <p>${t("creation_story_p8")}</p>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.addEventListener("click", (event) => {
+        if(event.target === modal) closeCreationStoryModal();
+    });
+    modal.querySelector(".about-site-modal__card").addEventListener("click", (event) => event.stopPropagation());
+    document.getElementById("creationStoryModalClose").addEventListener("click", (event) => {
+        event.stopPropagation();
+        closeCreationStoryModal();
+    });
+
+    creationStoryModalElement = modal;
+    return modal;
+}
+
+function openCreationStoryModal(){
+    if(typeof closePanels === "function") closePanels();
+    ensureCreationStoryModal().classList.add("is-open");
+    document.addEventListener("keydown", handleCreationStoryModalEscape);
+    if(typeof window.diaryTrackActivity === "function") window.diaryTrackActivity("section_explored");
+}
+
+function closeCreationStoryModal(){
+    if(!creationStoryModalElement) return;
+    creationStoryModalElement.classList.remove("is-open");
+    document.removeEventListener("keydown", handleCreationStoryModalEscape);
+}
+
+function handleCreationStoryModalEscape(event){
+    if(event.key === "Escape") closeCreationStoryModal();
 }
 
 // Отдельное окно "О собаке" — тот же визуальный стиль about-site-modal,
@@ -957,6 +1068,7 @@ function closePanels(){
 function closeAllAboutModals(){
     if(typeof closeAboutSiteModal === "function") closeAboutSiteModal();
     if(typeof closeProjectIdeaModal === "function") closeProjectIdeaModal();
+    if(typeof closeCreationStoryModal === "function") closeCreationStoryModal();
     if(typeof closeDogInfoModal === "function") closeDogInfoModal();
 }
 

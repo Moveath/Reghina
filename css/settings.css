@@ -2393,6 +2393,49 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
     }
 }
 
+/* ============================================================
+   ИСТОРИЯ СОЗДАНИЯ — скриншоты разработки внутри about-site-modal
+   ============================================================ */
+.creation-story-modal__photos{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:14px;
+    margin:6px 0 18px;
+}
+
+.creation-story-modal__photo{
+    margin:0;
+    width:min(100%, 280px);
+    flex:1 1 220px;
+}
+
+.creation-story-modal__photo img{
+    display:block;
+    width:100%;
+    height:auto;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.16);
+    box-shadow:0 10px 26px rgba(6,2,14,.4);
+}
+
+.creation-story-modal__photo figcaption{
+    margin-top:6px;
+    font-size:12px;
+    text-align:center;
+    color:rgba(255,255,255,.55);
+}
+
+@media (max-width: 640px){
+    .creation-story-modal__photos{
+        gap:10px;
+    }
+
+    .creation-story-modal__photo{
+        flex:1 1 130px;
+    }
+}
+
 .letters-toast.is-visible{
     opacity:1;
     transform:translate(-50%, 0);
