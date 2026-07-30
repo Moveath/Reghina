@@ -604,6 +604,7 @@ function finishIntroDialogue(){
     if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
+    if(typeof closeWeatherMenu === "function") closeWeatherMenu();
     clearAllPrompts();
     hideIntroOverlay();
     // Запускаем плавное рассеивание тумана
@@ -998,6 +999,7 @@ function showResetConfirmDialogue(){
     if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
+    if(typeof closeWeatherMenu === "function") closeWeatherMenu();
 
     characterContainer.classList.add("is-intro-scene");
     setDogEmotion("confused");
@@ -1066,6 +1068,7 @@ function showRestoreConfirmDialogue(code){
     if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
+    if(typeof closeWeatherMenu === "function") closeWeatherMenu();
 
     characterContainer.classList.add("is-intro-scene");
     setDogEmotion("thinking");
@@ -1146,6 +1149,7 @@ function showLanguageConfirmDialogue(lang){
     if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
+    if(typeof closeWeatherMenu === "function") closeWeatherMenu();
 
     characterContainer.classList.add("is-intro-scene");
     setDogEmotion("thinking");
@@ -1342,6 +1346,7 @@ function showMonthlyKeyDialogue(pieceIndex, onClose){
     if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
+    if(typeof closeWeatherMenu === "function") closeWeatherMenu();
 
     characterContainer.classList.add("is-intro-scene", "is-key-found");
     setDogEmotion("excited");
@@ -1470,6 +1475,7 @@ function showBirthdayEventDialogue(isExactDay, pieceIndex, onClose){
     if(typeof closeAllAboutModals === "function") closeAllAboutModals();
     if(typeof closeThemeMenu === "function") closeThemeMenu();
     if(typeof closeLanguageMenu === "function") closeLanguageMenu();
+    if(typeof closeWeatherMenu === "function") closeWeatherMenu();
 
     // Намеренно без is-key-found — это не обычная сцена "собака нашла
     // ключ", у дня рождения свой отдельный образ (см. is-birthday-mode в
