@@ -125,7 +125,7 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
 .top-action-btn{
     width:44px;
     height:44px;
-    border:none;
+    border:1.5px solid rgba(255,255,255,.45);
     border-radius:50%;
     background:rgba(255,255,255,.18);
     backdrop-filter:blur(14px);
@@ -339,7 +339,7 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
     width:40px;
     height:40px;
     position:relative;
-    border:none;
+    border:1.5px solid rgba(255,255,255,.45);
     border-radius:14px;
     background:rgba(255,255,255,.16);
     backdrop-filter:blur(14px);
@@ -863,9 +863,26 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
 .theme-selection-menu__list{
     list-style:none;
     margin:0;
-    padding:0;
+    padding:0 4px 0 0;
     display:grid;
     gap:8px;
+    max-height:220px;
+    overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,255,255,.35) transparent;
+}
+
+.theme-selection-menu__list::-webkit-scrollbar{
+    width:5px;
+}
+
+.theme-selection-menu__list::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.theme-selection-menu__list::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.35);
+    border-radius:999px;
 }
 
 .theme-option-btn.is-selected{
