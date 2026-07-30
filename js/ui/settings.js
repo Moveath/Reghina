@@ -402,12 +402,6 @@ function renderSettingsPanel(){
             if(typeof window.sfxSetVolumePercent === "function"){
                 window.sfxSetVolumePercent(Number(sfxVolumeSlider.value));
             }
-            // Живое обновление громкости дождя (см. js/effects/weather.js) —
-            // если он сейчас идёт, звук должен реагировать на этот же
-            // ползунок сразу, а не только при следующем enableRain().
-            if(typeof window.weatherSyncVolume === "function"){
-                window.weatherSyncVolume(Number(sfxVolumeSlider.value));
-            }
         });
     }
 }
