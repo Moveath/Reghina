@@ -31,17 +31,15 @@ const aboutSections = [
 let themeSelectionMenuElement = null;
 const selectedThemeStorageKey = "reginaSelectedTheme";
 
-// 4 готовых фона из папки images/backgrounds — превьюшка + подпись для
+// Готовые фоны из папки images/backgrounds — превьюшка + подпись для
 // каждого в менюшке выбора темы. "pink" — тот самый фон, что стоит по
 // умолчанию (совпадает с исходным градиентом в css/style.css), поэтому
 // именно он отмечен галочкой, пока пользователь ничего не выбирал сам.
-// "white" — без картинки, просто сплошной белый цвет (референс в
-// images/backgrounds/theme-white.jpg был не нужен, попросили чистый белый).
 const themeOptions = [
     { id: "pink",   label: t("theme_pink"),   image: "images/backgrounds/theme-pink.webp" },
     { id: "purple", label: t("theme_purple"), image: "images/backgrounds/theme-purple.webp" },
     { id: "blue",   label: t("theme_blue"),   image: "images/backgrounds/theme-blue.webp" },
-    { id: "white",  label: t("theme_white"),  color: "#ffffff" }
+    { id: "sakura", label: t("theme_sakura"), image: "images/backgrounds/theme-sakura.webp" }
 ];
 const defaultThemeId = "pink";
 
