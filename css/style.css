@@ -46,3 +46,30 @@ body{
 
     font-family:'Segoe UI',sans-serif;
 }
+
+/* Фигурка Будды в углу — чисто декоративная, занимает пустое место в
+   левом верхнем углу. pointer-events:none и низкий z-index — не должна
+   мешать кликам и не должна перекрывать ничего живого (пазл, панели,
+   собаку). Прячется во время интро — там в этом же углу появляется
+   большая собака с репликой, вместе они бы просто мешали друг другу. */
+.buddha-decoration{
+    position:fixed;
+    top:0;
+    left:14px;
+    width:clamp(70px, 8vw, 120px);
+    height:auto;
+    opacity:.9;
+    pointer-events:none;
+    user-select:none;
+    z-index:5;
+}
+
+body.intro-active .buddha-decoration{
+    visibility:hidden;
+}
+
+@media (max-width: 640px){
+    .buddha-decoration{
+        width:clamp(52px, 16vw, 80px);
+    }
+}
