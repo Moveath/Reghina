@@ -2564,3 +2564,36 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
         flex-direction:column;
     }
 }
+
+/* ============================================================
+   УВЕЛИЧЕННАЯ ОБЛАСТЬ НАЖАТИЯ ДЛЯ МЕЛКИХ КНОПОК (только тач-устройства)
+   ============================================================
+   Несколько маленьких круглых/квадратных кнопок (закрыть модалку/меню,
+   "назад" в письмах, копировать код) визуально 28-34px — на десктопе с
+   мышью это нормально и menять их размер незачем (дизайн не трогаем).
+   На тач-устройствах у пальца нет курсора-точки, и рекомендованный
+   минимум зоны нажатия — 44x44px. Вместо того чтобы реально увеличивать
+   кнопки (это изменило бы вид), расширяем НЕВИДИМУЮ область нажатия
+   через ::before с отрицательным inset — сама кнопка на экране остаётся
+   прежнего размера, но промахнуться пальцем мимо неё становится сложнее.
+   pointer:coarse — точнее, чем ширина экрана: ловит тач вообще (включая
+   планшеты), а не просто "маленький экран". */
+@media (hover: none) and (pointer: coarse){
+    .dog-guide-menu__close,
+    .letters-back-btn,
+    .letter-read-card__close,
+    .about-site-modal__close,
+    .progress-code-reveal__copy{
+        position:relative;
+    }
+
+    .dog-guide-menu__close::before,
+    .letters-back-btn::before,
+    .letter-read-card__close::before,
+    .about-site-modal__close::before,
+    .progress-code-reveal__copy::before{
+        content:"";
+        position:absolute;
+        inset:-8px;
+    }
+}

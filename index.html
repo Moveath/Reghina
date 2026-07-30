@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>For Regina</title>
 
     <!-- Анти-мигание при загрузке: пока грузятся css/*.css и js/*.js (это
@@ -20,14 +20,16 @@
     (function(){
         try {
             var THEME_IMAGES = {
-                pink:   "images/backgrounds/theme-pink.webp",
-                purple: "images/backgrounds/theme-purple.webp",
-                blue:   "images/backgrounds/theme-blue.webp"
+                pink:      "images/backgrounds/theme-pink.webp",
+                purple:    "images/backgrounds/theme-purple.webp",
+                blue:      "images/backgrounds/theme-blue.webp",
+                sakura:    "images/backgrounds/theme-sakura.webp",
+                kishinev:  "images/backgrounds/theme-kishinev.webp",
+                thailand:  "images/backgrounds/theme-thailand.webp",
+                minecraft: "images/backgrounds/theme-minecraft.webp"
             };
             var theme = localStorage.getItem("reginaSelectedTheme") || "";
-            var css = theme === "white"
-                ? "background:#ffffff !important;"
-                : "background-image:url('" + (THEME_IMAGES[theme] || THEME_IMAGES.pink) + "') !important;" +
+            var css = "background-image:url('" + (THEME_IMAGES[theme] || THEME_IMAGES.pink) + "') !important;" +
                   "background-size:cover !important;background-position:center !important;background-repeat:no-repeat !important;";
             var style = document.createElement("style");
             style.textContent = "body{" + css + "}";
@@ -40,7 +42,7 @@
                 link.href = href;
                 document.head.appendChild(link);
             }
-            if(theme !== "white") preloadImage(THEME_IMAGES[theme] || THEME_IMAGES.pink);
+            preloadImage(THEME_IMAGES[theme] || THEME_IMAGES.pink);
 
             // Все позы собаки, а не только стартовую: во время интро (и
             // после — подтверждения/тосты) собака переключается между

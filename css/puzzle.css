@@ -505,3 +505,16 @@
 .toggle-btn{
     z-index:9999;
 }
+
+/* Увеличенная (невидимая) область нажатия на тач-устройствах — та же
+   техника, что и для мелких кнопок в settings.css (см. комментарий там).
+   .toggle-btn и .close-btn уже position:absolute/fixed, ::before
+   анкерится прямо к ним без дополнительных правил. */
+@media (hover: none) and (pointer: coarse){
+    .toggle-btn::before,
+    .close-btn::before{
+        content:"";
+        position:absolute;
+        inset:-8px;
+    }
+}
