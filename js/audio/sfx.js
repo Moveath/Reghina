@@ -10,7 +10,8 @@ const SFX_FILES = {
     pieceOpen: "audio/sfx-piece-open.mp3",
     letter: "audio/sfx-letter.mp3",
     dogSnore: "audio/sfx-dog-snore.mp3",
-    dogBark: "audio/sfx-dog-bark.mp3"
+    dogBark: "audio/sfx-dog-bark.mp3",
+    buddha: "audio/sfx-buddha-click.mp3"
 };
 
 // Сам файл письма записан заметно тише остальных эффектов — на общем
@@ -178,6 +179,14 @@ document.addEventListener("click", (event) => {
     const target = event.target;
     if(!(target instanceof Element)) return;
     if(target.closest(SFX_CLICK_EXCLUDE_SELECTOR)) return;
+
+    // Будда в углу (см. index.html/css/style.css) — не обычный виджет,
+    // свой отдельный звук вместо общего клика. Проверяем раньше общего
+    // селектора, хотя он и так не совпал бы (это <img>, не button/a).
+    if(target.closest("#buddhaDecoration")){
+        playSfx("buddha");
+        return;
+    }
 
     if(target.closest(SFX_CLICK_SELECTOR)){
         playSfx("click");
