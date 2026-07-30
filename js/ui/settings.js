@@ -40,7 +40,8 @@ const themeOptions = [
     { id: "purple", label: t("theme_purple"), image: "images/backgrounds/theme-purple.webp" },
     { id: "blue",   label: t("theme_blue"),   image: "images/backgrounds/theme-blue.webp" },
     { id: "sakura", label: t("theme_sakura"), image: "images/backgrounds/theme-sakura.webp" },
-    { id: "kishinev", label: t("theme_kishinev"), image: "images/backgrounds/theme-kishinev.webp" }
+    { id: "kishinev", label: t("theme_kishinev"), image: "images/backgrounds/theme-kishinev.webp" },
+    { id: "thailand", label: t("theme_thailand"), image: "images/backgrounds/theme-thailand.webp" }
 ];
 const defaultThemeId = "pink";
 
