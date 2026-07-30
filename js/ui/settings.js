@@ -707,12 +707,73 @@ function creationStoryPhotoGroupHtml(photos){
         <div class="creation-story-modal__photos">
             ${photos.map(photo => `
                 <figure class="creation-story-modal__photo">
-                    <img src="images/project/${photo.file}" alt="" loading="lazy">
+                    <img src="images/project/${photo.file}" alt="" loading="lazy" data-lightbox-src="images/project/${photo.file}" data-lightbox-caption="${formatCreationStoryDate(photo.day)}">
                     <figcaption>${formatCreationStoryDate(photo.day)}</figcaption>
                 </figure>
             `).join("")}
         </div>
     `;
+}
+
+// Клик по скриншоту в "Истории создания" открывает его крупнее, в
+// отдельном полноэкранном просмотрщике поверх самого модального окна
+// (свой z-index, выше about-site-modal) — тот же паттерн "фон закрывает,
+// esc закрывает", что и у остальных модалок на сайте, но без Escape-
+// перехвата чужих окон: этот просмотрщик — единственный получатель esc,
+// пока открыт (иначе Escape закрыл бы сразу оба окна разом).
+let creationStoryLightboxElement = null;
+
+function ensureCreationStoryLightbox(){
+    if(creationStoryLightboxElement) return creationStoryLightboxElement;
+
+    const lightbox = document.createElement("div");
+    lightbox.id = "creationStoryLightbox";
+    lightbox.className = "creation-story-lightbox";
+    lightbox.innerHTML = `
+        <button type="button" class="creation-story-lightbox__close" id="creationStoryLightboxClose" aria-label="${t("about_modal_close_aria")}">&times;</button>
+        <figure class="creation-story-lightbox__frame">
+            <img class="creation-story-lightbox__img" id="creationStoryLightboxImg" src="" alt="">
+            <figcaption class="creation-story-lightbox__caption" id="creationStoryLightboxCaption"></figcaption>
+        </figure>
+    `;
+    document.body.appendChild(lightbox);
+
+    lightbox.addEventListener("click", (event) => {
+        if(event.target === lightbox) closeCreationStoryLightbox();
+    });
+    lightbox.querySelector(".creation-story-lightbox__frame").addEventListener("click", (event) => event.stopPropagation());
+    document.getElementById("creationStoryLightboxClose").addEventListener("click", (event) => {
+        event.stopPropagation();
+        closeCreationStoryLightbox();
+    });
+
+    creationStoryLightboxElement = lightbox;
+    return lightbox;
+}
+
+function openCreationStoryLightbox(src, caption){
+    const lightbox = ensureCreationStoryLightbox();
+    document.getElementById("creationStoryLightboxImg").src = src;
+    document.getElementById("creationStoryLightboxCaption").textContent = caption || "";
+    lightbox.classList.add("is-open");
+    // capture:true — иначе esc закрыл бы сразу и просмотрщик, И само окно
+    // "История создания" позади него: их обработчики висят на одном и том
+    // же document, а stopPropagation между разными слушателями ОДНОГО
+    // элемента не помогает, важен только порядок фаз. Capture-фаза всегда
+    // отрабатывает раньше обычной (bubble) — этим и разводим их.
+    document.addEventListener("keydown", handleCreationStoryLightboxEscape, true);
+}
+
+function closeCreationStoryLightbox(){
+    if(!creationStoryLightboxElement) return;
+    creationStoryLightboxElement.classList.remove("is-open");
+    document.removeEventListener("keydown", handleCreationStoryLightboxEscape, true);
+}
+
+function handleCreationStoryLightboxEscape(event){
+    if(event.key !== "Escape") return;
+    event.stopPropagation();
+    closeCreationStoryLightbox();
 }
 
 function ensureCreationStoryModal(){
@@ -758,6 +819,13 @@ function ensureCreationStoryModal(){
     document.getElementById("creationStoryModalClose").addEventListener("click", (event) => {
         event.stopPropagation();
         closeCreationStoryModal();
+    });
+
+    modal.querySelectorAll("[data-lightbox-src]").forEach(img => {
+        img.addEventListener("click", (event) => {
+            event.stopPropagation();
+            openCreationStoryLightbox(img.dataset.lightboxSrc, img.dataset.lightboxCaption);
+        });
     });
 
     creationStoryModalElement = modal;
