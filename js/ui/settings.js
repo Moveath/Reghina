@@ -14,8 +14,7 @@ const lettersPanel = document.getElementById("lettersPanel");
 const settingsSections = [
     { icon: "🎨", label: t("settings_theme_label"), id: "themesOption" },
     { icon: "🔊", label: t("settings_sounds_label"), id: "soundsOption" },
-    { icon: "🌐", label: t("settings_language_label"), id: "languageOption" },
-    { icon: "🌦️", label: t("settings_weather_label"), id: "weatherOption" }
+    { icon: "🌐", label: t("settings_language_label"), id: "languageOption" }
 ];
 const progressActions = [
     { icon: "🔍", label: t("progress_show_code"), id: "showCodeOption" },
@@ -58,21 +57,6 @@ const languageOptions = [
     { id: "ru", label: t("lang_name_ru") },
     { id: "en", label: t("lang_name_en") },
     { id: "ro", label: t("lang_name_ro") }
-];
-
-// Погода — атмосферный эффект поверх фона (см. js/effects/weather.js,
-// enableRain/disableRain/applyWeather). Реальная реализация пока есть
-// только у "дождь" ("rain") — остальные 3 уже выбираются здесь, но пока не
-// меняют картинку (applyWeather тихо не делает ничего для них, заготовка на
-// будущее). "off" — последним пунктом, визуально отделён линией (см.
-// .weather-option-btn--off в css/settings.css), это и есть "Отключить".
-let weatherSelectionMenuElement = null;
-const weatherOptions = [
-    { id: "clear", icon: "☀️", label: t("weather_clear") },
-    { id: "snow",  icon: "❄️", label: t("weather_snow") },
-    { id: "night", icon: "🌙", label: t("weather_night") },
-    { id: "rain",  icon: "🌧️", label: t("weather_rain") },
-    { id: "off",   icon: "🚫", label: t("weather_off") }
 ];
 
 function saveSelectedTheme(themeId){
@@ -176,12 +160,9 @@ function toggleThemeMenu(){
     const menu = ensureThemeSelectionMenu();
     const isOpen = menu.classList.contains("is-open");
     if(isOpen && typeof isIntroCloseLocked === "function" && isIntroCloseLocked()) return;
-    // Все три меню — независимые position:fixed элементы поверх страницы,
-    // одновременное открытие нескольких даёт наложение друг на друга.
-    if(!isOpen){
-        closeLanguageMenu();
-        closeWeatherMenu();
-    }
+    // Оба меню — независимые position:fixed элементы поверх страницы,
+    // одновременное открытие обоих даёт наложение друг на друга.
+    if(!isOpen) closeLanguageMenu();
     menu.classList.toggle("is-open");
 }
 
@@ -249,86 +230,10 @@ function toggleLanguageMenu(){
     const menu = ensureLanguageSelectionMenu();
     const isOpen = menu.classList.contains("is-open");
     if(isOpen && typeof isIntroCloseLocked === "function" && isIntroCloseLocked()) return;
-    if(!isOpen){
-        closeThemeMenu();
-        closeWeatherMenu();
-    }
+    if(!isOpen) closeThemeMenu();
     menu.classList.toggle("is-open");
 }
 window.closeLanguageMenu = closeLanguageMenu;
-
-// Менюшка выбора погоды — 1:1 копия архитектуры меню тем/языка выше. Как и
-// тема (не как язык) — применяется сразу по клику, без подтверждения у
-// собаки: смена атмосферы не настолько заметна/необратима, чтобы спрашивать
-// "точно?" каждый раз.
-function ensureWeatherSelectionMenu(){
-    if(weatherSelectionMenuElement) return weatherSelectionMenuElement;
-
-    const menu = document.createElement("div");
-    menu.id = "weatherSelectionMenu";
-    menu.className = "weather-selection-menu";
-    menu.innerHTML = `
-        <h3 class="weather-selection-menu__title">${t("weather_choose_title")}</h3>
-        <ul class="weather-selection-menu__list">
-            ${weatherOptions.map(weather => `
-                <li>
-                    <button class="weather-option-btn${weather.id === "off" ? " weather-option-btn--off" : ""}" type="button" data-weather="${weather.id}">
-                        <span class="weather-option-preview" aria-hidden="true">${weather.icon}</span>
-                        <span class="weather-option-label">${weather.label}</span>
-                        <span class="weather-option-check" aria-hidden="true"><span>&#10003;</span></span>
-                    </button>
-                </li>
-            `).join("")}
-        </ul>
-    `;
-    document.body.appendChild(menu);
-
-    menu.addEventListener("click", (event) => event.stopPropagation());
-
-    menu.querySelectorAll(".weather-option-btn").forEach(btn => {
-        btn.addEventListener("click", (event) => {
-            event.stopPropagation();
-
-            if(btn.classList.contains("is-selected")) return;
-
-            menu.querySelectorAll(".weather-option-btn").forEach(b => b.classList.remove("is-selected"));
-            btn.classList.add("is-selected");
-
-            if(typeof window.setSelectedWeather === "function") window.setSelectedWeather(btn.dataset.weather);
-        });
-    });
-
-    const activeWeather = typeof window.getSelectedWeather === "function" ? window.getSelectedWeather() : "off";
-    const activeBtn = menu.querySelector(`.weather-option-btn[data-weather="${activeWeather}"]`) || menu.querySelector(`.weather-option-btn[data-weather="off"]`);
-    if(activeBtn) activeBtn.classList.add("is-selected");
-
-    weatherSelectionMenuElement = menu;
-    return menu;
-}
-
-function openWeatherMenu(){
-    ensureWeatherSelectionMenu().classList.add("is-open");
-}
-
-function closeWeatherMenu(){
-    if(weatherSelectionMenuElement){
-        weatherSelectionMenuElement.classList.remove("is-open");
-    }
-}
-
-function toggleWeatherMenu(){
-    const menu = ensureWeatherSelectionMenu();
-    const isOpen = menu.classList.contains("is-open");
-    if(isOpen && typeof isIntroCloseLocked === "function" && isIntroCloseLocked()) return;
-    // Все три меню — независимые position:fixed элементы поверх страницы,
-    // одновременное открытие нескольких даёт наложение друг на друга.
-    if(!isOpen){
-        closeThemeMenu();
-        closeLanguageMenu();
-    }
-    menu.classList.toggle("is-open");
-}
-window.closeWeatherMenu = closeWeatherMenu;
 
 // Иконка ползунка звуков — 🔇 на нуле, иначе 🔊. Отдельная от музыкальной
 // (🎵/🔇) специально: это два независимых механизма (см. sfxSetVolumePercent
@@ -375,14 +280,6 @@ function renderSettingsPanel(){
         languageOption.addEventListener("click", (event) => {
             event.stopPropagation();
             toggleLanguageMenu();
-        });
-    }
-
-    const weatherOption = document.getElementById("weatherOption");
-    if(weatherOption){
-        weatherOption.addEventListener("click", (event) => {
-            event.stopPropagation();
-            toggleWeatherMenu();
         });
     }
 
@@ -1048,7 +945,6 @@ function closePanels(){
     // settingsPanel, закрытие самой панели их не задевает без явного вызова.
     closeThemeMenu();
     closeLanguageMenu();
-    closeWeatherMenu();
 }
 
 // "О сайте"/"Идея проекта"/"О собаке" — отдельное семейство модалок
