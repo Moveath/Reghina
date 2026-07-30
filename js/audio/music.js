@@ -17,7 +17,6 @@ const MUSIC_TRACKS = [
     { id: "acnh7pm", title: "Animal Crossing: New Horizons — 7 PM", file: "audio/7-pm.mp3" },
     { id: "coffee",  title: "A Day With Coffee", file: "audio/a-day-with-coffee.mp3" },
     { id: "moon",    title: "To the Moon", file: "audio/to-the-moon.mp3" },
-    { id: "love",    title: "Meaningful Love", file: "audio/meaningful-love.mp3" },
     { id: "wayward", title: "Kansas — Carry On Wayward Son", file: "audio/carry-on-wayward-son.mp3" }
 ];
 
