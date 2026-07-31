@@ -1644,7 +1644,13 @@ if(isIntroDeclined() && !isIntroAlreadyCompleted()){
     // (новый визит) или та же сцена ожидания (просто обновление страницы),
     // а не обычный вид сайта.
     dogName = loadDogName();
-    if(typeof window.musicStartReturningVisit === "function") window.musicStartReturningVisit();
+    // Не musicStartReturningVisit — на паузе интро мы ещё не "обычный
+    // посетитель" (та функция запускает основной трек acnh7pm с нуля на
+    // пользовательской громкости). Это всё ещё сцена интро, просто
+    // замороженная — должна звучать та же интро-музыка (Stardew Valley),
+    // с того же места, где остановилась при обновлении страницы, как и
+    // в обычной ветке "интро ещё не пройдено" ниже.
+    if(typeof window.musicStartIntroCinematic === "function") window.musicStartIntroCinematic();
 
     if(!wasDeclineSceneShownThisSession()){
         showIntroReturnGreeting();
