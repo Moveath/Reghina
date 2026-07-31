@@ -546,15 +546,6 @@ function ensureAboutSiteModal(){
 
                 <div class="about-site-modal__divider"></div>
 
-                <h3 class="about-site-modal__heading">${t("about_modal_video_heading")}</h3>
-                <p>${t("about_modal_video_intro")}</p>
-                <div class="about-site-modal__video-frame">
-                    <span class="about-site-modal__video-play" aria-hidden="true">▶</span>
-                    <span class="about-site-modal__video-label">${t("about_modal_video_placeholder")}</span>
-                </div>
-
-                <div class="about-site-modal__divider"></div>
-
                 <h3 class="about-site-modal__heading">${t("about_modal_code_heading")}</h3>
                 <p>${t("about_modal_code_intro")}</p>
                 <a class="about-site-modal__code-link" href="${projectRepoUrl}" target="_blank" rel="noopener noreferrer">
@@ -567,15 +558,15 @@ function ensureAboutSiteModal(){
                 <div class="about-site-modal__stats">
                     <div class="about-site-modal__stats-row">
                         <span>${t("stats_loc_label")}</span>
-                        <span class="about-site-modal__stats-value">xxxx</span>
+                        <span class="about-site-modal__stats-value">15810</span>
                     </div>
                     <div class="about-site-modal__stats-row">
                         <span>${t("stats_days_label")}</span>
-                        <span class="about-site-modal__stats-value">xx</span>
+                        <span class="about-site-modal__stats-value">17</span>
                     </div>
                     <div class="about-site-modal__stats-row">
                         <span>${t("stats_versions_label")}</span>
-                        <span class="about-site-modal__stats-value">xx</span>
+                        <span class="about-site-modal__stats-value">1.0</span>
                     </div>
                 </div>
 
