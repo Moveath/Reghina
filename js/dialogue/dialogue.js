@@ -1277,7 +1277,12 @@ function showSupernaturalNameEasterEgg(afterward){
         dialogueContainer.removeEventListener("click", dismiss);
         afterward();
     }
-    dialogueContainer.addEventListener("click", dismiss);
+    // Вешаем слушатель не сразу, а следующим тиком — тот же клик по кнопке
+    // "Готово", которым имя подтвердили, всё ещё всплывает и как раз
+    // достигает dialogueContainer прямо сейчас; повесь слушатель немедленно,
+    // он поймал бы этот же клик и закрыл пасхалку раньше, чем она вообще
+    // успела бы отрисоваться на экране.
+    setTimeout(() => dialogueContainer.addEventListener("click", dismiss), 0);
 }
 
 // ===== Пасхалка: скрытая клавиатурная последовательность (см.

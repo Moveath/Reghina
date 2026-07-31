@@ -845,10 +845,24 @@ body.intro-active:has(#musicBoxButton.is-highlighted) .key-counter{
     transition:opacity .25s ease, transform .25s ease;
 }
 
+/* Во время интро реплика-пузырь сидит в верхней/центральной части экрана
+   (см. .intro-dialogue в dialogue.css) — стандартное центрирование меню
+   темы (top:50%) наезжает прямо на её текст и делает его нечитаемым, пока
+   меню открыто. Прибиваем меню к низу экрана только в этом случае — вниз
+   ничего важного из интро-сцены не заходит. */
 .theme-selection-menu.is-open{
     opacity:1;
     pointer-events:auto;
     transform:translate(-50%, -50%) scale(1);
+}
+
+body.intro-active .theme-selection-menu{
+    top:auto;
+    bottom:4vh;
+}
+
+body.intro-active .theme-selection-menu.is-open{
+    transform:translateX(-50%) scale(1);
 }
 
 .theme-selection-menu__title{

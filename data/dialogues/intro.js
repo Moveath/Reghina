@@ -505,8 +505,7 @@ window.dialogueTranslations = {
         "Look, there are 3 pieces left, and you'll need 3 more keys. Unfortunately I don't have any more keys right now, but as soon as I find one, I'll bring it straight to you.",
         "You can open and close this puzzle, and it'll take different positions — you can place it in the corner or in the center.",
         "There's also an indicator here that shows how many keys you currently have — as you can see, right now you have none.",
-        "That's everything for now, I think I've shown you it all. If you ever need my help, just tap me or my icon.",
-        "If you ever want to come back here, I'll be waiting for you."
+        "That's everything for now, I think I've shown you it all. If you ever need my help, just tap me or my icon."
     ],
     ro: [
         "Zzz... Egor, ți-am spus doar că voi păzi locul ăsta mâine...",
@@ -554,8 +553,7 @@ window.dialogueTranslations = {
         "Uite, au mai rămas 3 părți și mai ai nevoie de 3 chei. Din păcate, nu mai am alte chei acum, dar imediat ce găsesc una, ți-o aduc negreșit.",
         "Poți deschide și închide acest puzzle, iar el va lua poziții diferite — îl poți așeza în colț sau în centru.",
         "Mai există și un indicator aici, care arată câte chei ai acum — după cum vezi, momentan nu ai nicio cheie.",
-        "Asta e tot deocamdată, cred că ți-am arătat tot. Dacă ai nevoie de ajutorul meu, poți apăsa pe mine sau pe iconița mea.",
-        "Dacă vrei să te întorci vreodată aici, o să te aștept."
+        "Asta e tot deocamdată, cred că ți-am arătat tot. Dacă ai nevoie de ajutorul meu, poți apăsa pe mine sau pe iconița mea."
     ]
 };
 

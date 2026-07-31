@@ -344,4 +344,23 @@
     .character-idle-name{
         font-size:15px;
     }
+
+    /* На узких телефонах контейнер собаки (28vw) заметно уже, чем текст
+       имени при центрировании (left:50%) и белом пространстве nowrap из
+       базового правила — длинное имя (например, дефолтное "Кане-корсо")
+       вылезало за левый край экрана. Прижимаем табличку к левому краю
+       контейнера вместо центрирования и разрешаем перенос строки, если
+       имя всё равно не помещается. */
+    #characterContainer.is-intro-scene .character-nameplate{
+        left:0;
+        /* !important — иначе анимация nameplateAppear (fill-mode:both, сама
+           анимирует translateX(-50%) на обоих концах) продолжает держать
+           центрирующий transform поверх этого override даже после того,
+           как анимация уже доиграла. */
+        transform:none !important;
+        max-width:65vw;
+        white-space:normal;
+        line-height:1.15;
+        font-size:clamp(14px, 4.2vw, 20px);
+    }
 }
