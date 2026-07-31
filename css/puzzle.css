@@ -34,14 +34,16 @@
     z-index:4400;
 }
 
-/* QR */
+/* QR — картинка отдаётся с бэкенда (server/public/qr.png), а не лежит в
+   этом репозитории: он публичный, и файл был бы виден любому, кто
+   заглянет в images/ раньше, чем Регина доберётся до QR через пазл. */
 
 .background{
 
     position:absolute;
     inset:0;
 
-    background-image:url("../images/items/qr.png");
+    background-image:url("https://reghina-production.up.railway.app/qr.png");
 
     background-size:42%;
     background-repeat:no-repeat;

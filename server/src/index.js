@@ -1,3 +1,4 @@
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const config = require("./config");
@@ -26,6 +27,13 @@ app.use(express.json());
 app.get("/health", (req, res) => {
     res.json({ status: "ok" });
 });
+
+// QR-картинка пазла раньше лежала прямо в репозитории (images/items/qr.png) —
+// репозиторий публичный и ссылка на него есть прямо на сайте ("О сайте" →
+// код проекта), так что любой, кто туда заглянет, мог найти файл раньше,
+// чем Регина сама доберётся до QR через пазл. Отдаём его отсюда как
+// статику — тот же путь /qr.png, но уже не в открытом репозитории.
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.use("/letters", lettersRouter);
 app.use("/profile", profileRouter);
