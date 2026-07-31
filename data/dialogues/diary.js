@@ -10,13 +10,13 @@ const diaryEntryLinesRu = {
     keys: [
         "Сегодня в моих лапах снова оказался ключ. Кажется, где-то там, за дверью, меня уже ждут.",
         "Я нашёл ключ и отдал его Регине. Надеюсь, за дверью будет что-то хорошее.",
-        "Ключ нашёлся! Хочется думать, что каждый такой момент — маленькая победа.",
+        "Ключ нашёлся! Хочется думать, что каждый такой момент маленькая победа.",
         "Сегодня появился новый ключ. Кажется, я всё-таки неплохо справляюсь со своей работой."
     ],
     letters: [
         "Сегодня снова открывались письма. Кажется, некоторые слова всё-таки находят своего адресата.",
         "Почта сегодня была в деле. Приятно смотреть, как письма находят того, кому предназначены.",
-        "Кто-то сегодня читал письма. Я всегда немного волнуюсь, пока несу их — а вдруг потеряю по дороге.",
+        "Кто-то сегодня читал письма. Я всегда немного волнуюсь, пока несу их а вдруг потеряю по дороге.",
         "Письма сегодня не залежались. Хорошо, когда слова доходят вовремя."
     ],
     music: [
@@ -32,13 +32,13 @@ const diaryEntryLinesRu = {
         "Сегодня кто-то знакомился с этим местом чуть ближе. Надеюсь, понравилось."
     ],
     absence: [
-        "Тебя долго не было. Я не скучал — точнее, скучал, но не подавал вида.",
+        "Тебя долго не было. Я не скучал точнее, скучал, но не подавал вида.",
         "Здесь было тихо уже несколько дней. Я всё равно продолжал охранять это место, как обещал.",
-        "Ты давно не заходила. Хорошо, что вернулась — я как раз начал придумывать, чем себя занять.",
-        "Прошло немало дней без тебя. Ничего страшного — я умею терпеливо ждать."
+        "Ты давно не заходила. Хорошо, что вернулась я как раз начал придумывать, чем себя занять.",
+        "Прошло немало дней без тебя. Ничего страшного я умею терпеливо ждать."
     ],
     silence: [
-        "Сегодня был тихий день. Иногда это даже приятно — просто немного помолчать вместе с этим местом.",
+        "Сегодня был тихий день. Иногда это даже приятно просто немного помолчать вместе с этим местом.",
         "Ничего особенного не случилось. Я всё равно на месте, как и всегда.",
         "Сегодня всё было спокойно. Хорошие дни не обязательно должны быть шумными.",
         "День прошёл тихо. Я всё это время просто был рядом."
@@ -56,7 +56,7 @@ window.diaryEntryLineTranslations = {
         letters: [
             "Letters were opened again today. Seems like some words really do find the person they're meant for.",
             "The mail was busy today. Nice to see letters finding the one they're meant for.",
-            "Someone read letters today. I always worry a little while carrying them — what if I lost one on the way.",
+            "Someone read letters today. I always worry a little while carrying them what if I lost one on the way.",
             "Letters didn't sit around today. It's good when words arrive on time."
         ],
         music: [
@@ -72,13 +72,13 @@ window.diaryEntryLineTranslations = {
             "Someone got to know this place a little better today. Hope they liked it."
         ],
         absence: [
-            "You were gone for a while. I didn't miss you — okay, I did, I just didn't show it.",
+            "You were gone for a while. I didn't miss you okay, I did, I just didn't show it.",
             "It's been quiet here for a few days. I kept guarding this place anyway, like I promised.",
             "You hadn't come by in a while. Good thing you're back — I was just starting to think up ways to keep myself busy.",
             "Quite a few days passed without you. It's fine — I know how to wait patiently."
         ],
         silence: [
-            "Today was a quiet day. Sometimes that's actually nice — just being quiet together with this place for a bit.",
+            "Today was a quiet day. Sometimes that's actually nice just being quiet together with this place for a bit.",
             "Nothing much happened. I'm still right here, same as always.",
             "Everything was calm today. Good days don't have to be loud.",
             "The day went by quietly. I just stayed close the whole time."
@@ -94,7 +94,7 @@ window.diaryEntryLineTranslations = {
         letters: [
             "Azi s-au deschis din nou scrisori. Parcă unele cuvinte chiar își găsesc destinatarul.",
             "Poșta a fost activă azi. Îmi place să văd cum scrisorile își găsesc destinatarul.",
-            "Cineva a citit scrisori azi. Mereu mă emoționez puțin cât le duc — dacă pierd vreuna pe drum.",
+            "Cineva a citit scrisori azi. Mereu mă emoționez puțin cât le duc dacă pierd vreuna pe drum.",
             "Scrisorile nu au stat azi degeaba. E bine când cuvintele ajung la timp."
         ],
         music: [
@@ -110,13 +110,13 @@ window.diaryEntryLineTranslations = {
             "Cineva a cunoscut azi locul ăsta puțin mai bine. Sper că i-a plăcut."
         ],
         absence: [
-            "Ai lipsit mult timp. Nu mi-a fost dor — bine, mi-a fost, dar nu am arătat-o.",
+            "Ai lipsit mult timp. Nu mi-a fost dor bine, mi-a fost, dar nu am arătat-o.",
             "A fost liniște aici de câteva zile. Am continuat oricum să păzesc locul ăsta, cum am promis.",
-            "Nu ai mai trecut de mult timp pe aici. Bine că te-ai întors — tocmai începusem să mă gândesc cu ce să mă ocup.",
+            "Nu ai mai trecut de mult timp pe aici. Bine că te-ai întors tocmai începusem să mă gândesc cu ce să mă ocup.",
             "Au trecut destule zile fără tine. Nu-i nimic — știu să aștept cu răbdare."
         ],
         silence: [
-            "Azi a fost o zi liniștită. Uneori chiar e plăcut — să stai puțin în liniște alături de locul ăsta.",
+            "Azi a fost o zi liniștită. Uneori chiar e plăcut să stai puțin în liniște alături de locul ăsta.",
             "Nu s-a întâmplat nimic deosebit. Tot aici sunt, ca întotdeauna.",
             "Azi a fost totul calm. Zilele bune nu trebuie neapărat să fie zgomotoase.",
             "Ziua a trecut liniștit. Tot timpul ăsta am stat pur și simplu alături."

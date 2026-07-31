@@ -65,7 +65,7 @@ window.dogGuideGreetingLineTranslations = {
 // Письма: если есть непрочитанные — своя строка, иначе своя, плюс общий
 // пул строк, доступный в обоих случаях.
 const dogGuideLettersUnreadLineRu = "Кажется, у меня есть письмо для тебя.";
-const dogGuideLettersNoUnreadLineRu = "Пока новых писем нет. Если будут — обязательно передам.";
+const dogGuideLettersNoUnreadLineRu = "Пока новых писем нет. Если будут обязательно передам.";
 const dogGuideLettersPoolLineRu = [
     "Почта сама себя не доставит.",
     "Надеюсь, я ничего не потерял по дороге.",
