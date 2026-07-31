@@ -282,6 +282,20 @@ function musicStartIntroCinematic(){
     }, SILENCE_BEFORE_START_MS);
 }
 
+// Возобновление интро-музыки ИЗ клика по кнопке "Продолжить" (ветка "Пока
+// нет" — см. resumeIntroFromDecline в dialogue.js). В отличие от
+// musicStartIntroCinematic() выше, здесь НЕЛЬЗЯ уходить в setTimeout: клик —
+// это единственный user gesture, который у нас есть, а автовоспроизведение
+// со звуком браузер разрешает только внутри синхронного вызова play() прямо
+// из обработчика жеста. Отложенный через 1.5с setTimeout play() браузер уже
+// не засчитывает как реакцию на жест — именно поэтому раньше музыка молчала
+// после "Пока нет" -> перезагрузка -> "Продолжить" (и оживала только со
+// следующего случайного клика, если вообще оживала). switchTrack() сам
+// безопасно не делает ничего, если этот же трек уже играет.
+function musicResumeIntroFromGesture(){
+    return switchTrack(INTRO_TRACK_ID, INTRO_VOLUME_FRACTION, { persist: false, resumeAt: loadPosition(INTRO_TRACK_ID) });
+}
+
 // п.4-7: конец интро — Stardew Valley гаснет, затем стартует Animal
 // Crossing как основная фоновая музыка на пользовательской громкости
 // (по умолчанию 40-50%). Вызывается из finishIntroDialogue().
@@ -411,6 +425,7 @@ window.musicSelectTrack = musicSelectTrack;
 window.musicDuck = musicDuck;
 window.musicUnduck = musicUnduck;
 window.musicStartIntroCinematic = musicStartIntroCinematic;
+window.musicResumeIntroFromGesture = musicResumeIntroFromGesture;
 window.musicFinishIntroCinematic = musicFinishIntroCinematic;
 window.musicStartReturningVisit = musicStartReturningVisit;
 

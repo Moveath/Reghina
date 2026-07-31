@@ -12,7 +12,6 @@ const dogClickEasterEggLinesRu = [
     "Письма сами себя не доставят.",
     "Кажется, меня слишком часто нажимают.",
     "Ладно-ладно, я тут, никуда не делся.",
-    "Между прочим, у меня тоже есть чувства.",
     "Вот так, гладь — мне нравится.",
     "Если честно, мне это даже нравится.",
     "Ты точно это не специально делаешь?"
@@ -24,7 +23,6 @@ window.dogClickEasterEggLineTranslations = {
         "Letters won't deliver themselves.",
         "Feels like I'm getting clicked a bit too much.",
         "Alright, alright, I'm still here.",
-        "For the record, I have feelings too.",
         "That's more like it — I like being petted.",
         "Honestly? I kind of like this.",
         "You're not doing that on purpose, are you?"
@@ -34,7 +32,6 @@ window.dogClickEasterEggLineTranslations = {
         "Scrisorile nu se livrează singure.",
         "Parcă sunt apăsat cam des.",
         "Bine, bine, tot aici sunt.",
-        "Așa să știi, am și eu sentimente.",
         "Așa da — îmi place să fiu mângâiat.",
         "Sincer? Chiar îmi place asta.",
         "Nu faci asta intenționat, nu-i așa?"

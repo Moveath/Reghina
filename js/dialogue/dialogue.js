@@ -763,7 +763,12 @@ function resumeIntroFromDecline(){
     goToDialogue(9);
 
     pausePuzzleAnimations();
-    if(typeof window.musicStartIntroCinematic === "function") window.musicStartIntroCinematic();
+    // musicResumeIntroFromGesture (не musicStartIntroCinematic) — этот вызов
+    // идёт прямо из обработчика клика по кнопке "Продолжить", а не с
+    // задержкой: см. комментарий у musicResumeIntroFromGesture в
+    // js/audio/music.js, почему это важно для автовоспроизведения со звуком.
+    if(typeof window.musicResumeIntroFromGesture === "function") window.musicResumeIntroFromGesture();
+    else if(typeof window.musicStartIntroCinematic === "function") window.musicStartIntroCinematic();
 }
 window.resumeIntroFromDecline = resumeIntroFromDecline;
 
