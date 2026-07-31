@@ -5,6 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>For Regina</title>
 
+    <!-- Заглушка для мобильных — определяем ДО первой отрисовки (синхронный
+         инлайн-скрипт в <head>, html уже существует к этому моменту, в
+         отличие от body), чтобы не было "мигания" основного сайта перед
+         показом предупреждения. Меньшая сторона экрана (не innerWidth) —
+         чтобы поворот телефона не сбрасывал определение, см. комментарий
+         ниже у самого блока. Если уже жали "Всё равно продолжить" раньше
+         (localStorage) — не мешаем повторно, показываем сайт сразу. -->
+    <script>
+    (function(){
+        try {
+            if(localStorage.getItem("reginaMobileGateDismissed") === "1") return;
+            var isMobile =
+                Math.min(screen.width, screen.height) <= 768 ||
+                /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+            if(isMobile) document.documentElement.classList.add("mobile-gate-active");
+        } catch(e){}
+    })();
+    </script>
+
+    <style>
+        /* Полностью самостоятельная секция — своя разметка, свои стили тут
+           же в <head> (не зависит от css/*.css, которые ещё грузятся), свой
+           маленький скрипт рядом с разметкой в <body>. Должна корректно
+           показаться, даже если что-то в остальном сайте не догрузится. */
+        #mobileGate{
+            display:none;
+            position:fixed;
+            inset:0;
+            width:100vw;
+            height:100vh;
+            z-index:9999;
+            box-sizing:border-box;
+            align-items:center;
+            justify-content:center;
+            padding:28px;
+
+            background:
+                radial-gradient(circle at top left,#ff7d92 0%,transparent 40%),
+                radial-gradient(circle at bottom right,#ffae76 0%,transparent 40%),
+                linear-gradient(135deg,#ff6b8f,#ff9d75);
+
+            font-family:'Segoe UI',sans-serif;
+        }
+
+        html.mobile-gate-active #mobileGate{
+            display:flex;
+        }
+
+        /* Весь остальной сайт спрятан, пока активна заглушка — без
+           display:none (он бы обнулил getBoundingClientRect() у всего,
+           а часть скриптов сайта опирается на реальные координаты
+           элементов) — visibility:hidden прячет и физически убирает
+           из-под кликов, но не ломает раскладку. */
+        html.mobile-gate-active body > *:not(#mobileGate){
+            visibility:hidden;
+            pointer-events:none;
+        }
+
+        .mobile-gate__card{
+            width:min(92vw, 420px);
+            padding:28px 26px;
+            box-sizing:border-box;
+            border-radius:26px;
+
+            background:rgba(255,255,255,.16);
+            backdrop-filter:blur(18px);
+            -webkit-backdrop-filter:blur(18px);
+            border:1px solid rgba(255,255,255,.28);
+            box-shadow:0 30px 70px rgba(0,0,0,.2);
+
+            color:white;
+            text-align:center;
+        }
+
+        .mobile-gate__text{
+            margin:0 0 14px;
+            font-size:15px;
+            line-height:1.6;
+            text-align:left;
+        }
+
+        .mobile-gate__text:last-of-type{
+            margin-bottom:22px;
+        }
+
+        .mobile-gate__btn{
+            width:100%;
+            padding:13px 20px;
+            border:none;
+            border-radius:999px;
+            box-sizing:border-box;
+
+            background:rgba(255,255,255,.92);
+            color:#c24a63;
+            font:inherit;
+            font-size:15px;
+            font-weight:700;
+            cursor:pointer;
+            transition:transform .15s ease, background .2s ease;
+        }
+
+        .mobile-gate__btn:hover{
+            background:#ffffff;
+            transform:translateY(-1px);
+        }
+
+        .mobile-gate__btn:active{
+            transform:translateY(0) scale(.98);
+        }
+    </style>
+
     <!-- Анти-мигание при загрузке: пока грузятся css/*.css и js/*.js (это
          несколько отдельных сетевых запросов), страница долю секунды видна
          с дефолтной розовой темой, даже если сохранена другая — на медленной
@@ -77,6 +188,65 @@
     <link rel="stylesheet" href="css/settings.css">
 </head>
 <body>
+    <!-- Разметка и скрипт заглушки — намеренно рядом друг с другом и
+         независимо от js/*.js основного сайта (те подключены с defer,
+         выполнятся заметно позже). Текст на 3 языках, читает тот же
+         localStorage-ключ reginaSelectedLanguage, что и остальной сайт,
+         но напрямую (без js/i18n/i18n.js — тот ещё не загружен). -->
+    <div id="mobileGate">
+        <div class="mobile-gate__card" id="mobileGateCard"></div>
+    </div>
+    <script>
+    (function(){
+        var MOBILE_GATE_TEXT = {
+            ru: {
+                lines: [
+                    "Привет, Регина.",
+                    "Скорее всего, ты открыла эту ссылку с телефона — тут всё будет выглядеть не так, как задумано.",
+                    "Если есть возможность, лучше открой её чуть позже с ноутбука или компьютера — так сайт раскроется полностью и будет выглядеть так, как задумано.",
+                    "Но если хочешь посмотреть прямо сейчас — можешь нажать на кнопку ниже. Просто предупреждаю, что с телефона всё будет немного криво."
+                ],
+                btn: "Всё равно продолжить"
+            },
+            en: {
+                lines: [
+                    "Hi, Regina.",
+                    "You've probably opened this link from a phone — here things won't quite look the way they were meant to.",
+                    "If you can, it's better to open it a little later from a laptop or computer — that way the site unfolds fully and looks the way it's supposed to.",
+                    "But if you want to take a look right now, you can tap the button below. Just a heads-up: on a phone things will look a bit off."
+                ],
+                btn: "Continue anyway"
+            },
+            ro: {
+                lines: [
+                    "Salut, Regina.",
+                    "Probabil ai deschis acest link de pe telefon — aici totul va arăta puțin altfel decât a fost gândit.",
+                    "Dacă poți, e mai bine să-l deschizi ceva mai târziu de pe laptop sau calculator — așa site-ul se desfășoară complet și arată așa cum trebuie.",
+                    "Dar dacă vrei să te uiți chiar acum, poți apăsa butonul de mai jos. Te avertizez doar că de pe telefon totul va arăta puțin cam strâmb."
+                ],
+                btn: "Continuă oricum"
+            }
+        };
+        try {
+            var lang = localStorage.getItem("reginaSelectedLanguage") || "ru";
+            var text = MOBILE_GATE_TEXT[lang] || MOBILE_GATE_TEXT.ru;
+            var card = document.getElementById("mobileGateCard");
+            if(card){
+                card.innerHTML = text.lines.map(function(line){
+                    return '<p class="mobile-gate__text">' + line + "</p>";
+                }).join("") + '<button type="button" id="mobileGateContinue" class="mobile-gate__btn">' + text.btn + "</button>";
+            }
+            var btn = document.getElementById("mobileGateContinue");
+            if(btn){
+                btn.addEventListener("click", function(){
+                    document.documentElement.classList.remove("mobile-gate-active");
+                    try { localStorage.setItem("reginaMobileGateDismissed", "1"); } catch(e){}
+                });
+            }
+        } catch(e){}
+    })();
+    </script>
+
     <img id="buddhaDecoration" class="buddha-decoration" src="images/items/buddha-figurine.webp" alt="" aria-hidden="true">
     <div class="top-actions">
         <button id="aboutButton" class="top-action-btn" type="button" data-i18n="about_panel_title" data-i18n-attr="aria-label,data-label" aria-label="О проекте" data-label="О проекте">ℹ️</button>
