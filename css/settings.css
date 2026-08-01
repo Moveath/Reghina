@@ -2532,30 +2532,6 @@ body:has(.progress-panel.is-open) .intro-settings-hint {
 }
 
 /* ============================================================
-   СТАТИСТИКА ПРОЕКТА — внутри окна "Информация о сайте" (не отдельный
-   угловой виджет — переехало туда по просьбе, см. .about-site-modal
-   выше). Значения — плейсхолдеры (xxxx/xx), заменить на настоящие
-   цифры позже.
-   ============================================================ */
-.about-site-modal__stats{
-    display:grid;
-    gap:6px;
-}
-
-.about-site-modal__stats-row{
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-    font-size:14px;
-    color:rgba(255,255,255,.75);
-}
-
-.about-site-modal__stats-value{
-    color:rgba(255,255,255,.95);
-    font-weight:700;
-}
-
-/* ============================================================
    МОДАЛЬНОЕ ОКНО "О СОБАКЕ" (см. openDogInfoModal в js/ui/settings.js) —
    переиспользует каркас .about-site-modal (тот же тёмно-фиолетовый стиль),
    плюс свой портрет, карточки фактов и галерея эмоций.

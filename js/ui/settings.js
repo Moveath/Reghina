@@ -554,24 +554,6 @@ function ensureAboutSiteModal(){
 
                 <div class="about-site-modal__divider"></div>
 
-                <h3 class="about-site-modal__heading">${t("about_modal_stats_heading")}</h3>
-                <div class="about-site-modal__stats">
-                    <div class="about-site-modal__stats-row">
-                        <span>${t("stats_loc_label")}</span>
-                        <span class="about-site-modal__stats-value">15810</span>
-                    </div>
-                    <div class="about-site-modal__stats-row">
-                        <span>${t("stats_days_label")}</span>
-                        <span class="about-site-modal__stats-value">17</span>
-                    </div>
-                    <div class="about-site-modal__stats-row">
-                        <span>${t("stats_versions_label")}</span>
-                        <span class="about-site-modal__stats-value">1.0</span>
-                    </div>
-                </div>
-
-                <div class="about-site-modal__divider"></div>
-
                 <p>${t("about_modal_thanks_p1")}</p>
                 <p>${t("about_modal_thanks_p2")}</p>
             </div>
@@ -683,7 +665,6 @@ const creationStoryPhotoGroups = [
     [{ file: "story-5.webp", day: 15 }, { file: "story-7.webp", day: 16 }],
     [{ file: "story-16.webp", day: 21 }, { file: "story-18.webp", day: 21 }],
     [{ file: "story-12.webp", day: 20 }, { file: "story-21.webp", day: 27 }],
-    [{ file: "story-19.webp", day: 26 }, { file: "story-20.webp", day: 26 }],
     [{ file: "story-26.webp", day: 30 }, { file: "story-27.webp", day: 30 }]
 ];
 
@@ -770,7 +751,7 @@ function handleCreationStoryLightboxEscape(event){
 function ensureCreationStoryModal(){
     if(creationStoryModalElement) return creationStoryModalElement;
 
-    const [protoGroup, dogGroup, lettersGroup, styleGroup, domainGroup, nowGroup] = creationStoryPhotoGroups;
+    const [protoGroup, dogGroup, lettersGroup, styleGroup, nowGroup] = creationStoryPhotoGroups;
 
     const modal = document.createElement("div");
     modal.id = "creationStoryModal";
@@ -789,8 +770,6 @@ function ensureCreationStoryModal(){
                 ${creationStoryPhotoGroupHtml(lettersGroup)}
                 <p>${t("creation_story_p5")}</p>
                 ${creationStoryPhotoGroupHtml(styleGroup)}
-                <p>${t("creation_story_p6")}</p>
-                ${creationStoryPhotoGroupHtml(domainGroup)}
 
                 <div class="about-site-modal__divider"></div>
 

@@ -23,7 +23,7 @@ const MUSIC_TRACKS = [
 const INTRO_TRACK_ID = "stardew";
 const MAIN_DEFAULT_TRACK_ID = "acnh7pm";
 
-const INTRO_VOLUME_FRACTION = 0.25;   // 20-30% во время самого интро
+const INTRO_VOLUME_FRACTION = 0.32;   // 30-35% во время самого интро
 const DUCK_VOLUME_FRACTION = 0.15;    // на время "важных" диалогов после интро
 const DEFAULT_MAIN_VOLUME_PERCENT = 45; // 40-50% по умолчанию, пока не выбрано своё
 
