@@ -45,6 +45,12 @@ if(bot && supabase){
         if(!msg.text) return; // пока только текстовые письма, без фото/голоса
         if(msg.text.startsWith("/")) return; // служебные команды (/start и т.п.) письмами не считаем
 
+        // Обычный случай — ответ на то, что она уже написала. Но сайт
+        // персональный, получатель всегда один и тот же, поэтому Егору не
+        // обязательно сначала дожидаться письма от неё: если исходящих писем
+        // ещё нет (он пишет первым), письмо уходит единственному/самому
+        // недавно активному профилю — вдруг она вообще не захочет писать
+        // сама, это не должно быть условием, чтобы он мог написать ей.
         const { data: lastOutgoing } = await supabase
             .from(TABLE)
             .select("owner_code")
@@ -54,8 +60,20 @@ if(bot && supabase){
             .limit(1)
             .maybeSingle();
 
-        if(!lastOutgoing){
-            console.warn("[telegram] Не удалось определить владельца для ответа Егора — ни одного исходящего письма с owner_code ещё нет.");
+        let targetOwnerCode = lastOutgoing ? lastOutgoing.owner_code : null;
+
+        if(!targetOwnerCode){
+            const { data: mostRecentProfile } = await supabase
+                .from("profiles")
+                .select("owner_code")
+                .order("last_seen_at", { ascending: false, nullsFirst: false })
+                .limit(1)
+                .maybeSingle();
+            if(mostRecentProfile) targetOwnerCode = mostRecentProfile.owner_code;
+        }
+
+        if(!targetOwnerCode){
+            console.warn("[telegram] Не удалось определить получателя для письма Егора — на сайте ещё вообще нет ни одного профиля.");
             return;
         }
 
@@ -68,14 +86,14 @@ if(bot && supabase){
                 sender: "egor",
                 receiver: "regina",
                 telegram_message_id: msg.message_id,
-                owner_code: lastOutgoing.owner_code
+                owner_code: targetOwnerCode
             });
 
         if(error){
             console.error("[telegram] Не удалось сохранить письмо от Егора:", error.message);
         } else {
             console.log("[telegram] Новое письмо от Егора сохранено во «Входящих».");
-            logEvent(supabase, lastOutgoing.owner_code, "letter_received");
+            logEvent(supabase, targetOwnerCode, "letter_received");
         }
     });
 } else if(bot && !supabase){
