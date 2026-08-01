@@ -428,18 +428,46 @@ window.checkMonthlyKey = checkMonthlyKey;
 // вдобавок мог бы гоняться наперегонки с первыми же локальными действиями
 // пользователя (шаги диалога и т.п.) и по ошибке принять их за "чужие"
 // изменения с сервера.
+// domContentLoadedFired: регистрируем слушатель прямо сейчас, синхронно, при
+// самом парсинге этого <script defer> — гарантированно раньше, чем реально
+// наступит DOMContentLoaded (он наступает только ПОСЛЕ того, как выполнятся
+// вообще все deferred-скрипты, включая этот). Используется ниже вместо
+// document.readyState — во время выполнения ЛЮБОГО deferred-скрипта
+// readyState уже "interactive", а не "loading", так что сам readyState тут
+// не отличил бы "скрипты ещё грузятся" от "уже всё загружено".
+let domContentLoadedFired = false;
+document.addEventListener("DOMContentLoaded", () => { domContentLoadedFired = true; }, { once: true });
+
 const hadOwnerCodeBeforeStartup = Boolean(getOwnerCode());
 ensureOwnerCode().then(code => {
     if(!code) return;
     if(hadOwnerCodeBeforeStartup) reconcileWithServer();
+
     // Полная очередь приветствия (ключ -> письма -> музыка -> обычная
     // фраза, см. js/character/returningGreeting.js) сама вызывает
     // checkMonthlyKey() как первый шаг — отдельно его звать здесь больше не
     // нужно. window.runReturningVisitGreeting может быть ещё не определена
-    // в момент ПАРСИНГА этого файла (грузится позже) — но к моменту, когда
-    // реально разрешится этот промис, все deferred-скрипты уже выполнились
-    // (тот же приём, что и раньше с checkMonthlyKey -> showMonthlyKeyDialogue).
-    if(typeof window.runReturningVisitGreeting === "function") window.runReturningVisitGreeting();
-    else checkMonthlyKey();
+    // в момент ПАРСИНГА этого файла (грузится позже) — раньше здесь была
+    // расчёт на то, что "к моменту, когда реально разрешится этот промис,
+    // все deferred-скрипты уже выполнились", но это верно только когда
+    // ensureOwnerCode() реально ходит в сеть (самый первый визит на
+    // устройстве). На ВОЗВРАЩАЮЩЕМСЯ визите код уже лежит в localStorage,
+    // и ensureOwnerCode() резолвится почти мгновенно — быстрее, чем браузер
+    // успевает выполнить следующий <script defer> (returningGreeting.js),
+    // из-за чего эта проверка стабильно проваливалась в checkMonthlyKey()
+    // без всей остальной очереди: ни реплика про новое письмо, ни музыка не
+    // показывались вообще ни на одном обычном возврате на сайт. Ждём
+    // DOMContentLoaded (наступает только когда все deferred-скрипты уже
+    // выполнились), если он ещё не наступил.
+    const startGreetingQueue = () => {
+        if(typeof window.runReturningVisitGreeting === "function") window.runReturningVisitGreeting();
+        else checkMonthlyKey();
+    };
+    if(domContentLoadedFired){
+        startGreetingQueue();
+    } else {
+        document.addEventListener("DOMContentLoaded", startGreetingQueue, { once: true });
+    }
+
     sendHeartbeat(true);
 });

@@ -518,7 +518,15 @@ async function loadInbox(){
             const introDone = typeof isIntroAlreadyCompleted === "function" ? isIntroAlreadyCompleted() : true;
             const shouldShow = introDone && unread.length > 0 && hasUnannounced;
 
-            saveNotifiedUnreadIds(new Set(unread.map(letter => letter.id)));
+            // Отмечаем как "уже рассказано" только после интро — иначе письмо,
+            // пришедшее ДО того, как интро вообще завершилось (например,
+            // Регина выбрала "Пока нет" и вернулась через несколько дней),
+            // сгорело бы молча: shouldShow тут в любом случае false
+            // (introDone ещё false), но notified запомнил бы его id навсегда,
+            // и самый первый визит уже ПОСЛЕ завершённого интро остался бы
+            // без реплики про это письмо, хотя формально её ещё ни разу не
+            // показывали.
+            if(introDone) saveNotifiedUnreadIds(new Set(unread.map(letter => letter.id)));
             resolveLetterGreetingReady({ shouldShow, text: shouldShow ? buildWelcomeBackText(unread.length) : null });
         } else {
             // Уже в активной сессии: новое письмо получает лёгкий тост, а
