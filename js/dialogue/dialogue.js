@@ -419,20 +419,12 @@ function renderIntroDialogue(){
 }
     // Рендерим в зависимости от типа
     if(line.type === "thought"){
-        // isDream (только самая первая реплика, спящая собака) — картинка
-        // того, что снится, вставляется ПРЯМО в то же облако, что и текст
-        // (сверху, без отдельной круглой/квадратной рамки-контейнера) —
-        // как будто это одна и та же сцена сна, а не два разных окна.
-        const dreamImageHtml = line.isDream
-            ? `<img class="thought-cloud__dream-image" src="images/items/dream-candy.jpg" alt="">`
-            : "";
         dialogueContainer.innerHTML = `
             <div class="intro-dialogue" role="dialog" aria-live="polite">
-                <div class="intro-dialogue__thought${line.isDream ? " intro-dialogue__thought--dream" : ""}">
+                <div class="intro-dialogue__thought">
                     <div class="thought-dot thought-dot--1"></div>
                     <div class="thought-dot thought-dot--2"></div>
                     <div class="thought-cloud">
-                        ${dreamImageHtml}
                         <p>${displayText}</p>
                         ${footerHtml}
                     </div>
